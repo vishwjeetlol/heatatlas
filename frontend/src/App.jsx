@@ -382,6 +382,36 @@ export default function App() {
     }).addTo(map);
   }, [driverPos, radiusMeters, lang]);
 
+  const getZoneTemp = useCallback((zone, hour) => {
+    if (!zone) return 38.0;
+    let r = zone.row;
+    let c = zone.col;
+    if (r === undefined || c === undefined) {
+      if (zone.id && zone.id.startsWith('Z-')) {
+        const digits = zone.id.replace('Z-', '');
+        r = parseInt(digits[0], 10);
+        c = parseInt(digits[1], 10);
+      }
+    }
+    r = isNaN(r) ? 3.5 : r;
+    c = isNaN(c) ? 3.5 : c;
+    const r_dist = Math.abs(r - 3.5);
+    const c_dist = Math.abs(c - 3.5);
+    const variance = 2.5 - 0.5 * (r_dist + c_dist);
+
+    if (hourlyTemps && hourlyTemps.length > hour) {
+      const baseTemp = hourlyTemps[hour];
+      if (typeof baseTemp === 'number' && !isNaN(baseTemp)) {
+        return Math.round((baseTemp + variance) * 10) / 10;
+      }
+    }
+    return typeof zone.temperature === 'number' && !isNaN(zone.temperature) ? zone.temperature : 38.0;
+  }, [hourlyTemps]);
+
+  const dynamicSelectedTemp = useMemo(() => {
+    return getZoneTemp(selectedZone, hourOffset);
+  }, [selectedZone, hourOffset, getZoneTemp]);
+
   // Cool Corridor Polyline on Map
   useEffect(() => {
     const map = mapInstance.current;
@@ -417,36 +447,6 @@ export default function App() {
       map.fitBounds(coolRoutePolylineRef.current.getBounds(), { padding: [30, 30] });
     }
   }, [showCoolRoute, currentCityMeta, dynamicSelectedTemp]);
-
-  const getZoneTemp = useCallback((zone, hour) => {
-    if (!zone) return 38.0;
-    let r = zone.row;
-    let c = zone.col;
-    if (r === undefined || c === undefined) {
-      if (zone.id && zone.id.startsWith('Z-')) {
-        const digits = zone.id.replace('Z-', '');
-        r = parseInt(digits[0], 10);
-        c = parseInt(digits[1], 10);
-      }
-    }
-    r = isNaN(r) ? 3.5 : r;
-    c = isNaN(c) ? 3.5 : c;
-    const r_dist = Math.abs(r - 3.5);
-    const c_dist = Math.abs(c - 3.5);
-    const variance = 2.5 - 0.5 * (r_dist + c_dist);
-
-    if (hourlyTemps && hourlyTemps.length > hour) {
-      const baseTemp = hourlyTemps[hour];
-      if (typeof baseTemp === 'number' && !isNaN(baseTemp)) {
-        return Math.round((baseTemp + variance) * 10) / 10;
-      }
-    }
-    return typeof zone.temperature === 'number' && !isNaN(zone.temperature) ? zone.temperature : 38.0;
-  }, [hourlyTemps]);
-
-  const dynamicSelectedTemp = useMemo(() => {
-    return getZoneTemp(selectedZone, hourOffset);
-  }, [selectedZone, hourOffset, getZoneTemp]);
 
   const hierarchicalGrid = useMemo(() => {
     if (zones.length === 0) return [];
