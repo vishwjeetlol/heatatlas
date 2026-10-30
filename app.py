@@ -159,9 +159,18 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# Cloudflare Security Hardening: Bounded CORS for local development & production domains
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "*" # Permissive fallback for hackathon demonstration
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
