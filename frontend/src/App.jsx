@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Flame, Droplet, Trees, Snowflake, Cross, Clock, MessageSquare, RefreshCw, ZoomIn, MapPin, Camera, CheckCircle2, PhoneCall, ShieldAlert, Compass, Mic, Route, Volume2, Building, AlertTriangle, Send, Radio, Bot, X, Sparkles } from 'lucide-react';
+import { Flame, Droplet, Trees, Snowflake, Cross, Clock, MessageSquare, RefreshCw, ZoomIn, MapPin, Camera, CheckCircle2, PhoneCall, ShieldAlert, Compass, Mic, Route, Volume2, Building, AlertTriangle, Send, Radio, Bot, X, Sparkles, Zap, Navigation, Award, ChevronRight, Activity } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -881,7 +882,14 @@ export default function App() {
         method: 'POST'
       });
       if (res.ok) {
-        showToast('✅ Water demand marked as delivered!');
+        // Confetti celebration micro-interaction for successful water relief delivery!
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.8 },
+          colors: ['#0071e3', '#34d399', '#38bdf8']
+        });
+        showToast('✅ Water demand delivered to workers!');
         fetchBeacons();
         fetchBrief(selectedCity);
       }
@@ -1201,71 +1209,95 @@ export default function App() {
           {/* HERO METRIC BENTO - REAL-TIME TEMPERATURE SLIDER REACTIVITY */}
           {selectedZone && (
             <section className="px-2.5 pt-1">
-              <div className="bg-white rounded-2xl p-3.5 border border-black/5 shadow-xs">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[12px] font-bold text-[#86868b] uppercase tracking-wide truncate max-w-[220px]">
-                    {selectedZone.name} ({selectedZone.id})
+              <div className="bg-white rounded-3xl p-4 border border-black/5 shadow-sm relative overflow-hidden">
+                {/* Visual Glass Thermal Aura */}
+                <div 
+                  className="absolute -right-10 -top-10 w-36 h-36 rounded-full blur-2xl pointer-events-none opacity-40 transition-colors duration-500"
+                  style={{
+                    background: dynamicSelectedTemp >= 41.0 ? 'radial-gradient(circle, #ef4444, transparent)' :
+                                dynamicSelectedTemp >= 39.0 ? 'radial-gradient(circle, #f97316, transparent)' :
+                                dynamicSelectedTemp >= 38.0 ? 'radial-gradient(circle, #eab308, transparent)' : 'radial-gradient(circle, #10b981, transparent)'
+                  }}
+                />
+
+                <div className="flex justify-between items-center mb-1 relative z-10">
+                  <span className="text-[12.5px] font-extrabold text-[#1d1d1f] uppercase tracking-wide truncate max-w-[210px] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                    {selectedZone.name}
                   </span>
-                  <span className={`font-mono text-[9.5px] font-bold px-2 py-0.5 rounded-md ${
-                    dynamicSelectedTemp >= 41.0 ? 'bg-red-100 text-red-800' :
-                    dynamicSelectedTemp >= 39.0 ? 'bg-orange-100 text-orange-800' :
-                    dynamicSelectedTemp >= 38.0 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                  <span className={`font-mono text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shadow-2xs ${
+                    dynamicSelectedTemp >= 41.0 ? 'bg-red-50 text-red-700 border-red-200' :
+                    dynamicSelectedTemp >= 39.0 ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                    dynamicSelectedTemp >= 38.0 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   }`}>
-                    {dynamicSelectedTemp >= 41.0 ? 'CRITICAL' : dynamicSelectedTemp >= 39.0 ? 'HIGH' : dynamicSelectedTemp >= 38.0 ? 'MODERATE' : 'LOW'}
+                    {dynamicSelectedTemp >= 41.0 ? '🚨 CRITICAL HEAT' : dynamicSelectedTemp >= 39.0 ? '⚠️ SEVERE HEAT' : dynamicSelectedTemp >= 38.0 ? '⚡ ELEVATED' : '✓ MODERATE'}
                   </span>
                 </div>
-                <div className="flex justify-between items-end">
-                  <span className="font-display font-extrabold text-[36px] text-[#ff3b30] leading-none tracking-tight">
-                    {dynamicSelectedTemp}°C
-                  </span>
+
+                <div className="flex justify-between items-end relative z-10 my-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-display font-extrabold text-[42px] text-[#1d1d1f] leading-none tracking-tight">
+                      {dynamicSelectedTemp}°
+                    </span>
+                    <span className="text-[15px] font-bold text-red-500">C</span>
+                    <span className="text-[10px] text-gray-500 font-mono ml-1.5">felt temp</span>
+                  </div>
                   <div className="text-[10.5px] text-[#86868b] flex flex-col gap-0.5 text-right font-medium">
-                    <div>RELIEF DEFICIT: <strong className="text-[#1d1d1f] font-mono">{selectedZone.rd.toLocaleString()}</strong></div>
-                    <div>VULNERABLE POP: <strong className="text-[#1d1d1f] font-mono">{selectedZone.vh.toLocaleString()}</strong></div>
+                    <div>DEFICIT: <strong className="text-[#1d1d1f] font-mono font-bold">{selectedZone.rd.toLocaleString()}</strong></div>
+                    <div>AT-RISK POP: <strong className="text-[#1d1d1f] font-mono font-bold">{selectedZone.vh.toLocaleString()}</strong></div>
                   </div>
                 </div>
 
                 {/* APPLE BENTO MINI-METRIC STRIP */}
-                <div className="grid grid-cols-3 gap-1.5 mt-2.5 pt-2 border-t border-black/5 text-center">
-                  <div className="bg-[#f5f5f7] rounded-xl p-1.5">
-                    <div className="text-[9px] uppercase font-bold text-[#86868b]">Peak Window</div>
-                    <div className="text-[11px] font-bold text-[#1d1d1f] font-mono mt-0.5">12:00–16:00</div>
+                <div className="grid grid-cols-3 gap-1.5 mt-2 pt-2 border-t border-black/5 text-center relative z-10">
+                  <div className="bg-[#f5f5f7] rounded-xl p-2 border border-black/5">
+                    <div className="text-[9px] uppercase font-bold text-[#86868b] flex items-center justify-center gap-0.5">
+                      <Clock size={10} /> Peak Hours
+                    </div>
+                    <div className="text-[11.5px] font-bold text-[#1d1d1f] font-mono mt-0.5">12:00–16:00</div>
                   </div>
-                  <div className="bg-[#f5f5f7] rounded-xl p-1.5">
-                    <div className="text-[9px] uppercase font-bold text-[#86868b]">Active Beacons</div>
-                    <div className="text-[11px] font-bold text-red-600 font-mono mt-0.5">{activeBeacons.length} Unmet</div>
+                  <div className="bg-[#f5f5f7] rounded-xl p-2 border border-black/5">
+                    <div className="text-[9px] uppercase font-bold text-[#86868b] flex items-center justify-center gap-0.5">
+                      <Flame size={10} className="text-red-500" /> Active Beacons
+                    </div>
+                    <div className="text-[11.5px] font-bold text-red-600 font-mono mt-0.5">{activeBeacons.length} Signals</div>
                   </div>
-                  <div className="bg-[#f5f5f7] rounded-xl p-1.5">
-                    <div className="text-[9px] uppercase font-bold text-[#86868b]">Working Taps</div>
-                    <div className="text-[11px] font-bold text-emerald-700 font-mono mt-0.5">{selectedZone.working_taps} Taps</div>
+                  <div className="bg-[#f5f5f7] rounded-xl p-2 border border-black/5">
+                    <div className="text-[9px] uppercase font-bold text-[#86868b] flex items-center justify-center gap-0.5">
+                      <Droplet size={10} className="text-sky-500" /> Working Taps
+                    </div>
+                    <div className="text-[11.5px] font-bold text-emerald-700 font-mono mt-0.5">{selectedZone.working_taps} Verified</div>
                   </div>
                 </div>
 
                 {/* EL NINO & CLIMATOLOGY ALERT BANNER */}
                 {currentCityMeta && (
-                  <div className="mt-2.5 pt-2 border-t border-black/5 bg-amber-50/70 p-2 rounded-xl border border-amber-200">
-                    <div className="flex justify-between items-center text-[9px] font-bold text-amber-900">
-                      <span>🌍 El Niño Vulnerability:</span>
-                      <span className="font-mono text-amber-800">+{currentCityMeta.el_nino_temp_boost}°C Anomaly</span>
+                  <div className="mt-2 pt-2 border-t border-black/5 bg-gradient-to-r from-amber-50 to-orange-50 p-2.5 rounded-xl border border-amber-200/80 relative z-10">
+                    <div className="flex justify-between items-center text-[9.5px] font-bold text-amber-900">
+                      <span className="flex items-center gap-1">🌍 El Niño Climate Anomaly:</span>
+                      <span className="font-mono bg-amber-200/60 text-amber-900 px-1.5 py-0.2 rounded font-bold">+{currentCityMeta.el_nino_temp_boost}°C Anomaly</span>
                     </div>
-                    <div className="text-[9.5px] text-amber-800 font-semibold mt-0.5">
+                    <div className="text-[10px] text-amber-900 font-semibold mt-1">
                       {currentCityMeta.el_nino_vulnerability}
                     </div>
-                    <div className="text-[8.5px] text-amber-700/80 mt-0.5 font-medium">
-                      Region: {currentCityMeta.region} · Climate: {currentCityMeta.climate_zone}
+                    <div className="text-[9px] text-amber-700/90 mt-0.5 font-medium flex items-center gap-2">
+                      <span>Region: <strong>{currentCityMeta.region}</strong></span>
+                      <span>•</span>
+                      <span>Climate: <strong>{currentCityMeta.climate_zone}</strong></span>
                     </div>
                   </div>
                 )}
-                <div className="mt-2.5 pt-2 border-t border-black/5 flex items-center justify-between">
+                <div className="mt-2.5 pt-2 border-t border-black/5 flex items-center justify-between relative z-10">
                   <span className="text-[10px] text-[#86868b] font-medium flex items-center gap-1">
                     <Radio size={12} className="text-red-500 animate-pulse" /> 15s Driver Audio Alert
                   </span>
                   <button
                     onClick={playVoiceDispatch}
                     disabled={voiceDispatchAudioPlaying}
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold text-[10.5px] px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-xs active:scale-95 transition-transform"
+                    className="bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-[10.5px] px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform"
                   >
-                    <Volume2 size={12} className={voiceDispatchAudioPlaying ? 'animate-bounce' : ''} />
-                    <span>{voiceDispatchAudioPlaying ? 'Broadcasting...' : 'Play Voice Dispatch'}</span>
+                    <Volume2 size={13} className={voiceDispatchAudioPlaying ? 'animate-bounce' : ''} />
+                    <span>{voiceDispatchAudioPlaying ? 'Broadcasting Speech...' : 'Play Voice Dispatch'}</span>
                   </button>
                 </div>
               </div>
@@ -1407,18 +1439,30 @@ export default function App() {
 
                   <div className="flex justify-between items-center pt-1 border-t border-red-200/60">
                     <div className="text-[9.5px] text-red-700 font-medium">
-                      🤖 Gemini 3.8: {b.detected_crowd} workers · {(b.confidence * 100).toFixed(0)}% verified
+                      <span className="font-bold text-red-900">🤖 Gemini Flash Verification:</span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="bg-red-200/70 text-red-900 px-1.5 py-0.2 rounded font-mono font-bold">
+                          {(b.confidence * 100).toFixed(0)}% Confidence
+                        </span>
+                        <span>•</span>
+                        <span>👥 {b.detected_crowd} workers</span>
+                      </div>
+                      {b.condition && (
+                        <div className="text-[9px] text-red-800/90 italic mt-0.5 max-w-[210px]">
+                          "{b.condition}"
+                        </div>
+                      )}
                       {b.assigned_ngo && (
                         <span className="block text-[8.5px] text-blue-700 font-semibold mt-0.5">
-                          🏢 Dispatched: {b.assigned_ngo}
+                          🏢 Dispatched: {b.assigned_ngo} ({b.ngo_distance_meters || 0}m away)
                         </span>
                       )}
                     </div>
                     <button
                       onClick={() => handleResolveBeacon(b.id)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 active:scale-95 transition-transform"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] px-2.5 py-1.5 rounded-xl shadow-xs flex items-center gap-1 active:scale-95 transition-transform shrink-0"
                     >
-                      <CheckCircle2 size={11} /> {t.demandMetBtn}
+                      <CheckCircle2 size={12} /> {t.demandMetBtn}
                     </button>
                   </div>
                 </div>

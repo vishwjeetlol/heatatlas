@@ -149,7 +149,48 @@ body {
   border-radius: 50%;
 }
 
-/* Bottom Home Swipe Indicator */
+/* Glassmorphism & Micro-animations */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.glass-panel-dark {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.heat-glow {
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.35);
+}
+
+.cool-glow {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes heat-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-badge {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 158, 11, 0.25) 50%, rgba(239, 68, 68, 0.1) 100%);
+  background-size: 200% 100%;
+  animation: heat-shimmer 2.5s infinite;
+}
 .home-indicator-bar {
   position: sticky;
   bottom: 0;
