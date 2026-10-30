@@ -5,6 +5,7 @@ import asyncio
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 
@@ -35,6 +36,7 @@ BEACONS = [
         "lon": 73.8578,
         "zone_id": "Z-44",
         "description": "15+ delivery riders waiting between food delivery orders under direct sun, municipal tap dry",
+        "image_url": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&auto=format&fit=crop&q=80",
         "verified": True,
         "confidence": 0.94,
         "detected_crowd": 16,
@@ -50,6 +52,7 @@ BEACONS = [
         "lon": 73.8744,
         "zone_id": "Z-35",
         "description": "8 rickshaw drivers sitting under tin roof, no cool drinking water available",
+        "image_url": "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=600&auto=format&fit=crop&q=80",
         "verified": True,
         "confidence": 0.88,
         "detected_crowd": 8,
@@ -65,6 +68,7 @@ BEACONS = [
         "lon": 73.9315,
         "zone_id": "Z-46",
         "description": "22 daily wage cart pullers & laborers hauling produce under scorching mid-day heat",
+        "image_url": "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&auto=format&fit=crop&q=80",
         "verified": True,
         "confidence": 0.97,
         "detected_crowd": 22,
@@ -413,6 +417,7 @@ async def report_beacon(req: BeaconReportRequest):
         "lon": req.lon,
         "zone_id": req.zone_id,
         "description": req.description,
+        "image_base64": req.image_base64 if req.image_base64 else None,
         "verified": audit_res.get("verified", True),
         "confidence": audit_res.get("confidence", 0.91),
         "detected_crowd": audit_res.get("detected_crowd", 10),
@@ -616,6 +621,11 @@ async def dispatch_brief(req: DispatchRequest):
         beacons=BEACONS
     )
     return brief
+
+@app.get("/dashboard")
+async def serve_dashboard():
+    dashboard_file = os.path.join(os.path.dirname(__file__), "static", "dashboard.html")
+    return FileResponse(dashboard_file)
 
 # Serve static frontend files
 app.mount("/", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static"), html=True), name="static")

@@ -478,6 +478,14 @@ async def generate_ngo_squad_orders(ngo_name: str, resources: dict, target_zone:
 
 ⚠️ *Safety Protocol:* Rotate teams every 45 mins. For fainting/anhidrosis, dial 108 immediately."""
 
+    return {
+        "status": "success",
+        "orders": whatsapp_text,
+        "whatsapp_text": whatsapp_text,
+        "ngo_name": ngo_name,
+        "target_zone": target_zone
+    }
+
 async def handle_chatbot_message(
     user_message: str,
     city_name: str,

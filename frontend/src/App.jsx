@@ -865,7 +865,8 @@ export default function App() {
         })
       });
       const data = await res.json();
-      setSquadOrdersText(data.whatsapp_formatted_text);
+      const orderText = data.whatsapp_text || data.orders || data.whatsapp_formatted_text;
+      setSquadOrdersText(orderText);
       showToast(`⚡ Generated Battle Orders for ${ngo.name}`);
     } catch (err) {
       showToast('Error generating squad orders');
@@ -1434,15 +1435,25 @@ export default function App() {
             <div className="flex flex-col gap-1.5">
               {activeBeacons.map(b => (
                 <div key={b.id} className="bg-red-50 border border-red-200 rounded-xl p-2.5 flex flex-col gap-1.5">
-                  <div className="flex justify-between items-start">
-                    <div>
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1">
                       <div className="font-bold text-[12px] text-red-950">{b.location_name}</div>
                       <div className="text-[10.5px] text-red-800 mt-0.5 leading-snug">{b.description}</div>
                     </div>
-                    <span className="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                    <span className="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0">
                       URGENT
                     </span>
                   </div>
+
+                  {/* Ground Driver Proof Image Preview */}
+                  {(b.image_url || b.image_base64) && (
+                    <div className="w-full h-28 rounded-lg overflow-hidden bg-slate-900 border border-red-200 relative group my-0.5">
+                      <img src={b.image_url || b.image_base64} alt={b.location_name} className="w-full h-full object-cover" />
+                      <span className="absolute bottom-1.5 left-1.5 bg-black/75 backdrop-blur-xs text-white text-[8.5px] font-mono px-1.5 py-0.2 rounded font-bold">
+                        📷 Driver Ground Photo
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex justify-between items-center pt-1 border-t border-red-200/60">
                     <div className="text-[9.5px] text-red-700 font-medium">
