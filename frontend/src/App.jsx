@@ -170,6 +170,10 @@ export default function App() {
   const [squadOrdersText, setSquadOrdersText] = useState(null);
   const [isGeneratingSquadOrders, setIsGeneratingSquadOrders] = useState(false);
 
+  // Municipal & Grid Outage Outrages State
+  const [outages, setOutages] = useState([]);
+  const [showOutages, setShowOutages] = useState(true);
+
   // Ground-Aware AI Chatbot State
   const [showChatbot, setShowChatbot] = useState(false);
   const [chatMessages, setChatMessages] = useState([
@@ -273,6 +277,16 @@ export default function App() {
       const res = await fetch('/api/beacons');
       const data = await res.json();
       setBeacons(data.beacons || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchOutages = async (city = selectedCity) => {
+    try {
+      const res = await fetch(`/api/outages?city=${city}`);
+      const data = await res.json();
+      setOutages(data.outages || []);
     } catch (err) {
       console.error(err);
     }
@@ -599,6 +613,7 @@ export default function App() {
     fetchZones(0, selectedCity);
     fetchAssets(selectedCity);
     fetchBeacons();
+    fetchOutages(selectedCity);
     fetchBrief(selectedCity);
     fetchNgos(selectedCity);
   }, [lang, selectedCity]);
@@ -1036,6 +1051,55 @@ export default function App() {
               </button>
             </div>
           </div>
+
+          {/* CRITICAL MUNICIPAL & GRID OUTAGES (Every Outrage Live) */}
+          {outages.length > 0 && (
+            <div className="px-2.5 pt-1">
+              <div className="bg-gradient-to-r from-red-950/90 to-amber-950/90 border border-red-500/40 rounded-xl p-2.5 text-white shadow-md">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
+                    <span className="font-extrabold text-[11.5px] text-red-200 uppercase tracking-wider flex items-center gap-1">
+                      ⚠️ Live Municipal Outrage & Grid Failures ({outages.length})
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setShowOutages(!showOutages)}
+                    className="text-[10px] text-red-300 underline font-semibold"
+                  >
+                    {showOutages ? 'Hide' : 'Show All'}
+                  </button>
+                </div>
+
+                {showOutages && (
+                  <div className="flex flex-col gap-1.5 mt-1">
+                    {outages.map((outage) => (
+                      <div
+                        key={outage.id}
+                        className="bg-black/40 border border-red-500/30 rounded-lg p-2 flex flex-col gap-1"
+                      >
+                        <div className="flex justify-between items-start">
+                          <span className="font-bold text-[11px] text-amber-300">
+                            📍 {outage.ward_name}
+                          </span>
+                          <span className="bg-red-600/90 text-white font-mono font-bold text-[8.5px] px-1.5 py-0.2 rounded">
+                            {outage.outage_type.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-200 leading-snug">
+                          {outage.description}
+                        </p>
+                        <div className="flex justify-between items-center text-[9px] text-red-300/90 pt-1 border-t border-red-500/20 font-mono">
+                          <span>👥 {outage.affected_population.toLocaleString()} affected</span>
+                          <span>⏳ Est: {outage.est_restoration} ({outage.source})</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* WORKER MODE: CROWD BEACON + VOICE NOTE + EMERGENCY TRIAGE */}
           {viewMode === 'worker' && (

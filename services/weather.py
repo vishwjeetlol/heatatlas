@@ -23,7 +23,8 @@ async def get_city_forecast(city_id: str = "pune"):
     params = {
         "latitude": f"{lat:.4f}",
         "longitude": f"{lon:.4f}",
-        "hourly": "temperature_2m,apparent_temperature,relative_humidity_2m",
+        "current": "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,surface_pressure",
+        "hourly": "temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,direct_normal_irradiance,uv_index,wind_speed_10m",
         "timezone": "Asia/Kolkata",
         "forecast_days": 2
     }

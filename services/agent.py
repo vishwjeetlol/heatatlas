@@ -48,35 +48,30 @@ Output JSON:
 }
 """
 
-async def audit_beacon_photo(image_base64: str) -> dict:
+async def audit_beacon_photo(image_base64: str = None, description: str = "") -> dict:
     """
-    Multimodal Vision Audit (Gemini 3.8 Flash)
+    Multimodal Vision & NLP Audit (Gemini Flash Spatial Intelligence)
     Verifies authentic outdoor heat context, crowd size, and dry tap conditions.
+    Actually verifies the user's uploaded photo or text description with Gemini!
     """
     api_key = GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return {
-            "verified": True,
-            "confidence": 0.94,
-            "detected_crowd": 15,
-            "condition": "15+ delivery riders and laborers clustered under flyover shade in intense direct heat.",
-            "is_simulated": True
-        }
+    
+    if api_key:
+        try:
+            from google import genai
+            from google.genai import types
 
-    try:
-        from google import genai
-        from google.genai import types
+            client = genai.Client(api_key=api_key)
 
-        client = genai.Client(api_key=api_key)
-        
-        if "," in image_base64:
-            image_base64 = image_base64.split(",")[1]
-        image_bytes = base64.b64decode(image_base64)
+            if image_base64:
+                if "," in image_base64:
+                    image_base64 = image_base64.split(",")[1]
+                image_bytes = base64.b64decode(image_base64)
 
-        prompt = f"""{SYSTEM_PROMPT}
+                prompt = f"""{SYSTEM_PROMPT}
 
-TASK: Multimodal Vision Inspection of an uploaded ground photo from Pune, India.
-1. Authenticate whether this image represents a real outdoor Indian street, bus depot, or junction.
+TASK: Multimodal Vision Inspection of an uploaded ground photo from India.
+1. Authenticate whether this image represents a real outdoor street, bus depot, or junction.
 2. Count or estimate number of outdoor workers/riders (Zomato/Blinkit/Swiggy delivery gear, tempo drivers, laborers).
 3. Detect indicators of severe heat (harsh direct sun, sweat, workers sheltering under flyover, empty water bottles).
 4. Reject invalid images (indoor memes, irrelevant graphics).
@@ -86,27 +81,81 @@ Return pure JSON:
   "verified": true,
   "confidence": 0.95,
   "detected_crowd": 14,
-  "condition": "14 delivery riders waiting at Jedhe Chowk flyover pillar, no active water source nearby."
+  "condition": "14 delivery riders waiting at flyover pillar in direct heat, no active water source nearby."
 }}
 """
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=[
-                types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
-                prompt
-            ],
-            config={"response_mime_type": "application/json"}
-        )
-        return json.loads(response.text)
-    except Exception as e:
-        print(f"Gemini 3.8 Vision fallback: {e}")
+                response = client.models.generate_content(
+                    model=GEMINI_MODEL,
+                    contents=[
+                        types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+                        prompt
+                    ],
+                    config={"response_mime_type": "application/json"}
+                )
+                return json.loads(response.text)
+            elif description:
+                prompt = f"""{SYSTEM_PROMPT}
+
+TASK: Natural Language Verification of a ground worker demand beacon report:
+Report Description: "{description}"
+
+Evaluate:
+1. Is this a legitimate outdoor heat relief request? (verified: true or false)
+2. Assign a calculated confidence score between 0.20 and 0.98 based on detail specificity and authenticity.
+3. Extract or estimate crowd count (integer).
+4. Provide a 1-sentence diagnostic condition of the ground situation.
+
+Return pure JSON:
+{{
+  "verified": true,
+  "confidence": 0.89,
+  "detected_crowd": 10,
+  "condition": "Outdoor workers facing critical hydration deficit under direct sunlight"
+}}
+"""
+                response = client.models.generate_content(
+                    model=GEMINI_MODEL,
+                    contents=prompt,
+                    config={"response_mime_type": "application/json"}
+                )
+                return json.loads(response.text)
+        except Exception as e:
+            print(f"Gemini Vision/NLP audit fallback: {e}")
+
+    # Deterministic fallback scoring based on actual content
+    lower_desc = description.lower() if description else ""
+    is_spam = any(w in lower_desc for w in ["test", "fake", "lol", "asdf", "hello", "trial", "mock"])
+    
+    # Extract any explicit number mentioned in description (e.g., "15 riders")
+    import re
+    nums = re.findall(r'\b\d+\b', description or "")
+    detected_num = int(nums[0]) if nums else 8
+    
+    if is_spam:
         return {
-            "verified": True,
-            "confidence": 0.91,
-            "detected_crowd": 12,
-            "condition": "Outdoor gathering with apparent need for drinking water and shade.",
+            "verified": False,
+            "confidence": 0.18,
+            "detected_crowd": 0,
+            "condition": "Unverified / non-emergency submission filtered by safety filter.",
             "is_simulated": True
         }
+    
+    # Calculate specific confidence based on location keywords
+    has_location = any(w in lower_desc for w in ["chowk", "station", "stand", "depot", "road", "nagar", "peth", "flyover", "corner", "gate"])
+    has_heat = any(w in lower_desc for w in ["sun", "heat", "water", "hot", "dry", "bottle", "thirst", "faint", "rider", "worker", "laborer", "auto"])
+    
+    calc_conf = 0.72
+    if has_location: calc_conf += 0.12
+    if has_heat: calc_conf += 0.11
+    calc_conf = round(min(0.97, calc_conf), 2)
+
+    return {
+        "verified": True,
+        "confidence": calc_conf,
+        "detected_crowd": detected_num,
+        "condition": f"{detected_num} workers at active outdoor location urgently in need of clean drinking water.",
+        "is_simulated": True
+    }
 
 async def generate_dispatch_brief(request_text: str, start_hour: int, end_hour: int, resources: dict, ranked_zones: list, beacons: list = []) -> dict:
     top_targets = ranked_zones[:3]
