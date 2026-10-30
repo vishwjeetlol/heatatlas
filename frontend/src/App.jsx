@@ -393,26 +393,30 @@ export default function App() {
     }
 
     if (showCoolRoute) {
-      // Shaded path from Swargate via Sarasbaug tree canopy to Deccan
+      // Dynamic shaded path anchored to current city's active centroid & default junction
+      const [cLat, cLon] = currentCityMeta?.centroid || [18.5204, 73.8567];
+      const jLat = currentCityMeta?.default_junction?.lat || cLat - 0.015;
+      const jLon = currentCityMeta?.default_junction?.lon || cLon + 0.005;
+
       const coolRouteCoords = [
-        [18.5018, 73.8578], // Swargate
-        [18.5015, 73.8530], // Sarasbaug Canopy
-        [18.5050, 73.8490], // Parvati Foothill trees
-        [18.5120, 73.8440], // Tilak Road Shaded Avenue
-        [18.5173, 73.8415]  // Deccan Gymkhana
+        [jLat, jLon], // Origin junction
+        [jLat + 0.003, jLon - 0.005], // Tree Canopy Park
+        [jLat + 0.007, jLon - 0.009], // Riverbank / Green Avenue
+        [cLat - 0.004, cLon - 0.004], // Shaded Arterial
+        [cLat, cLon] // Destination Center
       ];
 
       coolRoutePolylineRef.current = L.polyline(coolRouteCoords, {
         color: '#10b981',
-        weight: 4,
+        weight: 5,
         dashArray: '6, 6',
-        opacity: 0.85
+        opacity: 0.9
       }).addTo(map);
 
-      coolRoutePolylineRef.current.bindPopup('🌿 <strong>Canopy Cool Corridor</strong><br>37.2°C (5.2°C cooler than flyover highway)').openPopup();
+      coolRoutePolylineRef.current.bindPopup(`🌿 <strong>${currentCityMeta?.name || 'City'} Canopy Cool Corridor</strong><br>${(dynamicSelectedTemp - 4.5).toFixed(1)}°C (4.5°C cooler than asphalt highways)`).openPopup();
       map.fitBounds(coolRoutePolylineRef.current.getBounds(), { padding: [30, 30] });
     }
-  }, [showCoolRoute]);
+  }, [showCoolRoute, currentCityMeta, dynamicSelectedTemp]);
 
   const getZoneTemp = useCallback((zone, hour) => {
     if (!zone) return 38.0;
@@ -952,7 +956,8 @@ export default function App() {
   };
 
   const shareWhatsApp = () => {
-    const msg = encodeURIComponent(`🔥 *HeatAtlas Pune Dispatch Brief (Gemini 3.8 Flash)*\n\n${dispatchBrief}\n\n*Emergency Helpline:* Call 108.`);
+    const cityName = currentCityMeta?.name || 'District';
+    const msg = encodeURIComponent(`🔥 *HeatAtlas ${cityName} Dispatch Brief (Gemini Spatial Intelligence)*\n\n${dispatchBrief}\n\n*Emergency Helpline:* Call 108.`);
     window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
   };
 
@@ -1001,7 +1006,9 @@ export default function App() {
               </div>
               <div>
                 <h1 className="font-display font-bold text-[16px] leading-tight tracking-tight">{t.appTitle}</h1>
-                <p className="text-[10px] text-[#86868b] font-medium leading-none">{t.appSubtitle}</p>
+                <p className="text-[10px] text-[#86868b] font-medium leading-none">
+                  {currentCityMeta?.name || 'District'} · Gemini Flash Intelligence
+                </p>
               </div>
             </div>
 
