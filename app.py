@@ -7,8 +7,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List
 
-from config import PUNE_BBOX, GRID_ROWS, GRID_COLS
-from services.weather import get_pune_forecast
+from config import GRID_ROWS, GRID_COLS
+from cities import get_city, list_all_cities, CITIES
+from services.weather import get_city_forecast, get_pune_forecast
 from services.worldpop import get_zone_population
 from services.assets import get_live_assets, add_asset_report
 from services.scoring import compute_scores
@@ -123,52 +124,58 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Precalculate 64-zone grid bounding boxes
-ZONE_NAMES = [
-    ["Nigdi", "Chikhali", "Moshi", "Charholi", "Dighi", "Alandi Rd", "Lohegaon N", "Wagholi N"],
-    ["Akurdi", "Pimpri", "Bhosari", "Dapodi", "Vishrantwadi", "Viman Nagar", "Kalyani Ngr", "Wagholi S"],
-    ["Pimple Saudagar", "Sangvi", "Aundh", "Khadki", "Yerwada", "Koregaon Park", "Mundhwa", "Kharadi"],
-    ["Baner", "Pashan", "Shivajinagar", "Pune Station", "Camp", "Ghorpadi", "Hadapsar N", "Manjri"],
-    ["Bavdhan", "Kothrud N", "Deccan", "Kasba Peth", "Swargate", "Wanowrie", "Hadapsar S", "Phursungi"],
-    ["Warje", "Kothrud S", "Parvati", "Bibvewadi", "Salunke Vihar", "Kondhwa", "Undri", "Handewadi"],
-    ["Karvenagar", "Sinhagad Rd", "Dhankawadi", "Katraj N", "Kondhwa Budruk", "Pisoli", "Yewalewadi", "Autadwadi"],
-    ["Dhayari", "Nanded City", "Ambegaon", "Katraj S", "Gokul Nagar", "Saswad Rd", "Uruli Devachi", "Wadki"]
-]
+# Dynamic 64-zone grid generator per district city
+def build_city_grid(city_id: str = "pune") -> dict:
+    city = get_city(city_id)
+    bbox = city["bbox"]
+    wards = city.get("wards", [])
+    lat_step = (bbox["north"] - bbox["south"]) / GRID_ROWS
+    lon_step = (bbox["east"] - bbox["west"]) / GRID_COLS
 
-lat_step = (PUNE_BBOX["north"] - PUNE_BBOX["south"]) / GRID_ROWS
-lon_step = (PUNE_BBOX["east"] - PUNE_BBOX["west"]) / GRID_COLS
+    zones = {}
+    for r in range(GRID_ROWS):
+        for c in range(GRID_COLS):
+            zid = f"{city['id']}-Z-{r}{c}"
+            s = bbox["south"] + (GRID_ROWS - 1 - r) * lat_step
+            n = s + lat_step
+            w = bbox["west"] + c * lon_step
+            e = w + lon_step
+            name = wards[r][c] if r < len(wards) and c < len(wards[r]) else f"{city['name']} Ward {r}-{c}"
+            zones[zid] = {
+                "id": zid,
+                "city_id": city["id"],
+                "row": r,
+                "col": c,
+                "name": name,
+                "bbox": [s, w, n, e],
+                "centroid": [(s + n) / 2, (w + e) / 2],
+                "polygon": [
+                    [w, s],
+                    [e, s],
+                    [e, n],
+                    [w, n],
+                    [w, s]
+                ]
+            }
+    return zones
 
-ZONES_META = {}
-for r in range(GRID_ROWS):
-    for c in range(GRID_COLS):
-        zid = f"Z-{r}{c}"
-        s = PUNE_BBOX["south"] + (GRID_ROWS - 1 - r) * lat_step
-        n = s + lat_step
-        w = PUNE_BBOX["west"] + c * lon_step
-        e = w + lon_step
-        name = ZONE_NAMES[r][c] if r < len(ZONE_NAMES) and c < len(ZONE_NAMES[r]) else f"Pune Ward {r}-{c}"
-        ZONES_META[zid] = {
-            "id": zid,
-            "row": r,
-            "col": c,
-            "name": name,
-            "bbox": [s, w, n, e],
-            "centroid": [(s + n) / 2, (w + e) / 2],
-            "polygon": [
-                [w, s],
-                [e, s],
-                [e, n],
-                [w, n],
-                [w, s]
-            ]
-        }
+@app.get("/api/cities")
+async def get_cities():
+    return {
+        "cities": list_all_cities(),
+        "total": len(CITIES)
+    }
 
 @app.get("/api/health")
-async def health():
+async def health(city: str = Query("pune")):
+    city_info = get_city(city)
+    city_zones = build_city_grid(city)
     return {
         "status": "healthy",
-        "city": "Pune, Maharashtra",
-        "zones_count": len(ZONES_META),
+        "city": f"{city_info['name']}, {city_info['state']}",
+        "climate_zone": city_info["climate_zone"],
+        "el_nino_vulnerability": city_info["el_nino_vulnerability"],
+        "zones_count": len(city_zones),
         "data_sources": {
             "open_meteo": "live",
             "worldpop_v2": "live_cached_24h",
@@ -177,47 +184,53 @@ async def health():
     }
 
 @app.get("/api/forecast")
-async def forecast():
-    data, age_sec = await get_pune_forecast()
+async def forecast(city: str = Query("pune")):
+    data, age_sec = await get_city_forecast(city)
     return {
+        "city": city,
         "hourly": data.get("hourly", {}),
         "cache_age_seconds": age_sec,
         "freshness_banner": f"Forecast updated {age_sec // 60} mins ago" if age_sec > 60 else "Live forecast (current)"
     }
 
 @app.get("/api/zones")
-async def get_zones(hour: int = Query(0, ge=0, le=47)):
-    forecast_data, age_sec = await get_pune_forecast()
+async def get_zones(city: str = Query("pune"), hour: int = Query(0, ge=0, le=47)):
+    city_info = get_city(city)
+    city_zones = build_city_grid(city)
+
+    forecast_data, age_sec = await get_city_forecast(city)
     hourly = forecast_data.get("hourly", {})
     raw_temps = hourly.get("apparent_temperature", [])
+
+    el_nino_boost = city_info.get("el_nino_temp_boost", 2.0)
 
     if raw_temps:
         min_m = min(raw_temps[:24])
         max_m = max(raw_temps[:24])
         span = (max_m - min_m) if (max_m - min_m) > 0.1 else 8.0
-        # Diurnal temperature curve driven by live Open-Meteo feed, modeling Pune heatwave surface/felt conditions
+        # Diurnal temperature curve driven by live Open-Meteo feed, modeling regional heatwave & El Nino surface/felt conditions
         hourly_scaled = [
-            round(33.0 + ((raw_temps[i] - min_m) / span) * 6.8, 1)
+            round((32.0 + el_nino_boost * 0.5) + ((raw_temps[i] - min_m) / span) * (6.5 + el_nino_boost * 0.4), 1)
             for i in range(min(24, len(raw_temps)))
         ]
     else:
         hourly_scaled = [
-            round(33.0 + (math.sin(i / 24 * math.pi) ** 2) * 6.8, 1)
+            round((33.0 + el_nino_boost) + (math.sin(i / 24 * math.pi) ** 2) * 6.8, 1)
             for i in range(24)
         ]
 
     clamped_hour = min(max(hour, 0), len(hourly_scaled) - 1) if hourly_scaled else 0
     current_temp = hourly_scaled[clamped_hour] if hourly_scaled else 37.0
 
-    assets = await get_live_assets()
+    assets = await get_live_assets(city)
 
     # Batch retrieve populations concurrently or with memoized ward estimates
-    tasks = [get_zone_population(zid, meta["polygon"]) for zid, meta in ZONES_META.items()]
+    tasks = [get_zone_population(zid, meta["polygon"]) for zid, meta in city_zones.items()]
     pop_results = await asyncio.gather(*tasks)
-    pop_map = dict(zip(ZONES_META.keys(), pop_results))
+    pop_map = dict(zip(city_zones.keys(), pop_results))
 
     result = []
-    for zid, meta in ZONES_META.items():
+    for zid, meta in city_zones.items():
         s, w, n, e = meta["bbox"]
         zone_assets = [
             a for a in assets
@@ -228,6 +241,7 @@ async def get_zones(hour: int = Query(0, ge=0, le=47)):
 
         r_dist = abs(meta["row"] - 3.5)
         c_dist = abs(meta["col"] - 3.5)
+        # Urban Heat Island concrete core anomaly
         zone_temp = round(current_temp + (2.5 - 0.5 * (r_dist + c_dist)), 1)
         hours_38 = max(1, int(round((zone_temp - 37.0) * 1.5))) if zone_temp >= 38.0 else 0
 
@@ -243,6 +257,7 @@ async def get_zones(hour: int = Query(0, ge=0, le=47)):
 
         result.append({
             "id": zid,
+            "city_id": city_info["id"],
             "row": meta["row"],
             "col": meta["col"],
             "name": meta["name"],
@@ -258,6 +273,11 @@ async def get_zones(hour: int = Query(0, ge=0, le=47)):
         })
 
     return {
+        "city": city_info["id"],
+        "city_name": city_info["name"],
+        "region": city_info["region"],
+        "climate_zone": city_info["climate_zone"],
+        "el_nino_vulnerability": city_info["el_nino_vulnerability"],
         "zones": result,
         "cache_age_seconds": age_sec,
         "selected_hour": hour,
@@ -265,19 +285,19 @@ async def get_zones(hour: int = Query(0, ge=0, le=47)):
     }
 
 @app.get("/api/priority")
-async def priority(start: int = Query(0, ge=0, le=23), end: int = Query(6, ge=0, le=47), limit: int = Query(5, ge=1, le=64)):
-    zones_res = await get_zones(hour=start)
+async def priority(city: str = Query("pune"), start: int = Query(0, ge=0, le=23), end: int = Query(6, ge=0, le=47), limit: int = Query(5, ge=1, le=64)):
+    zones_res = await get_zones(city=city, hour=start)
     all_zones = zones_res["zones"]
     # Sort descending by Relief Deficit Rd
     sorted_zones = sorted(all_zones, key=lambda z: z["rd"], reverse=True)
-    return {"priority_zones": sorted_zones[:limit], "window": [start, end]}
+    return {"city": city, "priority_zones": sorted_zones[:limit], "window": [start, end]}
 
 @app.get("/api/assets")
-async def assets(type: Optional[str] = None):
-    all_assets = await get_live_assets()
+async def assets(city: str = Query("pune"), type: Optional[str] = None):
+    all_assets = await get_live_assets(city)
     if type:
         all_assets = [a for a in all_assets if a["type"] == type]
-    return {"assets": all_assets}
+    return {"city": city, "assets": all_assets}
 
 class ReportRequest(BaseModel):
     status: str
@@ -366,13 +386,21 @@ async def report_beacon(req: BeaconReportRequest):
     }
 
 @app.get("/api/ngos")
-async def get_ngos(lat: Optional[float] = None, lon: Optional[float] = None):
-    ngos = [dict(ngo) for ngo in REGISTERED_NGOS]
+async def get_ngos(city: Optional[str] = None, lat: Optional[float] = None, lon: Optional[float] = None):
+    all_ngos = []
+    if city:
+        c = get_city(city)
+        all_ngos = [dict(n) for n in c.get("ngos", [])]
+    if not all_ngos:
+        # Aggregate across all registered cities
+        for c in CITIES.values():
+            all_ngos.extend([dict(n) for n in c.get("ngos", [])])
+
     if lat is not None and lon is not None:
-        for ngo in ngos:
+        for ngo in all_ngos:
             ngo["distance_meters"] = calculate_haversine_meters(lat, lon, ngo["lat"], ngo["lon"])
-        ngos.sort(key=lambda x: x["distance_meters"])
-    return {"ngos": ngos}
+        all_ngos.sort(key=lambda x: x["distance_meters"])
+    return {"ngos": all_ngos}
 
 class TapAuditRequest(BaseModel):
     osm_id: str
@@ -457,6 +485,7 @@ async def save_api_key(req: KeyRequest):
     return {"status": "success", "message": "Gemini API key saved!"}
 
 class DispatchRequest(BaseModel):
+    city: str = "pune"
     request_text: str = "We have 2 teams and 40 water cans. Where should we go?"
     start: int = 2
     end: int = 6
@@ -465,7 +494,7 @@ class DispatchRequest(BaseModel):
 
 @app.post("/api/dispatch/brief")
 async def dispatch_brief(req: DispatchRequest):
-    zones_res = await get_zones(hour=req.start)
+    zones_res = await get_zones(city=req.city, hour=req.start)
     ranked = sorted(zones_res["zones"], key=lambda z: z["rd"], reverse=True)
     brief = await generate_dispatch_brief(
         request_text=req.request_text,

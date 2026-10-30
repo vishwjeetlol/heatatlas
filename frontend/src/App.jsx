@@ -120,6 +120,11 @@ export default function App() {
   const [lang, setLang] = useState('en');
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
 
+  // Multi-City & Climatology State
+  const [selectedCity, setSelectedCity] = useState('pune');
+  const [cityList, setCityList] = useState([]);
+  const [currentCityMeta, setCurrentCityMeta] = useState(null);
+
   const [zones, setZones] = useState([]);
   const [assets, setAssets] = useState([]);
   const [beacons, setBeacons] = useState([]);
@@ -141,6 +146,7 @@ export default function App() {
   // Driver Location & Radius State
   const [driverPos, setDriverPos] = useState([SWARGATE_PRECISION.lat, SWARGATE_PRECISION.lon]);
   const [radiusMeters, setRadiusMeters] = useState(1000);
+  const [isLocatingDriver, setIsLocatingDriver] = useState(false);
 
   // Worker Beacon Modal state
   const [showBeaconModal, setShowBeaconModal] = useState(false);
@@ -185,9 +191,22 @@ export default function App() {
     return Math.round(R * c);
   };
 
-  const fetchZones = async (hour) => {
+  const fetchCities = async () => {
     try {
-      const res = await fetch(`/api/zones?hour=${hour}`);
+      const res = await fetch('/api/cities');
+      const data = await res.json();
+      const list = data.cities || [];
+      setCityList(list);
+      const curr = list.find(c => c.id === selectedCity) || list[0];
+      setCurrentCityMeta(curr);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchZones = async (hour, city = selectedCity) => {
+    try {
+      const res = await fetch(`/api/zones?city=${city}&hour=${hour}`);
       const data = await res.json();
       const zList = data.zones || [];
       setZones(zList);
@@ -203,8 +222,8 @@ export default function App() {
 
       if (zList.length > 0) {
         setSelectedZone(prev => {
-          if (!prev) return zList.find(z => z.id === 'Z-44') || zList[0];
-          return zList.find(z => z.id === prev.id) || prev;
+          if (!prev || prev.city_id !== city) return zList[0];
+          return zList.find(z => z.id === prev.id) || zList[0];
         });
       }
     } catch (err) {
@@ -213,13 +232,13 @@ export default function App() {
     }
   };
 
-  const fetchNgos = async () => {
+  const fetchNgos = async (city = selectedCity) => {
     try {
-      const res = await fetch(`/api/ngos?lat=${driverPos[0]}&lon=${driverPos[1]}`);
+      const res = await fetch(`/api/ngos?city=${city}&lat=${driverPos[0]}&lon=${driverPos[1]}`);
       const data = await res.json();
       const list = data.ngos || [];
       setNgos(list);
-      if (list.length > 0 && !selectedNgo) {
+      if (list.length > 0) {
         setSelectedNgo(list[0]);
       }
     } catch (err) {
@@ -227,9 +246,9 @@ export default function App() {
     }
   };
 
-  const fetchAssets = async () => {
+  const fetchAssets = async (city = selectedCity) => {
     try {
-      const res = await fetch('/api/assets');
+      const res = await fetch(`/api/assets?city=${city}`);
       const data = await res.json();
       setAssets(data.assets || []);
     } catch (err) {
@@ -247,7 +266,7 @@ export default function App() {
     }
   };
 
-  const fetchBrief = async () => {
+  const fetchBrief = async (city = selectedCity) => {
     setIsGenerating(true);
     setDispatchBrief('Analyzing ground-level assets and worker beacons with Gemini 3.8 Flash...');
     try {
@@ -255,18 +274,19 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          request_text: 'Coordinate 2 volunteer teams and 40 water cans for peak heat zones and live worker beacons',
+          city: city,
+          request_text: `Coordinate volunteer teams and water relief for ${city.toUpperCase()} during peak heat wave`,
           start: hourOffset,
           end: hourOffset + 4,
-          resources: { teams: 2, water_cans: 40 },
+          resources: { teams: 3, water_cans: 60 },
           language: lang
         })
       });
       const data = await res.json();
-      setDispatchBrief(data.summary || 'Prioritize Hadapsar and Swargate with mobile water delivery.');
+      setDispatchBrief(data.summary || `Prioritize high-deficit sectors across ${city.toUpperCase()}.`);
       showToast('Generated operational dispatch brief!');
     } catch (err) {
-      setDispatchBrief('Prioritize Hadapsar Mandi and Kasba Peth with emergency water cans.');
+      setDispatchBrief('Prioritize high-density worker transit nodes and mandi clusters.');
     } finally {
       setIsGenerating(false);
     }
@@ -560,18 +580,102 @@ export default function App() {
   }, [beacons]);
 
   useEffect(() => {
-    fetchZones(0);
-    fetchAssets();
-    fetchBeacons();
-    fetchBrief();
-    fetchNgos();
-  }, [lang]);
+    fetchCities();
+  }, []);
 
-  // Autonomous Audio-to-Text Transcription via Gemini 3.8 Flash
+  useEffect(() => {
+    fetchZones(0, selectedCity);
+    fetchAssets(selectedCity);
+    fetchBeacons();
+    fetchBrief(selectedCity);
+    fetchNgos(selectedCity);
+  }, [lang, selectedCity]);
+
+  // Handle City Switch & Smooth Map FlyTo
+  const handleCityChange = (cityId) => {
+    setSelectedCity(cityId);
+    const meta = cityList.find(c => c.id === cityId);
+    if (meta) {
+      setCurrentCityMeta(meta);
+      setDriverPos([meta.default_junction.lat, meta.default_junction.lon]);
+      setBeaconLocation(meta.default_junction.name);
+      if (mapInstance.current) {
+        mapInstance.current.flyTo(meta.centroid, 13, { duration: 1.5 });
+      }
+      showToast(`📍 Switched to ${meta.name} (${meta.region})`);
+    }
+  };
+
+  // Real GPS Geolocation for Driver
+  const handleDetectGPSLocation = () => {
+    if (!navigator.geolocation) {
+      showToast('Geolocation not supported by browser');
+      return;
+    }
+    setIsLocatingDriver(true);
+    showToast('📡 Acquiring satellite GPS fix...');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setDriverPos([latitude, longitude]);
+        setBeaconLocation(`Current GPS (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
+        if (mapInstance.current) {
+          mapInstance.current.flyTo([latitude, longitude], 15, { duration: 1.2 });
+        }
+        setIsLocatingDriver(false);
+        showToast('📍 Live GPS Location locked!');
+        fetchNgos(selectedCity);
+      },
+      (err) => {
+        setIsLocatingDriver(false);
+        showToast('GPS permission denied; using precision default junction');
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
+  // Autonomous Audio-to-Text Transcription via Web Speech Recognition + Gemini 3.8 Flash
   const handleAudioToText = async () => {
     setIsRecording(true);
     showToast('🎙️ Listening in Marathi/Hindi via Gemini 3.8 Speech AI...');
 
+    // Attempt native Web Speech API first
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = (event) => {
+        const spoken = event.results[0][0].transcript;
+        setBeaconDesc(spoken);
+        setLatestAudioTranscription({
+          transcription: spoken,
+          translation_en: spoken,
+          language_detected: lang === 'mr' ? 'Marathi' : lang === 'hi' ? 'Hindi' : 'English'
+        });
+        setIsRecording(false);
+        showToast('✓ Transcribed speech directly to text!');
+      };
+
+      recognition.onerror = async () => {
+        // Fallback to Gemini 3.8 Flash API
+        await fallbackGeminiTranscribe();
+      };
+
+      try {
+        recognition.start();
+        return;
+      } catch (e) {
+        // Fallback to backend API
+      }
+    }
+
+    await fallbackGeminiTranscribe();
+  };
+
+  const fallbackGeminiTranscribe = async () => {
     try {
       const res = await fetch('/api/audio/transcribe', {
         method: 'POST',
@@ -580,7 +684,7 @@ export default function App() {
       });
       const data = await res.json();
       setLatestAudioTranscription(data);
-      setBeaconLocation(data.extracted_location || "Swargate Jedhe Chowk Flyover");
+      setBeaconLocation(data.extracted_location || currentCityMeta?.default_junction?.name || "City Central Junction");
       setBeaconDesc(data.transcription);
       showToast('🤖 Gemini 3.8 transcribed audio to text!');
     } catch (err) {
@@ -699,7 +803,7 @@ export default function App() {
   const handleHourChange = (e) => {
     const val = parseInt(e.target.value);
     setHourOffset(val);
-    fetchZones(val);
+    fetchZones(val, selectedCity);
   };
 
   const handleResolveBeacon = async (beaconId) => {
@@ -710,25 +814,17 @@ export default function App() {
       if (res.ok) {
         showToast('✅ Water demand marked as delivered!');
         fetchBeacons();
-        fetchBrief();
+        fetchBrief(selectedCity);
       }
     } catch (err) {
       showToast('Error resolving beacon');
     }
   };
 
-  // Simulated Voice Note Intake (Marathi/Hindi)
+  // Voice Note Intake (Marathi/Hindi) triggering Audio-to-Text modal directly
   const triggerVoiceNote = () => {
-    setIsRecording(true);
-    showToast('🎙️ Recording voice note in Marathi/Hindi...');
-
-    setTimeout(() => {
-      setIsRecording(false);
-      setBeaconLocation("Swargate Jedhe Chowk Flyover");
-      setBeaconDesc("भावांनो, स्वारगेट पुलाखाली १५ डिलिव्हरी बॉईज थांबले आहेत, जवळचा पाण्याचा नळ बंद आहे. (15 riders waiting, tap is dry)");
-      setShowBeaconModal(true);
-      showToast('🤖 Gemini 3.8 transcribed Marathi voice note!');
-    }, 2000);
+    setShowBeaconModal(true);
+    handleAudioToText();
   };
 
   const submitBeacon = async (e) => {
@@ -738,9 +834,9 @@ export default function App() {
     try {
       const payload = {
         location_name: beaconLocation,
-        lat: SWARGATE_PRECISION.lat + (Math.random() - 0.5) * 0.002,
-        lon: SWARGATE_PRECISION.lon + (Math.random() - 0.5) * 0.002,
-        zone_id: 'Z-44',
+        lat: driverPos[0] + (Math.random() - 0.5) * 0.002,
+        lon: driverPos[1] + (Math.random() - 0.5) * 0.002,
+        zone_id: selectedZone?.id || 'Z-00',
         description: beaconDesc,
         image_base64: beaconImage,
         session_token: sessionToken
@@ -833,6 +929,19 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-1.5">
+              {/* DISTRICT CITY SWITCHER */}
+              <select
+                value={selectedCity}
+                onChange={(e) => handleCityChange(e.target.value)}
+                className="text-[10.5px] font-bold px-1.5 py-0.5 bg-sky-50 border border-sky-300 text-sky-900 rounded-md shadow-xs cursor-pointer"
+              >
+                {cityList.map(c => (
+                  <option key={c.id} value={c.id}>
+                    📍 {c.name}
+                  </option>
+                ))}
+              </select>
+
               <div className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded-full text-[10px] font-semibold">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
                 <span>{freshness}</span>
@@ -1013,7 +1122,21 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* AUTONOMOUS VOICE DISPATCH AUDIO BUTTON */}
+                {/* EL NINO & CLIMATOLOGY ALERT BANNER */}
+                {currentCityMeta && (
+                  <div className="mt-2.5 pt-2 border-t border-black/5 bg-amber-50/70 p-2 rounded-xl border border-amber-200">
+                    <div className="flex justify-between items-center text-[9px] font-bold text-amber-900">
+                      <span>🌍 El Niño Vulnerability:</span>
+                      <span className="font-mono text-amber-800">+{currentCityMeta.el_nino_temp_boost}°C Anomaly</span>
+                    </div>
+                    <div className="text-[9.5px] text-amber-800 font-semibold mt-0.5">
+                      {currentCityMeta.el_nino_vulnerability}
+                    </div>
+                    <div className="text-[8.5px] text-amber-700/80 mt-0.5 font-medium">
+                      Region: {currentCityMeta.region} · Climate: {currentCityMeta.climate_zone}
+                    </div>
+                  </div>
+                )}
                 <div className="mt-2.5 pt-2 border-t border-black/5 flex items-center justify-between">
                   <span className="text-[10px] text-[#86868b] font-medium flex items-center gap-1">
                     <Radio size={12} className="text-red-500 animate-pulse" /> 15s Driver Audio Alert
@@ -1095,10 +1218,22 @@ export default function App() {
 
             <div className="absolute top-3 right-5 z-[500] flex flex-col gap-1.5">
               <button
-                onClick={() => mapInstance.current?.setView([SWARGATE_PRECISION.lat, SWARGATE_PRECISION.lon], 14)}
+                onClick={handleDetectGPSLocation}
+                disabled={isLocatingDriver}
+                className="bg-white/95 border border-sky-300 text-sky-800 text-[10.5px] font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1 hover:bg-sky-50 active:scale-95 transition-transform"
+                title="Detect live satellite GPS location"
+              >
+                <span>🛰️</span> {isLocatingDriver ? 'Acquiring GPS...' : 'My Live Location'}
+              </button>
+              <button
+                onClick={() => {
+                  if (currentCityMeta && mapInstance.current) {
+                    mapInstance.current.setView(currentCityMeta.centroid, 13);
+                  }
+                }}
                 className="bg-white/95 border border-black/10 text-[10.5px] font-semibold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1"
               >
-                📍 Swargate Precision
+                📍 {currentCityMeta?.name || 'City'} Center
               </button>
             </div>
           </section>

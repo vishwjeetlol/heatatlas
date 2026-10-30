@@ -1,22 +1,24 @@
 import time
 import httpx
 from cachetools import TTLCache
-from config import OPEN_METEO_BASE_URL, CACHE_TTL_FORECAST_MIN, PUNE_BBOX
+from config import OPEN_METEO_BASE_URL, CACHE_TTL_FORECAST_MIN
+from cities import get_city
 
-# Cache for 60 minutes
-_forecast_cache = TTLCache(maxsize=10, ttl=CACHE_TTL_FORECAST_MIN * 60)
-_last_fetch_time = 0
+# Multi-city cache for 60 minutes
+_forecast_cache = TTLCache(maxsize=50, ttl=CACHE_TTL_FORECAST_MIN * 60)
+_last_fetch_times = {}
 
-async def get_pune_forecast():
-    global _last_fetch_time
-    cached = _forecast_cache.get("pune_hourly")
+async def get_city_forecast(city_id: str = "pune"):
+    city = get_city(city_id)
+    cache_key = f"{city['id']}_hourly"
+    now = time.time()
+
+    cached = _forecast_cache.get(cache_key)
     if cached:
-        return cached, int(time.time() - _last_fetch_time)
+        age_sec = int(now - _last_fetch_times.get(cache_key, now))
+        return cached, age_sec
 
-    # Centroid of Pune bounding box
-    lat = (PUNE_BBOX["south"] + PUNE_BBOX["north"]) / 2
-    lon = (PUNE_BBOX["west"] + PUNE_BBOX["east"]) / 2
-
+    lat, lon = city["centroid"]
     url = f"{OPEN_METEO_BASE_URL}/v1/forecast"
     params = {
         "latitude": f"{lat:.4f}",
@@ -31,6 +33,9 @@ async def get_pune_forecast():
         resp.raise_for_status()
         data = resp.json()
 
-    _forecast_cache["pune_hourly"] = data
-    _last_fetch_time = time.time()
+    _forecast_cache[cache_key] = data
+    _last_fetch_times[cache_key] = now
     return data, 0
+
+async def get_pune_forecast():
+    return await get_city_forecast("pune")
