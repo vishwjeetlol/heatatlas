@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HeatAtlas — Forecast Heat. Prioritise Relief.</title>
+  <!-- Google Fonts: Sora & DM Sans (Apple Bento Grid standard) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS for Real OpenStreetMap -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- APP SHELL (Mobile-first 360-430px) -->
+  <div class="app-shell">
+    
+    <!-- HEADER BAR -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-flame-icon">🔥</div>
+        <div>
+          <h1 class="brand-title">HeatAtlas</h1>
+          <p class="brand-city">Pune, MH · 64 Live Zones</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <div class="freshness-chip" id="freshness-chip">
+          <span class="live-dot"></span>
+          <span id="freshness-text">Live Meteo</span>
+        </div>
+        <select class="lang-select" id="lang-select">
+          <option value="en">EN</option>
+          <option value="hi">हिंदी</option>
+          <option value="mr">मराठी</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- HERO METRICS STRIP -->
+    <section class="hero-strip">
+      <div class="hero-metric-card">
+        <div class="metric-top">
+          <span class="metric-label" id="hero-zone-name">Z-34 (Hadapsar)</span>
+          <span class="tier-badge critical" id="hero-tier">CRITICAL</span>
+        </div>
+        <div class="metric-middle">
+          <span class="metric-temp" id="hero-temp">41.8°C</span>
+          <div class="metric-substats">
+            <div><span class="sub-label">RELIEF DEFICIT:</span> <strong id="hero-rd">8,272.7</strong></div>
+            <div><span class="sub-label">VULNERABLE POP:</span> <strong id="hero-vh">13,000</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REAL MAP CONTAINER (Leaflet + OpenStreetMap) -->
+    <section class="map-section">
+      <div id="pune-map" class="leaflet-map-canvas"></div>
+      <div class="map-overlay-controls">
+        <button class="btn-map-control" onclick="locateUser()">📍 My Location</button>
+        <button class="btn-map-control" onclick="resetPuneView()">🗺️ Pune View</button>
+      </div>
+    </section>
+
+    <!-- 24H TIMELINE SCRUBBER CARD -->
+    <section class="timeline-section">
+      <div class="timeline-header">
+        <span class="timeline-label">24-Hour Heat Timeline</span>
+        <span class="timeline-hour-val" id="timeline-display">+0h (Now)</span>
+      </div>
+      <input type="range" class="timeline-slider" id="hour-slider" min="0" max="23" value="0" oninput="onHourChange(this.value)">
+      <div class="timeline-ticks">
+        <span>Now</span>
+        <span>+4h (Peak)</span>
+        <span>+8h</span>
+        <span>+12h</span>
+        <span>+18h</span>
+        <span>+24h</span>
+      </div>
+    </section>
+
+    <!-- BENTO STATS & PRIORITY CARDS -->
+    <section class="priority-section">
+      <div class="section-title-row">
+        <h2 class="section-title">Priority Heat Relief Zones</h2>
+        <span class="priority-count" id="critical-count">3 Critical</span>
+      </div>
+
+      <div class="priority-scroll-container" id="priority-cards-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- RELIEF ASSETS & CROWD REPORTING DRAWER -->
+    <section class="relief-assets-section">
+      <div class="section-title-row">
+        <h2 class="section-title">Nearby Relief Assets</h2>
+        <span class="asset-legend"><span class="legend-blue">💧 Water Tap</span> · <span class="legend-red">🏥 Clinic</span></span>
+      </div>
+
+      <div class="assets-list" id="assets-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- BOTTOM DISPATCH & AI ASSISTANT SHEET -->
+    <section class="dispatch-sheet">
+      <div class="sheet-header">
+        <div class="sheet-title">
+          <span>⚡ Gemini Volunteer Dispatch</span>
+          <span class="agent-badge">Validated Math</span>
+        </div>
+      </div>
+
+      <p class="dispatch-text" id="dispatch-summary">
+        Loading operational brief from Gemini 2.0 Flash...
+      </p>
+
+      <div class="dispatch-actions">
+        <button class="btn-whatsapp" onclick="shareToWhatsApp()">
+          <span>💬</span> Share WhatsApp Brief
+        </button>
+        <button class="btn-generate-brief" onclick="requestDispatchBrief()">
+          <span>✨</span> Generate Brief
+        </button>
+      </div>
+
+      <p class="medical-disclaimer">
+        ℹ️ HeatAtlas provides planning information, not medical advice. For heat stroke symptoms (confusion, fainting) call <strong>108</strong> immediately.
+      </p>
+    </section>
+
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast">Action completed!</div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="app.js"></script>
+</body>
+</html>

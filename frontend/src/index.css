@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Sora', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: var(--font-body);
+  background: radial-gradient(circle at 50% 20%, #1e2638 0%, #090c15 100%);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom leaflet pin styles */
+.custom-pin {
+  background: transparent;
+  border: none;
+}
+
+.custom-beacon {
+  background: transparent;
+  border: none;
+}
+
+.driver-pin {
+  background: transparent;
+  border: none;
+}
+
+/* Hide scrollbar for clean mobile feel */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* REALISTIC SMARTPHONE HARDWARE SHELL */
+.phone-case {
+  position: relative;
+  width: 412px;
+  height: 870px;
+  background: #11141c;
+  border-radius: 54px;
+  padding: 11px;
+  box-shadow: 
+    0 0 0 2px #2d3345,
+    0 0 0 6px #12151f,
+    0 30px 80px rgba(0, 0, 0, 0.8),
+    0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Hardware Buttons */
+.phone-case::before {
+  content: '';
+  position: absolute;
+  top: 140px;
+  left: -8px;
+  width: 5px;
+  height: 48px;
+  background: #2b3142;
+  border-radius: 3px 0 0 3px;
+  box-shadow: 0 65px 0 #2b3142, 0 120px 0 #2b3142;
+}
+
+.phone-case::after {
+  content: '';
+  position: absolute;
+  top: 180px;
+  right: -8px;
+  width: 5px;
+  height: 75px;
+  background: #2b3142;
+  border-radius: 0 3px 3px 0;
+}
+
+/* Inner Screen Viewport */
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background: #f5f5f7;
+  border-radius: 44px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Dynamic Island */
+.dynamic-island {
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+  height: 38px;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 22px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #000000;
+  border-top-left-radius: 44px;
+  border-top-right-radius: 44px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.island-notch {
+  width: 95px;
+  height: 22px;
+  background: #000000;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.notch-camera-lens {
+  width: 9px;
+  height: 9px;
+  background: #111a2e;
+  border-radius: 50%;
+  box-shadow: inset 0 0 2px #0a4d8c;
+}
+
+.notch-sensor {
+  width: 7px;
+  height: 7px;
+  background: #111;
+  border-radius: 50%;
+}
+
+/* Bottom Home Swipe Indicator */
+.home-indicator-bar {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: rgba(245, 245, 247, 0.95);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.home-bar {
+  width: 134px;
+  height: 4.5px;
+  background: #1d1d1f;
+  border-radius: 10px;
+  opacity: 0.35;
+}
