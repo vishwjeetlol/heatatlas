@@ -12,7 +12,16 @@ from services.weather import get_pune_forecast
 from services.worldpop import get_zone_population
 from services.assets import get_live_assets, add_asset_report
 from services.scoring import compute_scores
-from services.agent import generate_dispatch_brief, audit_beacon_photo
+from services.agent import (
+    generate_dispatch_brief,
+    audit_beacon_photo,
+    audit_broken_tap_photo,
+    transcribe_audio_to_text,
+    generate_voice_dispatch_script,
+    screen_heat_stroke_speech,
+    generate_cool_corridor_analysis,
+    generate_ngo_squad_orders
+)
 
 # In-memory and SQLite store for Worker Water Beacons
 BEACONS = [
@@ -27,9 +36,82 @@ BEACONS = [
         "confidence": 0.94,
         "detected_crowd": 16,
         "status": "active",
-        "created_at": 1730300000
+        "created_at": 1730300000,
+        "assigned_ngo": "Pune Relief Volunteers (Swargate Base)"
     }
 ]
+
+# Registered Pune NGOs and Relief Squads
+REGISTERED_NGOS = [
+    {
+        "id": "ngo_01",
+        "name": "Pune Heat Action Collective (Swargate Base)",
+        "lat": 18.5020,
+        "lon": 73.8580,
+        "address": "Near Jedhe Chowk, Swargate",
+        "phone": "+91 98230 11223",
+        "teams": 3,
+        "water_cans": 60,
+        "ors_stock": 500,
+        "active_squads": 2
+    },
+    {
+        "id": "ngo_02",
+        "name": "Aapla Pune Seva Foundation (Deccan Hub)",
+        "lat": 18.5170,
+        "lon": 73.8410,
+        "address": "FC Road / Deccan Gymkhana",
+        "phone": "+91 94220 55667",
+        "teams": 2,
+        "water_cans": 40,
+        "ors_stock": 300,
+        "active_squads": 1
+    },
+    {
+        "id": "ngo_03",
+        "name": "Hadapsar APMC Labor Aid (Gadital Base)",
+        "lat": 18.5040,
+        "lon": 73.9310,
+        "address": "Gadital, Hadapsar",
+        "phone": "+91 98810 77889",
+        "teams": 2,
+        "water_cans": 35,
+        "ors_stock": 250,
+        "active_squads": 1
+    },
+    {
+        "id": "ngo_04",
+        "name": "Shivajinagar Citizen Brigade (Station Sector)",
+        "lat": 18.5310,
+        "lon": 73.8550,
+        "address": "Opp. Pune Municipal Corporation (PMC)",
+        "phone": "+91 99220 33445",
+        "teams": 2,
+        "water_cans": 45,
+        "ors_stock": 400,
+        "active_squads": 2
+    }
+]
+
+def calculate_haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> int:
+    R = 6371000
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    a = math.sin(delta_phi / 2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return int(round(R * c))
+
+def find_closest_ngo(lat: float, lon: float) -> dict:
+    closest = None
+    min_dist = float("inf")
+    for ngo in REGISTERED_NGOS:
+        dist = calculate_haversine_meters(lat, lon, ngo["lat"], ngo["lon"])
+        if dist < min_dist:
+            min_dist = dist
+            closest = {**ngo, "distance_meters": dist}
+    return closest
 
 app = FastAPI(title="HeatAtlas API", description="Forecast Heat. Prioritise Relief. (Pune, Maharashtra)")
 
@@ -255,6 +337,9 @@ async def report_beacon(req: BeaconReportRequest):
     if req.image_base64:
         audit_res = await audit_beacon_photo(req.image_base64)
 
+    # Autonomous Geofenced Dispatch: Route to the closest registered NGO
+    closest_ngo = find_closest_ngo(req.lat, req.lon)
+
     beacon = {
         "id": f"b_{len(BEACONS) + 1}",
         "location_name": req.location_name,
@@ -267,10 +352,89 @@ async def report_beacon(req: BeaconReportRequest):
         "detected_crowd": audit_res.get("detected_crowd", 10),
         "condition": audit_res.get("condition", "Water urgently requested by outdoor workers"),
         "status": "active",
-        "created_at": 1730300000
+        "created_at": 1730300000,
+        "assigned_ngo": closest_ngo["name"] if closest_ngo else "Central Pune Heat Taskforce",
+        "ngo_distance_meters": closest_ngo["distance_meters"] if closest_ngo else 0,
+        "ngo_phone": closest_ngo["phone"] if closest_ngo else "+91 108"
     }
     BEACONS.insert(0, beacon)
-    return {"status": "success", "beacon": beacon, "gemini_audit": audit_res}
+    return {
+        "status": "success",
+        "beacon": beacon,
+        "gemini_audit": audit_res,
+        "closest_ngo_alerted": closest_ngo
+    }
+
+@app.get("/api/ngos")
+async def get_ngos(lat: Optional[float] = None, lon: Optional[float] = None):
+    ngos = [dict(ngo) for ngo in REGISTERED_NGOS]
+    if lat is not None and lon is not None:
+        for ngo in ngos:
+            ngo["distance_meters"] = calculate_haversine_meters(lat, lon, ngo["lat"], ngo["lon"])
+        ngos.sort(key=lambda x: x["distance_meters"])
+    return {"ngos": ngos}
+
+class TapAuditRequest(BaseModel):
+    osm_id: str
+    image_base64: str
+    session_token: str
+
+@app.post("/api/assets/audit-tap")
+async def audit_tap(req: TapAuditRequest):
+    audit_res = await audit_broken_tap_photo(req.image_base64)
+    # If audited as dry/broken, update SQLite crowd consensus
+    if audit_res.get("is_dry_or_broken"):
+        add_asset_report(req.osm_id, "dry", req.session_token)
+    return {"status": "success", "audit": audit_res}
+
+class AudioTranscribeRequest(BaseModel):
+    audio_base64: Optional[str] = None
+    language: Optional[str] = "mr"
+
+@app.post("/api/audio/transcribe")
+async def transcribe_audio(req: AudioTranscribeRequest):
+    result = await transcribe_audio_to_text(req.audio_base64, req.language)
+    return result
+
+class VoiceDispatchRequest(BaseModel):
+    zone_name: str = "Swargate"
+    temp_c: float = 41.8
+    cool_spot: str = "Swargate Underground Metro AC Concourse"
+    language: str = "mr"
+
+@app.post("/api/voice/dispatch")
+async def voice_dispatch(req: VoiceDispatchRequest):
+    result = await generate_voice_dispatch_script(req.zone_name, req.temp_c, req.cool_spot, req.language)
+    return result
+
+class StrokeCheckRequest(BaseModel):
+    speech_text: str = "मला खूप चक्कर येत आहे आणि स्वारगेटला घाम येत नाहीये"
+    slurred_detected: bool = False
+
+@app.post("/api/triage/stroke-check")
+async def stroke_check(req: StrokeCheckRequest):
+    result = await screen_heat_stroke_speech(req.speech_text, req.slurred_detected)
+    return result
+
+class CoolRouteRequest(BaseModel):
+    origin: str = "Swargate Flyover"
+    destination: str = "Deccan Gymkhana"
+    temp_c: float = 41.8
+
+@app.post("/api/routes/cool-corridor")
+async def cool_corridor_analysis(req: CoolRouteRequest):
+    result = await generate_cool_corridor_analysis(req.origin, req.destination, req.temp_c)
+    return result
+
+class SquadOrdersRequest(BaseModel):
+    ngo_name: str = "Pune Heat Action Collective"
+    resources: dict = {"teams": 3, "water_cans": 60}
+    target_zone: str = "Swargate (Z-44)"
+
+@app.post("/api/ngo/squad-orders")
+async def squad_orders(req: SquadOrdersRequest):
+    result = await generate_ngo_squad_orders(req.ngo_name, req.resources, req.target_zone, BEACONS)
+    return result
 
 class KeyRequest(BaseModel):
     gemini_api_key: str

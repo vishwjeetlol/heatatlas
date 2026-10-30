@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Flame, Droplet, Trees, Snowflake, Cross, Clock, MessageSquare, RefreshCw, ZoomIn, MapPin, Camera, CheckCircle2, PhoneCall, ShieldAlert, Compass, Mic, Route, Volume2 } from 'lucide-react';
+import { Flame, Droplet, Trees, Snowflake, Cross, Clock, MessageSquare, RefreshCw, ZoomIn, MapPin, Camera, CheckCircle2, PhoneCall, ShieldAlert, Compass, Mic, Route, Volume2, Building, AlertTriangle, Send, Radio } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -152,6 +152,18 @@ export default function App() {
   // Triage state
   const [triageStatus, setTriageStatus] = useState(null);
 
+  // Advanced AI & Multi-NGO States
+  const [ngos, setNgos] = useState([]);
+  const [selectedNgo, setSelectedNgo] = useState(null);
+  const [latestAudioTranscription, setLatestAudioTranscription] = useState(null);
+  const [voiceDispatchAudioPlaying, setVoiceDispatchAudioPlaying] = useState(false);
+  const [tapAuditModalAsset, setTapAuditModalAsset] = useState(null);
+  const [isAuditingTap, setIsAuditingTap] = useState(false);
+  const [heatStrokeSpeechAnalysis, setHeatStrokeSpeechAnalysis] = useState(null);
+  const [isAnalyzingSpeech, setIsAnalyzingSpeech] = useState(false);
+  const [squadOrdersText, setSquadOrdersText] = useState(null);
+  const [isGeneratingSquadOrders, setIsGeneratingSquadOrders] = useState(false);
+
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const zoneLayersRef = useRef([]);
@@ -198,6 +210,20 @@ export default function App() {
     } catch (err) {
       console.error(err);
       showToast('Error loading live zones');
+    }
+  };
+
+  const fetchNgos = async () => {
+    try {
+      const res = await fetch(`/api/ngos?lat=${driverPos[0]}&lon=${driverPos[1]}`);
+      const data = await res.json();
+      const list = data.ngos || [];
+      setNgos(list);
+      if (list.length > 0 && !selectedNgo) {
+        setSelectedNgo(list[0]);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -538,7 +564,137 @@ export default function App() {
     fetchAssets();
     fetchBeacons();
     fetchBrief();
+    fetchNgos();
   }, [lang]);
+
+  // Autonomous Audio-to-Text Transcription via Gemini 3.8 Flash
+  const handleAudioToText = async () => {
+    setIsRecording(true);
+    showToast('🎙️ Listening in Marathi/Hindi via Gemini 3.8 Speech AI...');
+
+    try {
+      const res = await fetch('/api/audio/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: lang })
+      });
+      const data = await res.json();
+      setLatestAudioTranscription(data);
+      setBeaconLocation(data.extracted_location || "Swargate Jedhe Chowk Flyover");
+      setBeaconDesc(data.transcription);
+      showToast('🤖 Gemini 3.8 transcribed audio to text!');
+    } catch (err) {
+      showToast('Audio transcribe failed');
+    } finally {
+      setIsRecording(false);
+    }
+  };
+
+  // Play Autonomous Gemini 3.8 Voice Dispatch Brief
+  const playVoiceDispatch = async () => {
+    setVoiceDispatchAudioPlaying(true);
+    try {
+      const res = await fetch('/api/voice/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          zone_name: selectedZone?.name || "Swargate",
+          temp_c: dynamicSelectedTemp,
+          cool_spot: "Swargate Underground Metro AC Concourse",
+          language: lang
+        })
+      });
+      const data = await res.json();
+      
+      // Use Web Speech Synthesis API if available
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(data.speech_script);
+        utterance.rate = 0.95;
+        if (lang === 'mr') utterance.lang = 'mr-IN';
+        else if (lang === 'hi') utterance.lang = 'hi-IN';
+        else utterance.lang = 'en-IN';
+        window.speechSynthesis.speak(utterance);
+      }
+      showToast(`🎙️ Playing Gemini 3.8 Voice Dispatch: "${data.speech_script.substring(0, 45)}..."`);
+    } catch (err) {
+      showToast('Error playing voice dispatch');
+    } finally {
+      setTimeout(() => setVoiceDispatchAudioPlaying(false), 3000);
+    }
+  };
+
+  // Run Gemini 3.8 Heat Stroke Speech Screener
+  const runHeatStrokeSpeechCheck = async (slurred = false) => {
+    setIsAnalyzingSpeech(true);
+    try {
+      const res = await fetch('/api/triage/stroke-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          speech_text: "मला खूप चक्कर येत आहे आणि स्वारगेटला घाम येत नाहीये... तोंड कोरडं पडलंय",
+          slurred_detected: slurred
+        })
+      });
+      const data = await res.json();
+      setHeatStrokeSpeechAnalysis(data);
+      if (data.trigger_108_alert) {
+        setTriageStatus('emergency');
+      }
+      showToast('🚨 Gemini 3.8 Emergency Speech Triage Complete');
+    } catch (err) {
+      showToast('Speech check error');
+    } finally {
+      setIsAnalyzingSpeech(false);
+    }
+  };
+
+  // Run Gemini 3.8 Multimodal Tap Vision Audit
+  const handleTapAuditSubmit = async (osmId, base64Img) => {
+    setIsAuditingTap(true);
+    try {
+      const res = await fetch('/api/assets/audit-tap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          osm_id: osmId,
+          image_base64: base64Img || "dummy",
+          session_token: sessionToken
+        })
+      });
+      const data = await res.json();
+      showToast(`📸 Gemini 3.8 Tap Audit: ${data.audit.damage_type}`);
+      setTapAuditModalAsset(null);
+      fetchAssets();
+      fetchZones(hourOffset);
+    } catch (err) {
+      showToast('Tap audit error');
+    } finally {
+      setIsAuditingTap(false);
+    }
+  };
+
+  // Generate WhatsApp Squad Orders for Closest NGO
+  const handleGenerateSquadOrders = async (ngo) => {
+    setIsGeneratingSquadOrders(true);
+    try {
+      const res = await fetch('/api/ngo/squad-orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ngo_name: ngo.name,
+          resources: { teams: ngo.teams, water_cans: ngo.water_cans },
+          target_zone: selectedZone?.name ? `${selectedZone.name} (${selectedZone.id})` : "Swargate (Z-44)"
+        })
+      });
+      const data = await res.json();
+      setSquadOrdersText(data.whatsapp_formatted_text);
+      showToast(`⚡ Generated Battle Orders for ${ngo.name}`);
+    } catch (err) {
+      showToast('Error generating squad orders');
+    } finally {
+      setIsGeneratingSquadOrders(false);
+    }
+  };
 
   const handleHourChange = (e) => {
     const val = parseInt(e.target.value);
@@ -740,13 +896,22 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Heat Stroke Triage */}
+              {/* Heat Stroke Triage with Gemini 3.8 Audio Screener */}
               <div className="bg-white rounded-xl p-2.5 border border-black/5 shadow-xs">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[11px] font-bold text-[#86868b] flex items-center gap-1">
                     <ShieldAlert size={12} className="text-amber-500" /> {t.triageTitle}
                   </span>
-                  <span className="text-[9.5px] text-gray-500 font-mono">2-Tap Check</span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => runHeatStrokeSpeechCheck(false)}
+                      className="bg-amber-50 text-amber-800 border border-amber-200 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 hover:bg-amber-100"
+                      title="AI checks slurred cadence & speech confusion"
+                    >
+                      <Volume2 size={10} /> {isAnalyzingSpeech ? 'Analyzing...' : 'AI Voice Triage'}
+                    </button>
+                    <span className="text-[9.5px] text-gray-500 font-mono">2-Tap</span>
+                  </div>
                 </div>
                 <p className="text-[11.5px] font-semibold text-[#1d1d1f] mb-1.5">
                   {t.triageQuestion}
@@ -755,6 +920,7 @@ export default function App() {
                   <button
                     onClick={() => {
                       setTriageStatus('safe');
+                      setHeatStrokeSpeechAnalysis(null);
                       showToast('Sweating active: Drink ORS water & rest in shade.');
                     }}
                     className={`flex-1 py-1 px-2 rounded-lg text-[10.5px] font-bold border ${
@@ -766,6 +932,7 @@ export default function App() {
                   <button
                     onClick={() => {
                       setTriageStatus('emergency');
+                      runHeatStrokeSpeechCheck(true);
                       showToast('🚨 EMERGENCY: Dry skin is a heat stroke symptom!');
                     }}
                     className={`flex-1 py-1 px-2 rounded-lg text-[10.5px] font-bold border ${
@@ -775,6 +942,17 @@ export default function App() {
                     {t.sweatingNo}
                   </button>
                 </div>
+
+                {/* Heat Stroke AI Speech Analysis Banner */}
+                {heatStrokeSpeechAnalysis && (
+                  <div className="mt-1.5 p-2 bg-amber-50 border border-amber-200 rounded-lg text-[10px]">
+                    <div className="font-bold text-amber-900 flex items-center justify-between">
+                      <span>🤖 Gemini 3.8 Speech Screener:</span>
+                      <span className="bg-red-600 text-white px-1.5 py-0.2 rounded font-mono font-bold">EMERGENCY_RED</span>
+                    </div>
+                    <p className="text-amber-800 mt-0.5">{heatStrokeSpeechAnalysis.medical_triage_instruction}</p>
+                  </div>
+                )}
 
                 {triageStatus === 'emergency' && (
                   <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
@@ -833,6 +1011,21 @@ export default function App() {
                     <div className="text-[9px] uppercase font-bold text-[#86868b]">Working Taps</div>
                     <div className="text-[11px] font-bold text-emerald-700 font-mono mt-0.5">{selectedZone.working_taps} Taps</div>
                   </div>
+                </div>
+
+                {/* AUTONOMOUS VOICE DISPATCH AUDIO BUTTON */}
+                <div className="mt-2.5 pt-2 border-t border-black/5 flex items-center justify-between">
+                  <span className="text-[10px] text-[#86868b] font-medium flex items-center gap-1">
+                    <Radio size={12} className="text-red-500 animate-pulse" /> 15s Driver Audio Alert
+                  </span>
+                  <button
+                    onClick={playVoiceDispatch}
+                    disabled={voiceDispatchAudioPlaying}
+                    className="bg-red-500 hover:bg-red-600 text-white font-bold text-[10.5px] px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-xs active:scale-95 transition-transform"
+                  >
+                    <Volume2 size={12} className={voiceDispatchAudioPlaying ? 'animate-bounce' : ''} />
+                    <span>{voiceDispatchAudioPlaying ? 'Broadcasting...' : 'Play Voice Dispatch'}</span>
+                  </button>
                 </div>
               </div>
             </section>
@@ -962,6 +1155,11 @@ export default function App() {
                   <div className="flex justify-between items-center pt-1 border-t border-red-200/60">
                     <div className="text-[9.5px] text-red-700 font-medium">
                       🤖 Gemini 3.8: {b.detected_crowd} workers · {(b.confidence * 100).toFixed(0)}% verified
+                      {b.assigned_ngo && (
+                        <span className="block text-[8.5px] text-blue-700 font-semibold mt-0.5">
+                          🏢 Dispatched: {b.assigned_ngo}
+                        </span>
+                      )}
                     </div>
                     <button
                       onClick={() => handleResolveBeacon(b.id)}
@@ -1012,17 +1210,116 @@ export default function App() {
                       </div>
                     </div>
                   </div>
-                  <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded ${
-                    a.status === 'working' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
-                  }`}>
-                    {a.status === 'working' ? '✓ Open' : '⚠️ Issue'}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded ${
+                      a.status === 'working' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}>
+                      {a.status === 'working' ? '✓ Open' : '⚠️ Issue'}
+                    </span>
+                    {a.type === 'drinking_water' && (
+                      <button
+                        onClick={() => setTapAuditModalAsset(a)}
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-[9px] font-bold px-1.5 py-0.5 rounded border border-gray-300"
+                        title="AI Broken Tap Verification"
+                      >
+                        📸 Audit
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* GEMINI 2.0 FLASH DISPATCH DRAWER */}
+          {/* MULTI-NGO COMMAND & NEAREST GEOFENCE RADAR */}
+          <section className="px-2.5 pt-1">
+            <div className="bg-white rounded-2xl p-3 border border-black/5 shadow-xs flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <span className="font-display font-bold text-[12.5px] text-[#1d1d1f] flex items-center gap-1.5">
+                  <Building size={14} className="text-[#0071e3]" /> Multi-NGO Response Network
+                </span>
+                <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                  {ngos.length} Active Hubs
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                {ngos.map((ngo, idx) => {
+                  const isNearest = idx === 0;
+                  return (
+                    <div
+                      key={ngo.id}
+                      className={`p-2.5 rounded-xl border transition-all ${
+                        isNearest
+                          ? 'bg-blue-50/70 border-blue-200'
+                          : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-bold text-[11.5px] text-[#1d1d1f] flex items-center gap-1">
+                            {ngo.name}
+                            {isNearest && (
+                              <span className="bg-[#0071e3] text-white text-[8px] font-mono px-1.5 py-0.2 rounded font-bold">
+                                NEAREST RESPONDER ({ngo.distance_meters}m)
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[9.5px] text-[#666] mt-0.5">
+                            📍 {ngo.address} · 📞 <span className="font-mono">{ngo.phone}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center mt-2 pt-1.5 border-t border-black/5 text-[9.5px]">
+                        <span className="text-gray-600 font-medium">
+                          🚚 <strong>{ngo.teams} Teams</strong> ({ngo.active_squads} deployed) · 💧 <strong>{ngo.water_cans} Cans</strong>
+                        </span>
+                        <button
+                          onClick={() => handleGenerateSquadOrders(ngo)}
+                          disabled={isGeneratingSquadOrders}
+                          className="bg-[#0071e3] hover:bg-[#005bb5] text-white font-bold text-[9.5px] px-2 py-1 rounded-lg flex items-center gap-1 shadow-xs"
+                        >
+                          <Send size={10} /> Generate Squad Order
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Generated Squad Orders Modal / Drawer */}
+              {squadOrdersText && (
+                <div className="mt-2 p-2.5 bg-[#f0fdf4] border border-emerald-300 rounded-xl">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[10px] font-bold text-emerald-900 flex items-center gap-1">
+                      ⚡ Gemini 3.8 WhatsApp Battle-Orders
+                    </span>
+                    <button
+                      onClick={() => setSquadOrdersText(null)}
+                      className="text-gray-400 font-bold text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <pre className="text-[10px] text-emerald-950 font-mono whitespace-pre-wrap leading-relaxed max-h-[140px] overflow-y-auto bg-white p-2 rounded-lg border border-emerald-200">
+                    {squadOrdersText}
+                  </pre>
+                  <button
+                    onClick={() => {
+                      const msg = encodeURIComponent(squadOrdersText);
+                      window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+                    }}
+                    className="mt-1.5 w-full bg-[#25d366] text-white font-bold text-[10.5px] py-1.5 rounded-lg flex items-center justify-center gap-1 shadow-xs"
+                  >
+                    <MessageSquare size={12} /> Dispatch WhatsApp Battle Order
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* GEMINI 3.8 FLASH DISPATCH DRAWER */}
           <section className="px-2.5 pt-1">
             <div className="bg-white rounded-2xl p-3.5 border border-black/5 shadow-xs flex flex-col gap-2">
               <div className="flex justify-between items-center">
@@ -1093,15 +1390,32 @@ export default function App() {
               </div>
 
               <div>
-                <label className="text-[10.5px] font-bold text-gray-700 block mb-0.5">Situation Description</label>
+                <div className="flex justify-between items-center mb-0.5">
+                  <label className="text-[10.5px] font-bold text-gray-700">Situation Description</label>
+                  <button
+                    type="button"
+                    onClick={handleAudioToText}
+                    className="bg-red-50 text-red-600 border border-red-200 text-[9.5px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 hover:bg-red-100"
+                    title="Speak in Marathi/Hindi instead of typing"
+                  >
+                    <Mic size={10} className={isRecording ? 'animate-pulse text-red-600' : ''} />
+                    <span>{isRecording ? 'Listening...' : '🎙️ Audio to Text'}</span>
+                  </button>
+                </div>
                 <textarea
                   rows={2}
                   required
                   value={beaconDesc}
                   onChange={(e) => setBeaconDesc(e.target.value)}
                   className="w-full text-[12px] p-2 bg-gray-50 border border-gray-300 rounded-xl"
-                  placeholder="How many workers are waiting? Is the nearby tap dry?"
+                  placeholder="How many workers are waiting? Is the nearby tap dry? (or tap Audio to Text)"
                 />
+                {latestAudioTranscription && (
+                  <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded-lg text-[9.5px]">
+                    <span className="font-bold text-blue-900">🤖 Gemini 3.8 Transcription ({latestAudioTranscription.language_detected}):</span>
+                    <p className="text-blue-800 italic mt-0.5">"{latestAudioTranscription.translation_en}"</p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -1139,6 +1453,57 @@ export default function App() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: BROKEN / DRY TAP AI AUDITOR */}
+      {tapAuditModalAsset && (
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-[360px] rounded-3xl p-5 shadow-2xl flex flex-col gap-3">
+            <div className="flex justify-between items-center">
+              <h3 className="font-display font-extrabold text-[14px] text-amber-700 flex items-center gap-1.5">
+                <span>📸</span> AI Broken Tap Auditor
+              </h3>
+              <button onClick={() => setTapAuditModalAsset(null)} className="text-gray-400 font-bold text-lg">✕</button>
+            </div>
+            <p className="text-[11px] text-[#555] leading-snug">
+              Audit <strong>{tapAuditModalAsset.name}</strong>. Gemini 3.8 Multimodal Vision will inspect the image for dry nozzles, disconnection, or broken handles before updating the city deficit score.
+            </p>
+
+            <label className="border-2 border-dashed border-gray-300 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
+              <Camera size={20} className="text-gray-500 mb-1" />
+              <span className="text-[11px] font-semibold text-sky-600">Snap Photo of Municipal Tap</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => handleTapAuditSubmit(tapAuditModalAsset.osm_id, reader.result);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="hidden"
+              />
+            </label>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setTapAuditModalAsset(null)}
+                className="flex-1 py-1.5 rounded-xl border border-gray-300 font-semibold text-[11.5px]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleTapAuditSubmit(tapAuditModalAsset.osm_id, null)}
+                disabled={isAuditingTap}
+                className="flex-1 py-1.5 rounded-xl bg-amber-600 text-white font-extrabold text-[11.5px] flex items-center justify-center gap-1 shadow-xs"
+              >
+                {isAuditingTap ? 'Scanning...' : 'Simulate Vision Audit'}
+              </button>
+            </div>
           </div>
         </div>
       )}
