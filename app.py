@@ -21,7 +21,8 @@ from services.agent import (
     generate_voice_dispatch_script,
     screen_heat_stroke_speech,
     generate_cool_corridor_analysis,
-    generate_ngo_squad_orders
+    generate_ngo_squad_orders,
+    handle_chatbot_message
 )
 
 # In-memory and SQLite store for Worker Water Beacons
@@ -462,6 +463,31 @@ class SquadOrdersRequest(BaseModel):
 @app.post("/api/ngo/squad-orders")
 async def squad_orders(req: SquadOrdersRequest):
     result = await generate_ngo_squad_orders(req.ngo_name, req.resources, req.target_zone, BEACONS)
+    return result
+
+class ChatRequest(BaseModel):
+    message: str
+    city: str = "pune"
+    temp_c: float = 41.8
+    selected_zone: Optional[dict] = None
+    chat_history: list = []
+    language: str = "en"
+
+@app.post("/api/chat")
+async def chat_endpoint(req: ChatRequest):
+    city_info = get_city(req.city)
+    city_name = city_info.get("name", req.city.capitalize())
+    active_beacons_count = len(BEACONS)
+    
+    result = await handle_chatbot_message(
+        user_message=req.message,
+        city_name=city_name,
+        current_temp=req.temp_c,
+        selected_zone=req.selected_zone,
+        active_beacons_count=active_beacons_count,
+        chat_history=req.chat_history,
+        language=req.language
+    )
     return result
 
 class KeyRequest(BaseModel):

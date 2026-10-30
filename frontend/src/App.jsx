@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Flame, Droplet, Trees, Snowflake, Cross, Clock, MessageSquare, RefreshCw, ZoomIn, MapPin, Camera, CheckCircle2, PhoneCall, ShieldAlert, Compass, Mic, Route, Volume2, Building, AlertTriangle, Send, Radio } from 'lucide-react';
+import { Flame, Droplet, Trees, Snowflake, Cross, Clock, MessageSquare, RefreshCw, ZoomIn, MapPin, Camera, CheckCircle2, PhoneCall, ShieldAlert, Compass, Mic, Route, Volume2, Building, AlertTriangle, Send, Radio, Bot, X, Sparkles } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -169,6 +169,18 @@ export default function App() {
   const [isAnalyzingSpeech, setIsAnalyzingSpeech] = useState(false);
   const [squadOrdersText, setSquadOrdersText] = useState(null);
   const [isGeneratingSquadOrders, setIsGeneratingSquadOrders] = useState(false);
+
+  // Ground-Aware AI Chatbot State
+  const [showChatbot, setShowChatbot] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    {
+      sender: 'bot',
+      text: 'Namaste! I am HeatAtlas AI. How can I help you find drinking water, AC shelters, or coordinate relief in Pune today?'
+    }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const chatBottomRef = useRef(null);
 
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -774,6 +786,48 @@ export default function App() {
       showToast('Tap audit error');
     } finally {
       setIsAuditingTap(false);
+    }
+  };
+
+  // AI Chatbot Message Handler
+  const handleSendChatMessage = async (presetText = null) => {
+    const textToSend = presetText || chatInput;
+    if (!textToSend.trim()) return;
+
+    const userMsg = { sender: 'user', text: textToSend };
+    const updatedHistory = [...chatMessages, userMsg];
+    setChatMessages(updatedHistory);
+    setChatInput('');
+    setIsChatLoading(true);
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: textToSend,
+          city: selectedCity,
+          temp_c: dynamicSelectedTemp,
+          selected_zone: selectedZone,
+          chat_history: updatedHistory,
+          language: lang
+        })
+      });
+      const data = await res.json();
+      setChatMessages(prev => [...prev, { sender: 'bot', text: data.reply }]);
+    } catch (err) {
+      setChatMessages(prev => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: `Namaste! In ${currentCityMeta?.name || 'this city'} (${dynamicSelectedTemp}°C), keep hydrated with cool ORS water and stay off hot asphalt during peak afternoon sun. For medical heat emergencies, immediately dial 108.`
+        }
+      ]);
+    } finally {
+      setIsChatLoading(false);
+      setTimeout(() => {
+        chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }
   };
 
@@ -1647,6 +1701,159 @@ export default function App() {
       {toastMsg && (
         <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] bg-emerald-600 text-white font-semibold text-[12px] px-3.5 py-1.5 rounded-full shadow-lg">
           {toastMsg}
+        </div>
+      )}
+
+      {/* FLOATING AI CHATBOT TRIGGER (Inside Phone Screen) */}
+      <div className="absolute bottom-6 right-4 z-[500]">
+        <button
+          onClick={() => setShowChatbot(!showChatbot)}
+          className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-3.5 py-2.5 rounded-full shadow-xl font-bold text-[12px] transition-transform active:scale-95 border-2 border-white/40"
+        >
+          <Bot size={18} className="animate-pulse" />
+          <span>HeatAtlas AI</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        </button>
+      </div>
+
+      {/* AI CHATBOT SLIDE-UP DRAWER */}
+      {showChatbot && (
+        <div className="absolute inset-x-0 bottom-0 top-[15%] z-[600] bg-white/95 backdrop-blur-md rounded-t-3xl shadow-2xl flex flex-col border-t border-slate-200 animate-in slide-in-from-bottom duration-200">
+          {/* Drawer Header */}
+          <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-3xl flex items-center justify-between shadow-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                <Bot size={18} className="text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5 font-extrabold text-[13px]">
+                  <span>HeatAtlas AI Assistant</span>
+                  <span className="text-[9px] bg-indigo-500/80 px-1.5 py-0.5 rounded-full font-mono">Gemini 3.8</span>
+                </div>
+                <div className="text-[10px] text-indigo-100 flex items-center gap-1">
+                  <span>📍 {currentCityMeta?.name || 'Active City'}</span>
+                  <span>•</span>
+                  <span>{dynamicSelectedTemp}°C Felt Temp</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowChatbot(false)}
+              className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Quick Context & Prompts */}
+          <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex gap-1.5 overflow-x-auto text-[10.5px]">
+            <button
+              onClick={() => handleSendChatMessage("Where is the closest free drinking water?")}
+              className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
+            >
+              💧 Nearest Water?
+            </button>
+            <button
+              onClick={() => handleSendChatMessage("I'm feeling dizzy under the sun, what should I do?")}
+              className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-red-50 hover:border-red-300 transition-colors"
+            >
+              🚨 Heat Stroke Check
+            </button>
+            <button
+              onClick={() => handleSendChatMessage(`How can our NGO deploy relief teams in ${currentCityMeta?.name || 'this city'}?`)}
+              className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-purple-50 hover:border-purple-300 transition-colors"
+            >
+              🤝 NGO Dispatch Guide
+            </button>
+            <button
+              onClick={() => handleSendChatMessage("What is the coolest shaded route for delivery riders?")}
+              className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 transition-colors"
+            >
+              🌿 Tree Canopy Route
+            </button>
+          </div>
+
+          {/* Messages Container */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {chatMessages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex gap-2 max-w-[85%] ${msg.sender === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
+              >
+                {msg.sender === 'bot' && (
+                  <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-1">
+                    <Sparkles size={13} className="text-indigo-600" />
+                  </div>
+                )}
+                <div
+                  className={`p-3 rounded-2xl text-[12px] leading-relaxed shadow-2xs whitespace-pre-line ${
+                    msg.sender === 'user'
+                      ? 'bg-indigo-600 text-white rounded-br-xs'
+                      : 'bg-slate-100 text-slate-800 rounded-bl-xs border border-slate-200'
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+            {isChatLoading && (
+              <div className="flex gap-2 items-center text-slate-500 text-[11px] italic">
+                <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                  <Sparkles size={13} className="text-indigo-600 animate-spin" />
+                </div>
+                <span>HeatAtlas AI is reasoning with Gemini 3.8 Flash...</span>
+              </div>
+            )}
+            <div ref={chatBottomRef} />
+          </div>
+
+          {/* Input Box with Voice & Send Button */}
+          <div className="p-3 bg-white border-t border-slate-200">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendChatMessage();
+              }}
+              className="flex items-center gap-1.5"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                  if (SpeechRecognition) {
+                    const recognition = new SpeechRecognition();
+                    recognition.lang = lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
+                    recognition.onresult = (ev) => {
+                      const transcript = ev.results[0][0].transcript;
+                      setChatInput(transcript);
+                    };
+                    recognition.start();
+                    showToast('🎙️ Speak your question...');
+                  } else {
+                    showToast('Speech not supported on this browser');
+                  }
+                }}
+                className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 shrink-0"
+                title="Voice Query"
+              >
+                <Mic size={16} />
+              </button>
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder={`Ask HeatAtlas about ${currentCityMeta?.name || 'city'}, water, triage...`}
+                className="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-[12px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <button
+                type="submit"
+                disabled={!chatInput.trim() || isChatLoading}
+                className="w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white flex items-center justify-center shrink-0 transition-colors"
+              >
+                <Send size={15} />
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </div>
