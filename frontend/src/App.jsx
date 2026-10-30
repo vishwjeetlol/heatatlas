@@ -1705,30 +1705,74 @@ export default function App() {
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-0.5">
-                  <label className="text-[10.5px] font-bold text-gray-700">Situation Description</label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-[11px] font-bold text-gray-800">Situation Description</label>
                   <button
                     type="button"
                     onClick={handleAudioToText}
-                    className="bg-red-50 text-red-600 border border-red-200 text-[9.5px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 hover:bg-red-100"
-                    title="Speak in Marathi/Hindi instead of typing"
+                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-xs transition-all ${
+                      isRecording
+                        ? 'bg-red-600 text-white animate-pulse'
+                        : 'bg-red-50 text-red-700 border border-red-300 hover:bg-red-100'
+                    }`}
+                    title="Speak in Marathi/Hindi/English to convert voice to text"
                   >
-                    <Mic size={10} className={isRecording ? 'animate-pulse text-red-600' : ''} />
-                    <span>{isRecording ? 'Listening...' : '🎙️ Audio to Text'}</span>
+                    <Mic size={12} className={isRecording ? 'text-white' : 'text-red-600'} />
+                    <span>{isRecording ? 'Listening (Speak Now)...' : '🎙️ Tap to Speak (Voice to Text)'}</span>
                   </button>
                 </div>
+
+                {/* Prominent Recording Indicator Banner */}
+                {isRecording && (
+                  <div className="mb-2 p-2 bg-red-100 border border-red-300 rounded-xl flex items-center gap-2 text-[10.5px] text-red-900 font-semibold animate-pulse">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
+                    <span>Microphone active: Speak in Marathi, Hindi, or English...</span>
+                  </div>
+                )}
+
                 <textarea
                   rows={2}
                   required
                   value={beaconDesc}
                   onChange={(e) => setBeaconDesc(e.target.value)}
-                  className="w-full text-[12px] p-2 bg-gray-50 border border-gray-300 rounded-xl"
-                  placeholder="How many workers are waiting? Is the nearby tap dry? (or tap Audio to Text)"
+                  className="w-full text-[12px] p-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="e.g. 15 riders waiting at junction, water tap is dry (or tap the red microphone button to speak)"
                 />
+                
+                {/* Voice Presets / Quick Chips */}
+                <div className="mt-1.5 flex gap-1 overflow-x-auto pb-0.5 no-scrollbar text-[9.5px]">
+                  <button
+                    type="button"
+                    onClick={() => setBeaconDesc("15+ delivery riders stranded under blazing flyover sun, tap dry")}
+                    className="shrink-0 px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md border border-gray-200"
+                  >
+                    🛵 15 Delivery Riders
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBeaconDesc("Auto stand drivers without drinking water in 42°C heat, tin roof hot")}
+                    className="shrink-0 px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md border border-gray-200"
+                  >
+                    🛺 Auto Stand Cluster
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBeaconDesc("मंडीत कामगारांना पिण्याचे पाणी नाहीये, तातडीने पाण्याची गरज आहे")}
+                    className="shrink-0 px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md border border-gray-200 font-semibold"
+                  >
+                    🇮🇳 मराठी: पाण्याचे दुर्भिक्ष
+                  </button>
+                </div>
+
                 {latestAudioTranscription && (
-                  <div className="mt-1 p-2 bg-blue-50 border border-blue-200 rounded-lg text-[9.5px]">
-                    <span className="font-bold text-blue-900">🤖 Gemini 3.8 Transcription ({latestAudioTranscription.language_detected}):</span>
-                    <p className="text-blue-800 italic mt-0.5">"{latestAudioTranscription.translation_en}"</p>
+                  <div className="mt-1.5 p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-[10px]">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-blue-950 flex items-center gap-1">
+                        <span>🤖</span> Gemini Flash Audio Transcription ({latestAudioTranscription.language_detected}):
+                      </span>
+                      <span className="bg-blue-200 text-blue-900 text-[8.5px] px-1.5 py-0.2 rounded font-mono font-bold">LIVE STT</span>
+                    </div>
+                    <p className="text-blue-900 font-medium mt-1 leading-snug">"{latestAudioTranscription.transcription}"</p>
                   </div>
                 )}
               </div>
