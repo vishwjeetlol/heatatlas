@@ -109,6 +109,31 @@ body {
   box-sizing: border-box;
 }
 
+/* Responsive Native Scaling on Mobile Phone */
+@media (max-width: 640px) {
+  .phone-case {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .phone-screen {
+    border-radius: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .dynamic-island {
+    border-radius: 0 !important;
+  }
+  .phone-case::before,
+  .phone-case::after {
+    display: none !important;
+  }
+}
+
 /* Hardware Buttons */
 .phone-case::before {
   content: "";

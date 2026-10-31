@@ -163,8 +163,14 @@ const SWARGATE_PRECISION = {
 export default function App() {
   const [viewMode, setViewMode] = useState("worker"); // 'worker' | 'ngo'
   const [portalMode, setPortalMode] = useState("phone"); // 'phone' | 'command' | 'backend'
+  const [isPortalDrawerOpen, setIsPortalDrawerOpen] = useState(false);
   const [lang, setLang] = useState("en");
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+
+  const handleSelectPortal = (mode) => {
+    setPortalMode(mode);
+    setIsPortalDrawerOpen(false);
+  };
 
   // Multi-City & Climatology State
   const [selectedCity, setSelectedCity] = useState("pune");
@@ -1371,7 +1377,7 @@ export default function App() {
   const resolvedBeacons = beacons.filter((b) => b.status === "resolved");
 
   return (
-    <div className="flex justify-center items-center w-full min-h-screen py-6 px-4 relative">
+    <div className="flex justify-center items-center w-full min-h-screen md:py-6 md:px-4 p-0 relative overflow-x-clip">
       {/* 1. MAIN DISPLAY VIEW BASED ON RIGHT-HAND NAV SELECTOR */}
       {portalMode === "phone" && (
         /* REALISTIC PHONE FRAME */
@@ -2799,15 +2805,55 @@ export default function App() {
         </div>
       )}
 
-      {/* FAR-RIGHT FLOATING NAVIGATION COLUMN */}
-      <aside className="fixed right-5 top-1/2 -translate-y-1/2 z-[9000] flex flex-col gap-2.5 p-2 bg-[#121620]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
-        <div className="text-[9.5px] uppercase font-mono font-extrabold tracking-wider text-slate-400 text-center pb-1 border-b border-white/10">
-          VIEW PORTAL
+      {/* MOBILE DRAWER BACKDROP (ONLY VISIBLE ON PHONE WHEN SLIDER IS OPEN) */}
+      {isPortalDrawerOpen && (
+        <div
+          onClick={() => setIsPortalDrawerOpen(false)}
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-[8998] transition-opacity animate-in fade-in duration-200"
+          aria-hidden="true"
+        />
+      )}
+
+      {/* MOBILE SLIDER TAB HANDLE (COLLAPSED STATE ON PHONE ONLY) */}
+      {!isPortalDrawerOpen && (
+        <button
+          onClick={() => setIsPortalDrawerOpen(true)}
+          className="md:hidden fixed right-0 top-1/2 -translate-y-1/2 z-[8997] flex items-center gap-1 pl-2.5 pr-1.5 py-3.5 bg-[#121620]/95 backdrop-blur-xl border-l border-y border-white/20 text-white rounded-l-2xl shadow-2xl transition-all active:scale-95 group hover:bg-[#1a2030]"
+          title="Open Portals Slider"
+          aria-label="Open Portals Navigation Slider"
+        >
+          <span className="text-xs text-amber-400 group-hover:-translate-x-0.5 transition-transform">◀</span>
+          <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest [writing-mode:vertical-rl] rotate-180 text-slate-300">
+            Portals
+          </span>
+        </button>
+      )}
+
+      {/* FAR-RIGHT NAVIGATION COLUMN (DESKTOP FIXED / PHONE SLIDE-OUT DRAWER) */}
+      <aside
+        className={`fixed z-[9000] flex flex-col gap-2.5 p-2.5 bg-[#121620]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl transition-transform duration-300 ease-out md:right-5 md:top-1/2 md:-translate-y-1/2 md:translate-x-0 ${
+          isPortalDrawerOpen
+            ? "right-3 top-1/2 -translate-y-1/2 translate-x-0 max-w-[220px]"
+            : "right-0 top-1/2 -translate-y-1/2 translate-x-[130%] pointer-events-none md:pointer-events-auto"
+        }`}
+      >
+        <div className="flex items-center justify-between pb-1.5 border-b border-white/10 gap-3">
+          <span className="text-[9.5px] uppercase font-mono font-extrabold tracking-wider text-slate-300">
+            VIEW PORTAL
+          </span>
+          <button
+            onClick={() => setIsPortalDrawerOpen(false)}
+            className="md:hidden text-[10px] font-bold text-slate-300 hover:text-white bg-white/10 hover:bg-white/20 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors"
+            title="Hide Portals Slider"
+          >
+            <span>Hide</span>
+            <span className="text-xs">▶</span>
+          </button>
         </div>
 
         {/* 1. Mobile Phone */}
         <button
-          onClick={() => setPortalMode("phone")}
+          onClick={() => handleSelectPortal("phone")}
           className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-semibold text-[12px] transition-all text-left ${
             portalMode === "phone"
               ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/30 font-bold scale-[1.02]"
@@ -2826,7 +2872,7 @@ export default function App() {
 
         {/* 2. Ground Command Dashboard */}
         <button
-          onClick={() => setPortalMode("command")}
+          onClick={() => handleSelectPortal("command")}
           className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-semibold text-[12px] transition-all text-left ${
             portalMode === "command"
               ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 font-bold scale-[1.02]"
@@ -2845,7 +2891,7 @@ export default function App() {
 
         {/* 3. Backend & API Docs */}
         <button
-          onClick={() => setPortalMode("backend")}
+          onClick={() => handleSelectPortal("backend")}
           className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-semibold text-[12px] transition-all text-left ${
             portalMode === "backend"
               ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-lg shadow-purple-500/30 font-bold scale-[1.02]"
@@ -2867,6 +2913,7 @@ export default function App() {
           href="/showcase.html"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => setIsPortalDrawerOpen(false)}
           className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-semibold text-[12px] transition-all text-left text-amber-300 hover:bg-white/10 hover:text-amber-200"
           title="Shareable Showcase Website & Videos"
         >
