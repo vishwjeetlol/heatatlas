@@ -160,6 +160,35 @@ const SWARGATE_PRECISION = {
   name: "Swargate Flyover (Jedhe Chowk)",
 };
 
+function getCityRealtimeHour(timezone = "Asia/Kolkata") {
+  try {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      hour: "numeric",
+      hourCycle: "h23",
+    });
+    const hr = parseInt(formatter.format(now), 10);
+    return isNaN(hr) ? now.getHours() : hr;
+  } catch (err) {
+    return new Date().getHours();
+  }
+}
+
+function getCityRealtimeFormatted(timezone = "Asia/Kolkata") {
+  try {
+    const now = new Date();
+    return new Intl.DateTimeFormat("en-IN", {
+      timeZone: timezone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).format(now);
+  } catch (err) {
+    return "";
+  }
+}
+
 export default function App() {
   const [viewMode, setViewMode] = useState("worker"); // 'worker' | 'ngo'
   const [portalMode, setPortalMode] = useState("phone"); // 'phone' | 'command' | 'backend'
@@ -181,7 +210,8 @@ export default function App() {
   const [assets, setAssets] = useState([]);
   const [beacons, setBeacons] = useState([]);
   const [selectedZone, setSelectedZone] = useState(null);
-  const [hourOffset, setHourOffset] = useState(14);
+  const [hourOffset, setHourOffset] = useState(() => getCityRealtimeHour());
+  const [isLiveRealtime, setIsLiveRealtime] = useState(true);
   const [hourlyTemps, setHourlyTemps] = useState([]);
   const [freshness, setFreshness] = useState("Live Meteo");
   const [toastMsg, setToastMsg] = useState(null);
@@ -780,7 +810,7 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [lang, selectedCity]);
 
-  // Handle City Switch & Smooth Map FlyTo
+  // Handle City Switch & Smooth Map FlyTo with Real-Time Hour Auto-Extraction
   const handleCityChange = (cityId) => {
     setSelectedCity(cityId);
     const meta = cityList.find((c) => c.id === cityId);
@@ -791,8 +821,21 @@ export default function App() {
       if (mapInstance.current) {
         mapInstance.current.flyTo(meta.centroid, 13, { duration: 1.5 });
       }
-      showToast(`📍 Switched to ${meta.name} (${meta.region})`);
+      // Auto-extract real-time hour of that city
+      const liveHr = getCityRealtimeHour(meta.timezone || "Asia/Kolkata");
+      setHourOffset(liveHr);
+      setIsLiveRealtime(true);
+      fetchZones(liveHr, cityId);
+      showToast(`📍 Switched to ${meta.name} (${meta.region}) · Live Hour: ${liveHr}:00`);
     }
+  };
+
+  const snapToRealtimeHour = () => {
+    const liveHr = getCityRealtimeHour(currentCityMeta?.timezone || "Asia/Kolkata");
+    setHourOffset(liveHr);
+    setIsLiveRealtime(true);
+    fetchZones(liveHr, selectedCity);
+    showToast(`⏱️ Synced to Real-Time Hour: ${liveHr}:00 (${currentCityMeta?.name || "City"})`);
   };
 
   // Real GPS Geolocation for Driver
@@ -1211,8 +1254,10 @@ export default function App() {
   };
 
   const handleHourChange = (e) => {
-    const val = parseInt(e.target.value);
+    const val = parseInt(e.target.value, 10);
     setHourOffset(val);
+    const liveHr = getCityRealtimeHour(currentCityMeta?.timezone || "Asia/Kolkata");
+    setIsLiveRealtime(val === liveHr);
     fetchZones(val, selectedCity);
   };
 
@@ -1369,6 +1414,10 @@ export default function App() {
   const criticalZones = useMemo(() => {
     return [...zones].sort((a, b) => b.rd - a.rd).slice(0, 5);
   }, [zones]);
+
+  const currentLiveTimeStr = useMemo(() => {
+    return getCityRealtimeFormatted(currentCityMeta?.timezone || "Asia/Kolkata");
+  }, [currentCityMeta]);
 
   const displayTime = useMemo(() => {
     const ampm = hourOffset >= 12 ? "PM" : "AM";
@@ -1939,10 +1988,52 @@ export default function App() {
 
             {/* REAL LEAFLET MAP VIEWPORT */}
             <section className="relative px-2.5 pt-1">
+              {/* CITY SELECTION DIRECTLY ABOVE MAP IN NGO COMMAND */}
+              {viewMode === "ngo" && (
+                <div className="mb-1.5 bg-blue-950/40 border border-blue-500/30 rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-1 shadow-xs">
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-amber-300 font-extrabold shrink-0 flex items-center gap-1">
+                      <span>🏢</span> Command City:
+                    </span>
+                    {cityList.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => handleCityChange(c.id)}
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-lg shrink-0 transition-all ${
+                          selectedCity === c.id
+                            ? "bg-blue-600 text-white shadow-xs scale-105"
+                            : "bg-white/80 hover:bg-white text-slate-700 border border-slate-200"
+                        }`}
+                      >
+                        📍 {c.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div
                 ref={mapRef}
                 className="w-full h-[280px] rounded-2xl overflow-hidden border border-black/5 shadow-xs z-10"
               />
+
+              {/* CITY DROPDOWN ANCHORED DIRECTLY ON MAP IN NGO COMMAND */}
+              {viewMode === "ngo" && (
+                <div className="absolute top-4 left-4 z-[500] flex items-center gap-1 bg-[#0f172a]/95 backdrop-blur-md px-2.5 py-1 rounded-xl border border-blue-400/40 shadow-xl text-white">
+                  <span className="text-xs">🏢</span>
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => handleCityChange(e.target.value)}
+                    className="bg-transparent text-white text-[11px] font-bold py-0.5 focus:outline-none cursor-pointer"
+                  >
+                    {cityList.map((c) => (
+                      <option key={c.id} value={c.id} className="bg-slate-900 text-white">
+                        📍 {c.name} ({c.region})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="absolute top-3 right-5 z-[500] flex flex-col gap-1.5">
                 <button
@@ -1967,15 +2058,41 @@ export default function App() {
               </div>
             </section>
 
-            {/* 24-HOUR TIMELINE SCRUBBER */}
+            {/* 24-HOUR TIMELINE SCRUBBER (REAL-TIME AUTO-SYNCED) */}
             <section className="px-2.5 pt-1">
               <div className="bg-white rounded-t-2xl px-3.5 pt-2.5 pb-1 border border-b-0 border-black/5 flex justify-between items-center">
-                <span className="text-[11.5px] font-bold text-[#86868b] flex items-center gap-1">
-                  <Clock size={12} /> {t.timelineTitle}
-                </span>
-                <span className="font-mono text-[11.5px] font-bold text-[#0071e3]">
-                  {displayTime}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11.5px] font-bold text-[#86868b] flex items-center gap-1">
+                    <Clock size={12} /> {t.timelineTitle}
+                  </span>
+                  {isLiveRealtime ? (
+                    <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full border border-red-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
+                      <span>LIVE {currentLiveTimeStr}</span>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={snapToRealtimeHour}
+                      className="inline-flex items-center gap-1 bg-sky-100 hover:bg-sky-200 text-sky-800 text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border border-sky-300 transition-colors shadow-xs active:scale-95"
+                      title="Snap back to current real-time hour"
+                    >
+                      <span>⏱️ Snap to Live ({currentLiveTimeStr})</span>
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono text-[11.5px] font-bold text-[#0071e3]">
+                    {displayTime}
+                  </span>
+                  {!isLiveRealtime && (
+                    <button
+                      onClick={snapToRealtimeHour}
+                      className="text-[9.5px] text-sky-600 underline font-semibold hover:text-sky-800"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
               </div>
               <input
                 type="range"
