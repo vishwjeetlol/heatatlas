@@ -30,14 +30,14 @@ CITIES = {
             "lon": 73.8578
         },
         "wards": [
-            ["Nigdi", "Chikhali", "Moshi", "Charholi", "Dighi", "Bhosari", "Chakan Rd", "Alandi"],
-            ["Akurdi", "Pimpri", "Kasarwadi", "Dapodi", "Khadki", "Vishrantwadi", "Dhanori", "Lohegaon"],
-            ["Thergaon", "Kalewadi", "Pimple Saudagar", "Sangvi", "Aundh", "Bopodi", "Yerawada", "Viman Nagar"],
-            ["Wakad", "Hinjawadi", "Baner", "Pashan", "Shivajinagar", "Pune Station", "Koregaon Park", "Kharadi"],
-            ["Bavdhan", "Kothrud N", "Erandwane", "Deccan", "Kasba Peth", "Camp / Cantonment", "Hadapsar APMC", "Manjari"],
-            ["Warje", "Kothrud S", "Parvati", "Swargate", "Salunke Vihar", "Kondhwa", "Undri", "Handewadi"],
-            ["Karvenagar", "Sinhagad Rd", "Dhankawadi", "Katraj N", "Kondhwa Budruk", "Pisoli", "Yewalewadi", "Autadwadi"],
-            ["Dhayari", "Nanded City", "Ambegaon", "Katraj S", "Gokul Nagar", "Saswad Rd", "Uruli Devachi", "Wadki"]
+            ["Dehu Road", "Nigdi", "Akurdi", "Chinchwad N", "Moshi", "Bhosari N", "Alandi", "Charholi"],
+            ["Ravet", "Thergaon", "Pimpri", "Kasarwadi", "Bhosari MIDC", "Dighi", "Dhanori N", "Lohegaon"],
+            ["Hinjawadi Ph-1", "Wakad", "Pimple Saudagar", "Dapodi", "Khadki", "Vishrantwadi", "Tingre Nagar", "Viman Nagar N"],
+            ["Hinjawadi Ph-2", "Balewadi", "Baner", "Aundh", "Shivajinagar", "Pune Station", "Yerawada", "Viman Nagar / Kharadi"],
+            ["Chandni Chowk", "Bavdhan", "Kothrud", "Deccan Gymkhana", "Kasba Peth", "Swargate", "Camp / Cantonment", "Hadapsar APMC"],
+            ["NDA Khadakwasla", "Warje", "Karvenagar", "Parvati", "Bibwewadi", "Market Yard", "Wanowrie", "Magarpatta / Mundhwa"],
+            ["Uttamnagar", "Shivane", "Sinhagad Rd", "Vadgaon Budruk", "Dhankawadi", "Kondhwa", "NIBM / Salunke Vihar", "Uruli Devachi"],
+            ["Donje", "Khadakwasla S", "Nanded City", "Dhayari", "Ambegaon", "Katraj", "Pisoli", "Handewadi"]
         ],
         "ngos": [
             {
