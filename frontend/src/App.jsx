@@ -2861,6 +2861,23 @@ export default function App() {
             </span>
           </div>
         </button>
+
+        {/* 4. Showcase Hub */}
+        <a
+          href="/showcase.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-semibold text-[12px] transition-all text-left text-amber-300 hover:bg-white/10 hover:text-amber-200"
+          title="Shareable Showcase Website & Videos"
+        >
+          <span className="text-base">🌟</span>
+          <div className="flex flex-col">
+            <span className="leading-tight">Showcase Hub</span>
+            <span className="text-[9.5px] opacity-75 font-normal">
+              Videos & Pitch Deck ↗
+            </span>
+          </div>
+        </a>
       </aside>
 
       {/* BEACON CREATION MODAL WITH GEMINI 2.0 VISION PHOTO AUDIT */}

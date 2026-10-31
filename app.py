@@ -1269,5 +1269,12 @@ async def list_integrated_repositories():
         ],
     }
 
+@app.get("/showcase", response_class=FileResponse)
+def get_showcase():
+    showcase_path = os.path.join(os.path.dirname(__file__), "static", "showcase.html")
+    if os.path.exists(showcase_path):
+        return FileResponse(showcase_path, media_type="text/html")
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "index.html"), media_type="text/html")
+
 # Serve static frontend files
 app.mount("/", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static"), html=True), name="static")
