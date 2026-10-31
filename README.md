@@ -124,7 +124,7 @@ npm install
 npm run dev
 ```
 
-### 3. Run the 16 Automated Pytest Acceptance & Property Tests (`tests/test_heatatlas.py`)
+### 3. Run the 17 Automated Pytest Acceptance & Property Tests (`tests/test_heatatlas.py`)
 
 ```bash
 pytest tests/test_heatatlas.py -v
