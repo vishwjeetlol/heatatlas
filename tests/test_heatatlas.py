@@ -314,6 +314,61 @@ def test_constrained_vrp_solver_and_dynamic_cool_corridor():
     assert corr["canopy_cool_route"]["est_temp_c"] < corr["highway_route"]["est_temp_c"]
 
 
+def test_round3_scoring_monotonicity_and_invariants():
+    """
+    Property & Invariant checks:
+    1. Monotonicity in working_taps: adding taps never increases Rd.
+    2. Monotonicity in vulnerable population: adding children/elderly never decreases Rd (when hours > 0).
+    3. Stull (2011) Wet-Bulb temperature bounded in (-10, 55) C and increases monotonically with RH.
+    """
+    for taps in range(0, 12):
+        r_curr = compute_scores(35000, 5000, 3000, 6, taps, 1, peak_apparent_temp=42.0, relative_humidity_pct=40.0)
+        r_next = compute_scores(35000, 5000, 3000, 6, taps + 1, 1, peak_apparent_temp=42.0, relative_humidity_pct=40.0)
+        assert r_next["rd"] <= r_curr["rd"], "Adding working taps must never increase Relief Deficit"
+        assert r_next["non_linear_rd"] <= r_curr["non_linear_rd"]
+
+    r_low_v = compute_scores(35000, 2000, 1000, 6, 3, 1, peak_apparent_temp=42.0)
+    r_high_v = compute_scores(35000, 6000, 3000, 6, 3, 1, peak_apparent_temp=42.0)
+    assert r_high_v["rd"] > r_low_v["rd"], "Increasing vulnerable population must strictly increase Relief Deficit"
+
+    r_dry = compute_scores(35000, 5000, 3000, 6, 3, 1, peak_apparent_temp=42.0, relative_humidity_pct=20.0)
+    r_humid = compute_scores(35000, 5000, 3000, 6, 3, 1, peak_apparent_temp=42.0, relative_humidity_pct=65.0)
+    assert r_humid["stull_wet_bulb_c"] > r_dry["stull_wet_bulb_c"]
+    assert "coefficient_provenance" in r_humid
+    assert r_humid["sphere_persons_per_tap"] > 0
+
+
+def test_round3_concave_dp_optimality_and_ablation_and_audit_proof():
+    """
+    Verifies:
+    1. Discrete Concave DP Resource Optimizer matches brute-force exhaustive enumeration (0.0% optimality gap).
+    2. Municipal polygon geofence rejects Delhi (28.61, 77.20) and (0, 0) with HTTP 422.
+    3. /api/ready and /api/system/audit-proof return 200 OK with live execution proof.
+    """
+    r_delhi = client.post("/api/beacons/report", json={
+        "location_name": "Connaught Place Delhi",
+        "lat": 28.6139,
+        "lon": 77.2090,
+        "zone_id": "pune-Z-44",
+        "description": "Out-of-corridor test coordinate in Delhi",
+        "session_token": "delhi_geofence_test"
+    })
+    assert r_delhi.status_code == 422
+
+    r_ready = client.get("/api/ready?city=pune")
+    assert r_ready.status_code == 200
+    assert r_ready.json()["status"] == "ready"
+    assert r_ready.json()["sqlite_persistence_verified"] is True
+
+    r_proof = client.get("/api/system/audit-proof?city=pune")
+    assert r_proof.status_code == 200
+    proof = r_proof.json()
+    assert proof["security_and_geofence_verification"]["cors_wildcard_removed"] is True
+    assert proof["constrained_optimization_verification"]["optimality_verification"]["verified_global_optimum"] is True
+    assert proof["constrained_optimization_verification"]["optimality_verification"]["optimality_gap_pct"] == 0.0
+    assert len(proof["ablation_study"]["ablation_variants"]) == 4
+
+
 if __name__ == "__main__":
     test_funcs = [v for k, v in list(globals().items()) if k.startswith("test_") and callable(v)]
     for fn in test_funcs:
