@@ -13,14 +13,14 @@
       "headers": {
         "cache-control": "public, max-age=31536000, immutable"
       },
-      "dest": "/static/assets/$1"
+      "dest": "app.py"
     },
     {
       "src": "/showcase.html",
       "headers": {
         "cache-control": "public, max-age=3600, s-maxage=86400"
       },
-      "dest": "/static/showcase.html"
+      "dest": "app.py"
     },
     {
       "src": "/api/cities",
