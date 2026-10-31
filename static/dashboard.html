@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: 'DM Sans', sans-serif; background: #0b0f19; color: #f1f5f9; }
@@ -28,7 +30,7 @@
         <p class="text-sm text-slate-400 mt-1">Ground Worker Photo Submissions, Gemini Vision Audits, and WhatsApp Squad Battle-Orders</p>
       </div>
       <div class="flex items-center gap-3">
-        <a href="http://localhost:5173" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-lg flex items-center gap-1.5">
+        <a href="/" target="_top" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-lg flex items-center gap-1.5">
           <span>📱</span> Open Driver Mobile App
         </a>
         <button onclick="loadDashboardData()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
@@ -36,6 +38,17 @@
         </button>
       </div>
     </header>
+
+    <!-- LIVE SPATIAL COMMAND HEATMAP -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
+      <div class="flex justify-between items-center">
+        <h2 class="font-display font-bold text-sm text-white flex items-center gap-2">
+          <span>🗺️</span> Live Pune Spatial Deficit & Worker Beacon Map (64 Micro-Zones)
+        </h2>
+        <span class="text-xs font-mono text-emerald-400">Open-Meteo + WorldPop + Overpass Active</span>
+      </div>
+      <div id="command-map" class="w-full h-[320px] rounded-xl overflow-hidden border border-slate-800 z-10"></div>
+    </div>
 
     <!-- METRICS STRIP -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -145,14 +158,33 @@
   <script>
     let globalBeacons = [];
     let globalNgos = [];
+    let cmdMap = null;
+    let cmdZoneLayers = [];
+    let cmdMarkers = [];
+
+    function initCommandMap() {
+      if (cmdMap) return;
+      cmdMap = L.map('command-map').setView([18.515, 73.8567], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        opacity: 0.85
+      }).addTo(cmdMap);
+    }
 
     async function loadDashboardData() {
       try {
+        initCommandMap();
+        // 0. Fetch Zones for Spatial Heatmap
+        const zRes = await fetch('/api/zones?city=pune&hour=14');
+        const zData = await zRes.json();
+        const zones = zData.zones || [];
+
         // 1. Fetch Beacons
         const bRes = await fetch('/api/beacons');
         const bData = await bRes.json();
         globalBeacons = bData.beacons || [];
         renderBeacons(globalBeacons);
+        renderCommandMapLayers(zones, globalBeacons);
 
         // 2. Fetch Outages
         const oRes = await fetch('/api/outages');
@@ -174,6 +206,44 @@
       } catch (e) {
         console.error('Dashboard load error:', e);
       }
+    }
+
+    function renderCommandMapLayers(zones, beacons) {
+      if (!cmdMap) return;
+      cmdZoneLayers.forEach(l => cmdMap.removeLayer(l));
+      cmdZoneLayers = [];
+      cmdMarkers.forEach(m => cmdMap.removeLayer(m));
+      cmdMarkers = [];
+
+      zones.forEach(z => {
+        const [s, w, n, e] = z.bbox;
+        let color = '#64748b';
+        let opacity = 0.35;
+        if (z.rd >= 4000 || z.tier === 'Critical') { color = '#dc2626'; opacity = 0.6; }
+        else if (z.rd >= 1500 || z.tier === 'High') { color = '#ea580c'; opacity = 0.5; }
+        else if (z.tier === 'Moderate') { color = '#ca8a04'; opacity = 0.4; }
+        else { color = '#16a34a'; opacity = 0.3; }
+
+        const rect = L.rectangle([[s, w], [n, e]], {
+          color: color,
+          weight: 1.5,
+          fillColor: color,
+          fillOpacity: opacity
+        }).addTo(cmdMap);
+        rect.bindTooltip(`<strong>${z.name} (${z.id})</strong><br>Temp: ${z.temperature}°C · Deficit Rd: ${z.rd} · Tier: ${z.tier}`);
+        cmdZoneLayers.push(rect);
+      });
+
+      beacons.forEach(b => {
+        const isResolved = b.status === 'resolved';
+        const isFlagged = b.verified === false;
+        const pinColor = isResolved ? '#10b981' : isFlagged ? '#f59e0b' : '#dc2626';
+        const iconHtml = `<div style="background:${pinColor}; width:26px; height:26px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; font-size:12px; color:white; box-shadow:0 2px 8px rgba(0,0,0,0.5);">${isResolved ? '✓' : isFlagged ? '⚠️' : '🚨'}</div>`;
+        const icon = L.divIcon({ className: 'cmd-pin', html: iconHtml, iconSize: [26, 26], iconAnchor: [13, 13] });
+        const marker = L.marker([b.lat, b.lon], { icon }).addTo(cmdMap);
+        marker.bindPopup(`<strong>${b.location_name}</strong><br>${b.description}<br>Status: ${isFlagged ? 'REJECTED' : isResolved ? 'RESOLVED' : 'ACTIVE'}`);
+        cmdMarkers.push(marker);
+      });
     }
 
     function renderBeacons(beacons) {

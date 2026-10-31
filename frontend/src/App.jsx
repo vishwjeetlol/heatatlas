@@ -155,7 +155,7 @@ export default function App() {
   // Worker Beacon Modal state
   const [showBeaconModal, setShowBeaconModal] = useState(false);
   const [beaconLocation, setBeaconLocation] = useState(SWARGATE_PRECISION.name);
-  const [beaconDesc, setBeaconDesc] = useState('15 delivery riders waiting under blazing flyover sun, tap dry');
+  const [beaconDesc, setBeaconDesc] = useState('');
   const [beaconImage, setBeaconImage] = useState(null);
   const [isUploadingBeacon, setIsUploadingBeacon] = useState(false);
 
@@ -330,6 +330,14 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (portalMode !== 'phone') {
+      if (mapInstance.current) {
+        mapInstance.current.remove();
+        mapInstance.current = null;
+      }
+      return;
+    }
+
     if (!mapInstance.current && mapRef.current) {
       const map = L.map(mapRef.current, {
         zoomControl: false,
@@ -348,8 +356,11 @@ export default function App() {
       });
 
       mapInstance.current = map;
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 250);
     }
-  }, []);
+  }, [portalMode]);
 
   const nearbyAssets = useMemo(() => {
     return assets.map(a => {
@@ -363,7 +374,7 @@ export default function App() {
 
   useEffect(() => {
     const map = mapInstance.current;
-    if (!map) return;
+    if (!map || portalMode !== 'phone') return;
 
     if (driverMarkerRef.current) map.removeLayer(driverMarkerRef.current);
     if (radiusCircleRef.current) map.removeLayer(radiusCircleRef.current);
@@ -390,7 +401,7 @@ export default function App() {
       fillColor: '#38bdf8',
       fillOpacity: 0.12
     }).addTo(map);
-  }, [driverPos, radiusMeters, lang]);
+  }, [driverPos, radiusMeters, lang, portalMode]);
 
   const getZoneTemp = useCallback((zone, hour) => {
     if (!zone) return 38.0;
@@ -530,11 +541,11 @@ export default function App() {
       rect.bindTooltip(`<strong>${z.name} (${z.id})</strong><br>${z.temperature}°C · Rd: ${z.rd}`, { sticky: true });
       zoneLayersRef.current.push(rect);
     });
-  }, [hierarchicalGrid, currentZoom]);
+  }, [hierarchicalGrid, currentZoom, portalMode]);
 
   useEffect(() => {
     const map = mapInstance.current;
-    if (!map || assets.length === 0) return;
+    if (!map || assets.length === 0 || portalMode !== 'phone') return;
 
     assetMarkersRef.current.forEach(m => map.removeLayer(m));
     assetMarkersRef.current = [];
@@ -578,11 +589,11 @@ export default function App() {
       `);
       assetMarkersRef.current.push(marker);
     });
-  }, [nearbyAssets]);
+  }, [nearbyAssets, portalMode]);
 
   useEffect(() => {
     const map = mapInstance.current;
-    if (!map) return;
+    if (!map || portalMode !== 'phone') return;
 
     beaconMarkersRef.current.forEach(m => map.removeLayer(m));
     beaconMarkersRef.current = [];
@@ -621,7 +632,7 @@ export default function App() {
       `);
       beaconMarkersRef.current.push(marker);
     });
-  }, [beacons]);
+  }, [beacons, portalMode]);
 
   useEffect(() => {
     fetchCities();
@@ -941,7 +952,11 @@ export default function App() {
         })
       });
       const data = await res.json();
-      showToast(`📸 Gemini 3.8 Tap Audit: ${data.audit.damage_type}`);
+      if (data.audit && data.audit.is_water_asset && data.audit.is_dry_or_broken) {
+        showToast(`✓ Gemini Tap Audit Verified: ${data.audit.damage_type}`);
+      } else {
+        showToast(`⚠️ Gemini Filter Rejected: ${data.audit?.damage_type || 'Not a valid broken tap photo'}`);
+      }
       setTapAuditModalAsset(null);
       fetchAssets();
       fetchZones(hourOffset);
@@ -1082,7 +1097,7 @@ export default function App() {
       if (audit.verified !== false) {
         showToast(`✓ Gemini Flash Verified: ${audit.detected_crowd || 10} workers (${Math.round((audit.confidence || 0.95) * 100)}% conf)`);
       } else {
-        showToast(`⚠️ Gemini Filter: Flagged as non-emergency (${Math.round((audit.confidence || 0.15) * 100)}% conf)`);
+        showToast(`🚨 REJECTED by Gemini Vision: ${audit.condition || 'Image does not show an outdoor heat/water emergency'}`);
       }
       setShowBeaconModal(false);
       setBeaconDesc('');

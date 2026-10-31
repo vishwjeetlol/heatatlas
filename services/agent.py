@@ -137,7 +137,9 @@ async def audit_beacon_photo(image_base64: str = None, description: str = "") ->
     """
     Multimodal Vision & NLP Audit (Gemini Flash Spatial Intelligence).
     Authenticates real ground photos, crowd sizes, heat distress indicators, and text reports.
-    Uses multi-model auto-failover (gemini-flash-lite-latest, gemini-3-flash-preview, gemini-3.8-flash).
+    STRICT VISUAL PRIORITY: When an image is uploaded, the image is the SINGLE SOURCE OF TRUTH.
+    If the image does not visually depict outdoor people/workers, street heat, or water infrastructure,
+    it MUST be REJECTED (verified: false) regardless of what the text description says!
     """
     api_key = GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
 
@@ -148,50 +150,69 @@ async def audit_beacon_photo(image_base64: str = None, description: str = "") ->
 
             client = genai.Client(api_key=api_key)
 
-            # Build multimodal prompt
-            prompt_parts = [
-                f"""You are HeatAtlas Gemini Flash Verification Engine, an AI disaster relief auditor for municipal extreme heat waves in India.
-Your mission is to strictly and authentically verify emergency drinking water and heat relief requests from gig workers, delivery riders, rickshaw drivers, and manual laborers.
-
-GROUND REPORT DESCRIPTION:
-"{description if description else 'No text provided. Please inspect the attached ground image exclusively.'}"
-
-AUDIT PROTOCOL & RULES:
-1. AUTHENTICITY: Determine if this is an authentic outdoor heat emergency in India.
-   - IF the report is a test ("test", "trial", "hello", "asdf"), spam, indoors, unrelated meme, or irrelevant graphic:
-     "verified": false, "confidence": 0.15, "detected_crowd": 0, "severity_tier": "REJECTED".
-   - IF genuine outdoor workers/riders in extreme sun, dry public taps, or heat exhaustion:
-     "verified": true, "confidence": 0.85 to 0.98, "detected_crowd": (exact number mentioned or visually estimated), "severity_tier": "CRITICAL" | "HIGH" | "MODERATE".
-2. CROWD ESTIMATION: Extract the exact number of workers/riders from the text or count people in the image (return an integer).
-3. DIAGNOSTIC CONDITION: Concise 1-sentence assessment of the ground situation.
-4. AUTHENTIC REASONING: Specific explanation citing why the report was verified or rejected.
-5. ACTIONABLE RECOMMENDATION: Clear operational recommendation for NGO dispatch squads (e.g. water cans count, ORS sachets, shade canopy).
-
-Return PURE JSON in this exact schema:
-{{
-  "verified": true,
-  "confidence": 0.94,
-  "detected_crowd": 14,
-  "severity_tier": "CRITICAL",
-  "condition": "14 delivery riders sheltered under flyover pillar in direct 42C radiant heat with dry municipal tap.",
-  "reasoning": "High confidence: Swargate flyover transit junction with dense cluster of gig delivery riders facing extreme asphalt solar radiation and zero functional drinking water access.",
-  "actionable_recommendation": "Dispatch 20 chilled water cans + 40 ORS packets to Swargate Jedhe Chowk flyover pillar immediately."
-}}
-"""
-            ]
-
-            contents = []
             if image_base64:
                 clean_b64 = image_base64.split(",")[1] if "," in image_base64 else image_base64
-                # Handle base64 padding
                 pad = len(clean_b64) % 4
                 if pad:
                     clean_b64 += "=" * (4 - pad)
                 raw_bytes = base64.b64decode(clean_b64)
                 norm_bytes, norm_mime = normalize_to_gemini_image(raw_bytes)
-                contents.append(types.Part.from_bytes(data=norm_bytes, mime_type=norm_mime))
 
-            contents.append(prompt_parts[0])
+                vision_prompt = f"""You are HeatAtlas Strict Multimodal Vision Guardrail, a fraud-resistant AI auditor for municipal heatwave relief.
+A user uploaded the attached photo along with the text claim: "{description or 'No text'}".
+
+CRITICAL ANTI-SPOOFING & VISUAL VERIFICATION RULES (MANDATORY):
+1. THE IMAGE IS THE SOLE SOURCE OF TRUTH. Completely IGNORE the text claim if the image contradicts it or does not visually prove it!
+2. Inspect the image pixels first: What is actually in this photo?
+   - REJECT ("verified": false, "confidence": 0.05 to 0.25, "detected_crowd": 0, "severity_tier": "REJECTED") IF the image shows ANY of the following:
+     * Screenshots of code, UI, websites, laptops, phones, documents, charts, or text
+     * Memes, cartoons, anime, logos, icons, abstract art, solid colors, or blank/dark frames
+     * Indoor rooms, bedrooms, offices, furniture, food, pets, selfies in AC rooms, or random household objects
+     * Empty cars, random electronics, or anything that is NOT a real outdoor street/transit/worksite scene or water tap/cooler
+   - VERIFY ("verified": true, "confidence": 0.85 to 0.98, "severity_tier": "CRITICAL" | "HIGH" | "MODERATE") ONLY IF the image genuinely and clearly shows:
+     * Real outdoor workers, delivery riders, rickshaw drivers, commuters, or crowds outdoors in daytime/heat, OR
+     * Real outdoor street junctions, transit stands, construction sites, or municipal drinking water taps/coolers/tankers.
+3. CROWD COUNT: Count only the actual human beings visible in the image (if it's a valid water tap photo with 0 people, use the text count; if the image is rejected, detected_crowd MUST be 0).
+4. DIAGNOSTIC CONDITION: State plainly what you actually see in the image (e.g., "Rejected: Image shows a computer screen / indoor object, not an outdoor heat emergency.").
+
+Return PURE JSON in this exact schema:
+{{
+  "verified": false,
+  "confidence": 0.12,
+  "detected_crowd": 0,
+  "severity_tier": "REJECTED",
+  "condition": "Exact visual description of what is in the uploaded photo.",
+  "reasoning": "Detailed explanation of why the photo passed or failed visual verification.",
+  "actionable_recommendation": "No dispatch — submission rejected by visual guardrail (or specific dispatch action if verified)."
+}}
+"""
+                contents = [
+                    types.Part.from_bytes(data=norm_bytes, mime_type=norm_mime),
+                    vision_prompt
+                ]
+            else:
+                text_prompt = f"""You are HeatAtlas NLP Verification Engine for municipal heatwave relief in India.
+Evaluate this text-only ground report (no photo was attached):
+"{description}"
+
+RULES:
+- If the text is empty, gibberish ("asdf", "test", "hello", "lol", "123"), a joke, or unrelated to heat/water/workers/outdoors:
+  return "verified": false, "confidence": 0.15, "detected_crowd": 0, "severity_tier": "REJECTED".
+- If the text describes a realistic outdoor heat or water emergency (workers, riders, dry tap, heat exhaustion, transit stand):
+  return "verified": true, "confidence": 0.78 to 0.89 (cap at 0.89 since no photo proof was attached), "detected_crowd": <extracted integer>, "severity_tier": "CRITICAL" | "HIGH" | "MODERATE".
+
+Return PURE JSON matching the exact schema:
+{{
+  "verified": true,
+  "confidence": 0.84,
+  "detected_crowd": 12,
+  "severity_tier": "HIGH",
+  "condition": "1-sentence summary",
+  "reasoning": "Why verified or rejected",
+  "actionable_recommendation": "Dispatch action or rejection note"
+}}
+"""
+                contents = [text_prompt]
 
             response, used_model = call_gemini_with_fallback(
                 client,
@@ -200,55 +221,75 @@ Return PURE JSON in this exact schema:
             )
 
             parsed = extract_json_from_text(response.text)
+            # Enforce consistency: if severity_tier is REJECTED or confidence < 0.5, force verified = False
+            if parsed.get("severity_tier") == "REJECTED" or float(parsed.get("confidence", 0)) < 0.5:
+                parsed["verified"] = False
+                parsed["severity_tier"] = "REJECTED"
+                parsed["detected_crowd"] = 0
             parsed["model_used"] = f"Gemini Flash ({used_model})"
             parsed["audit_timestamp"] = int(time.time())
             parsed["is_simulated"] = False
             return parsed
 
         except Exception as e:
-            print(f"Gemini Vision/NLP audit fallback: {e}")
+            print(f"Gemini Vision/NLP audit error: {e}")
+            if image_base64:
+                # NEVER blindly verify an image if the Vision API failed!
+                return {
+                    "verified": False,
+                    "confidence": 0.0,
+                    "detected_crowd": 0,
+                    "severity_tier": "REJECTED",
+                    "condition": f"Visual verification could not authenticate the uploaded image ({str(e)[:80]}).",
+                    "reasoning": "Strict safety policy: Uploaded images cannot be auto-verified without passing Gemini Multimodal Vision inspection.",
+                    "actionable_recommendation": "Please upload a clear JPEG/PNG photo of the outdoor site or water tap.",
+                    "model_used": "Gemini Vision Strict Guardrail",
+                    "is_simulated": False
+                }
 
-    # Deterministic fallback scoring based on actual content
-    lower_desc = description.lower() if description else ""
-    is_spam = any(w in lower_desc for w in ["test", "fake", "lol", "asdf", "hello", "trial", "mock"])
-
-    # Extract any explicit number mentioned in description (e.g., "15 riders")
-    nums = re.findall(r'\b\d+\b', description or "")
-    detected_num = int(nums[0]) if nums else 8
-
-    if is_spam:
+    # If no API key is configured and an image was uploaded, reject unverified image
+    if image_base64:
         return {
             "verified": False,
-            "confidence": 0.15,
+            "confidence": 0.0,
             "detected_crowd": 0,
             "severity_tier": "REJECTED",
-            "condition": "Submission filtered as non-emergency test transmission.",
-            "reasoning": "Text analysis detected test keywords with zero ground distress indicators.",
+            "condition": "Image verification unavailable — cannot verify uploaded photo.",
+            "reasoning": "Strict visual guardrail blocks unverified image uploads when vision model is offline.",
+            "actionable_recommendation": "No dispatch.",
+            "model_used": "Strict Guardrail",
+            "is_simulated": True
+        }
+
+    # Text-only deterministic fallback when no image is provided
+    lower_desc = description.lower().strip() if description else ""
+    is_spam = (not lower_desc) or len(lower_desc) < 8 or any(w in lower_desc for w in ["test", "fake", "lol", "asdf", "hello", "trial", "mock", "trash", "random", "nothing"])
+    has_heat = any(w in lower_desc for w in ["sun", "heat", "water", "hot", "dry", "bottle", "thirst", "faint", "rider", "worker", "laborer", "auto", "exhaustion", "पाणी", "उन्हात", "कामगार", "पानी", "धूप"])
+
+    if is_spam or not has_heat:
+        return {
+            "verified": False,
+            "confidence": 0.12,
+            "detected_crowd": 0,
+            "severity_tier": "REJECTED",
+            "condition": "Submission rejected: No valid outdoor heat or water emergency indicators found.",
+            "reasoning": "Report lacks credible heatwave or hydration distress details.",
             "actionable_recommendation": "No deployment required. Filtered by ground safety guardrail.",
             "model_used": "Gemini Flash Guardrail (Filter)",
             "is_simulated": True
         }
 
-    # Calculate specific confidence based on location keywords
-    has_location = any(w in lower_desc for w in ["chowk", "station", "stand", "depot", "road", "nagar", "peth", "flyover", "corner", "gate", "mandi"])
-    has_heat = any(w in lower_desc for w in ["sun", "heat", "water", "hot", "dry", "bottle", "thirst", "faint", "rider", "worker", "laborer", "auto", "exhaustion"])
-
-    calc_conf = 0.76
-    if has_location: calc_conf += 0.11
-    if has_heat: calc_conf += 0.10
-    calc_conf = round(min(0.97, calc_conf), 2)
-
-    tier = "CRITICAL" if (detected_num >= 15 or "faint" in lower_desc or "exhaustion" in lower_desc) else ("HIGH" if detected_num >= 8 else "MODERATE")
-
+    nums = re.findall(r'\b\d+\b', description or "")
+    detected_num = int(nums[0]) if nums else 8
     return {
         "verified": True,
-        "confidence": calc_conf,
+        "confidence": 0.82,
         "detected_crowd": detected_num,
-        "severity_tier": tier,
-        "condition": f"{detected_num} workers at active outdoor location urgently in need of clean drinking water.",
-        "reasoning": f"Report indicates {detected_num} vulnerable individuals under direct solar exposure without adequate hydration infrastructure.",
-        "actionable_recommendation": f"Route mobile squad with {max(10, detected_num)} water cans and ORS packets.",
-        "model_used": "Gemini Flash Neural Validator",
+        "severity_tier": "HIGH" if detected_num >= 10 else "MODERATE",
+        "condition": f"Text-only report: {detected_num} workers requesting drinking water.",
+        "reasoning": "Text report describes outdoor hydration need (unaccompanied by photo).",
+        "actionable_recommendation": f"Route patrol squad with {max(10, detected_num)} water cans.",
+        "model_used": "Gemini NLP Validator",
         "is_simulated": True
     }
 
@@ -328,11 +369,11 @@ Generate the verified operational dispatch brief in valid JSON matching the few-
 
 async def audit_broken_tap_photo(image_base64: str) -> dict:
     """
-    Multimodal Vision Audit for Reported Broken/Dry Municipal Taps (Gemini 3.8 Flash).
-    Detects if water infrastructure is dry, damaged, leaking, or has out-of-order signage.
+    Multimodal Vision Audit for Reported Broken/Dry Municipal Taps (Gemini Flash).
+    Strictly rejects non-tap or trash images (screenshots, selfies, random objects).
     """
     api_key = GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
-    if api_key:
+    if api_key and image_base64 and image_base64 != "dummy":
         try:
             from google import genai
             from google.genai import types
@@ -345,19 +386,20 @@ async def audit_broken_tap_photo(image_base64: str) -> dict:
             image_bytes = base64.b64decode(clean_b64)
             norm_bytes, norm_mime = normalize_to_gemini_image(image_bytes)
 
-            prompt = f"""{SYSTEM_PROMPT}
-
-TASK: Multimodal Vision Inspection of an Indian municipal drinking water tap or cooler kiosk.
-1. Authenticate if the image shows a water tap, water cooler ATM, or public hand-pump.
-2. Determine if it appears dry, broken, disconnected, missing handles, or blocked.
-3. Return JSON:
-{{
-  "is_water_asset": true,
-  "is_dry_or_broken": true,
-  "confidence": 0.96,
-  "damage_type": "Disconnected supply line / rusted dry faucet",
-  "verification_details": "No flowing water detected; visual surface dry with missing tap head."
-}}
+            prompt = """You are a strict Multimodal Vision Auditor for municipal drinking water infrastructure.
+Inspect the attached image carefully:
+1. Does this image ACTUALLY show a physical water tap, faucet, drinking water cooler/ATM, water tank, or hand-pump?
+   - If the image is a screenshot, meme, person, indoor room, laptop, random object, or anything NOT a water tap/cooler:
+     you MUST set "is_water_asset": false, "is_dry_or_broken": false, "confidence": 0.10, "damage_type": "REJECTED: Not a water tap".
+2. Only if it genuinely shows a water tap/cooler/faucet, evaluate whether it appears dry, broken, rusted, or out-of-order.
+3. Return PURE JSON:
+{
+  "is_water_asset": false,
+  "is_dry_or_broken": false,
+  "confidence": 0.12,
+  "damage_type": "REJECTED: Image does not show a water tap",
+  "verification_details": "Exact description of what is visible in the image."
+}
 """
             response, used_model = call_gemini_with_fallback(
                 client,
@@ -368,18 +410,28 @@ TASK: Multimodal Vision Inspection of an Indian municipal drinking water tap or 
                 config={"response_mime_type": "application/json"}
             )
             parsed = extract_json_from_text(response.text)
+            if not parsed.get("is_water_asset"):
+                parsed["is_dry_or_broken"] = False
             parsed["model_used"] = f"Gemini Flash ({used_model})"
             parsed["is_simulated"] = False
             return parsed
         except Exception as e:
-            print(f"Gemini 3.8 Vision tap audit error: {e}")
+            print(f"Gemini Vision tap audit error: {e}")
+            return {
+                "is_water_asset": False,
+                "is_dry_or_broken": False,
+                "confidence": 0.0,
+                "damage_type": "REJECTED: Could not verify image",
+                "verification_details": f"Strict visual guardrail rejected unverified image ({str(e)[:60]}).",
+                "is_simulated": False
+            }
 
     return {
-        "is_water_asset": True,
-        "is_dry_or_broken": True,
-        "confidence": 0.93,
-        "damage_type": "Dry / No Flow Reported",
-        "verification_details": "Verified dry municipal tap at ground station.",
+        "is_water_asset": False,
+        "is_dry_or_broken": False,
+        "confidence": 0.0,
+        "damage_type": "REJECTED: No valid tap photo provided",
+        "verification_details": "Please upload a real photo of a municipal water tap or cooler.",
         "is_simulated": True
     }
 
