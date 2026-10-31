@@ -1,6 +1,8 @@
 # 🏆 HeatAtlas: Forecast Heat. Prioritise Relief.
 > **Autonomous Extreme Heat Relief Engine & Emergency Spatial Intelligence**  
-> *Official Hackathon Submission | Powered by Google Gemini 3.8 Flash, Open-Meteo, WorldPop & Overpass*
+> **FORGE'26 Track:** `Theme 2 — Climate, Resource Infrastructure & Global Supply Resilience`  
+> **Problem Spectrum:** *Autonomous Emergency Response & Supply Chain Logistics Swarm* · *Smart Grid & Urban Resource Allocation Controller*  
+> *Official Hackathon Submission | Powered by Google Gemini Flash, Open-Meteo, WorldPop & Overpass*
 
 ---
 
