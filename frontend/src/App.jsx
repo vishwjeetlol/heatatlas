@@ -222,6 +222,8 @@ export default function App() {
   const [integrationsList, setIntegrationsList] = useState([]);
   const [showRepoDrawer, setShowRepoDrawer] = useState(false);
   const [hideDemoFixtures, setHideDemoFixtures] = useState(false);
+  const knownBeaconIdsRef = useRef(new Set());
+  const hasLoadedBeaconsRef = useRef(false);
   const [cnsConfusionStatus, setCnsConfusionStatus] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
@@ -380,13 +382,75 @@ export default function App() {
     }
   };
 
-  const fetchBeacons = async (excludeFixtures = hideDemoFixtures) => {
+  // Real-time Dual-Tone Web Audio Chime Synthesizer
+  const playEmergencyChime = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime;
+
+      // Tone 1: High Attention Alert (880 Hz / A5)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(880, now);
+      gain1.gain.setValueAtTime(0.35, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.3);
+
+      // Tone 2: Urgent Dispatch Harmonic (1174.66 Hz / D6)
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = "triangle";
+      osc2.frequency.setValueAtTime(1174.66, now + 0.18);
+      gain2.gain.setValueAtTime(0.4, now + 0.18);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.18);
+      osc2.stop(now + 0.55);
+    } catch (e) {
+      console.warn("Audio Context playback prevented by browser:", e);
+    }
+  };
+
+  const triggerIncidentNotification = (b) => {
+    playEmergencyChime();
+    if ("speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(
+          `Attention Command Center: New heat distress beacon reported at ${b.location_name || "Ground Location"} in ${currentCityMeta?.name || "district"}`
+        );
+        utterance.rate = 1.05;
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {}
+    }
+    showToast(`🚨 NEW EMERGENCY: ${b.location_name || "Beacon"} reported!`);
+  };
+
+  const fetchBeacons = async (excludeFixtures = hideDemoFixtures, city = selectedCity) => {
     try {
       const res = await fetch(
-        `/api/beacons?include_fixtures=${!excludeFixtures}`,
+        `/api/beacons?include_fixtures=${!excludeFixtures}&city=${city}`,
       );
       const data = await res.json();
-      setBeacons(data.beacons || []);
+      const incoming = data.beacons || [];
+      if (hasLoadedBeaconsRef.current) {
+        const brandNew = incoming.filter(
+          (b) => !knownBeaconIdsRef.current.has(b.id) && b.status !== "resolved",
+        );
+        if (brandNew.length > 0) {
+          triggerIncidentNotification(brandNew[0]);
+        }
+      }
+      incoming.forEach((b) => knownBeaconIdsRef.current.add(b.id));
+      hasLoadedBeaconsRef.current = true;
+      setBeacons(incoming);
     } catch (err) {
       console.error(err);
     }
@@ -800,7 +864,7 @@ export default function App() {
   useEffect(() => {
     fetchZones(hourOffset, selectedCity);
     fetchAssets(selectedCity);
-    fetchBeacons();
+    fetchBeacons(hideDemoFixtures, selectedCity);
     fetchNgos(selectedCity);
 
     // Defer heavy LLM dispatch brief until critical map & zone data have rendered
@@ -808,7 +872,15 @@ export default function App() {
       fetchBrief(selectedCity);
     }, 600);
     return () => clearTimeout(timer);
-  }, [lang, selectedCity]);
+  }, [lang, selectedCity, hideDemoFixtures]);
+
+  // Real-time live polling for incoming incident problems every 5 seconds
+  useEffect(() => {
+    const pollInterval = setInterval(() => {
+      fetchBeacons(hideDemoFixtures, selectedCity);
+    }, 5000);
+    return () => clearInterval(pollInterval);
+  }, [selectedCity, hideDemoFixtures]);
 
   // Handle City Switch & Smooth Map FlyTo with Real-Time Hour Auto-Extraction
   const handleCityChange = (cityId) => {
@@ -2009,6 +2081,19 @@ export default function App() {
                       </button>
                     ))}
                   </div>
+
+                  <button
+                    onClick={() =>
+                      triggerIncidentNotification({
+                        location_name: `${currentCityMeta?.name || "District"} Transit Hub`,
+                        description: "15+ gig workers facing acute heat stress and dry public taps",
+                      })
+                    }
+                    className="shrink-0 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-[9.5px] px-2 py-1 rounded-lg flex items-center gap-1 shadow-xs active:scale-95 transition-transform"
+                    title="Test Emergency Chime & Speech Alarm"
+                  >
+                    <span>🚨</span> Test Alarm
+                  </button>
                 </div>
               )}
 

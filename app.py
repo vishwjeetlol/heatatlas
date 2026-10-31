@@ -78,6 +78,7 @@ from services.agent import (
 BEACONS = [
     {
         "id": "b_01",
+        "city": "pune",
         "data_origin": "seed_scenario_fixture",
         "is_demo_fixture": True,
         "location_name": "Swargate Flyover Base (Jedhe Chowk)",
@@ -102,6 +103,7 @@ BEACONS = [
     },
     {
         "id": "b_02",
+        "city": "pune",
         "data_origin": "seed_scenario_fixture",
         "is_demo_fixture": True,
         "location_name": "Pune Railway Station Auto Stand (Platform 1 Exit)",
@@ -126,6 +128,7 @@ BEACONS = [
     },
     {
         "id": "b_03",
+        "city": "pune",
         "data_origin": "seed_scenario_fixture",
         "is_demo_fixture": True,
         "location_name": "Hadapsar APMC Vegetable Mandi Gate 2",
@@ -147,6 +150,106 @@ BEACONS = [
         "assigned_ngo": "Hadapsar APMC Labor Aid (Gadital Base)",
         "ngo_distance_meters": 240,
         "ngo_phone": "+91 98810 77889"
+    },
+    {
+        "id": "b_04",
+        "city": "nagpur",
+        "data_origin": "seed_scenario_fixture",
+        "is_demo_fixture": True,
+        "location_name": "Sitabuldi Interchange & Cotton Market",
+        "lat": 21.1458,
+        "lon": 79.0882,
+        "zone_id": "nagpur-Z-28",
+        "description": "18 street vendors and rickshaw pullers facing 45.8°C dry Loo winds with zero water",
+        "image_url": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&auto=format&fit=crop&q=80",
+        "verified": True,
+        "confidence": 0.97,
+        "detected_crowd": 18,
+        "severity_tier": "CRITICAL",
+        "condition": "Severe Vidarbha loo blast; extreme dehydration risk among unshaded vendors.",
+        "reasoning": "Sitabuldi junction urban heat dome verified. Direct solar radiation on asphalt exceeds 47°C.",
+        "actionable_recommendation": "Deploy Vidarbha Heat Resilience Taskforce with 30 ORS boxes and misting canopy to Zero Mile square.",
+        "model_used": "Gemini Flash Intelligence",
+        "status": "active",
+        "created_at": int(time.time()) - 1100,
+        "assigned_ngo": "Vidarbha Heat Relief Taskforce",
+        "ngo_distance_meters": 80,
+        "ngo_phone": "+91 97640 55667"
+    },
+    {
+        "id": "b_05",
+        "city": "mumbai",
+        "data_origin": "seed_scenario_fixture",
+        "is_demo_fixture": True,
+        "location_name": "Dadar TT Circle & Flower Market",
+        "lat": 19.0178,
+        "lon": 72.8478,
+        "zone_id": "mumbai-Z-33",
+        "description": "25 flower market porters and commuters in humid 38°C heat dome (feels like 51°C)",
+        "image_url": "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&auto=format&fit=crop&q=80",
+        "verified": True,
+        "confidence": 0.94,
+        "detected_crowd": 25,
+        "severity_tier": "CRITICAL",
+        "condition": "Acute wet-bulb heat trap: 86% humidity preventing evaporative sweat cooling.",
+        "reasoning": "High ambient moisture combined with congested asphalt traffic causes rapid heat exhaustion in market porters.",
+        "actionable_recommendation": "Dispatch Mumbai Coastal Heat Relief Squad with chilled water drums and electrolyte packs to Kabutarkhana.",
+        "model_used": "Gemini Flash Intelligence",
+        "status": "active",
+        "created_at": int(time.time()) - 1500,
+        "assigned_ngo": "Mumbai Urban Workers Aid",
+        "ngo_distance_meters": 110,
+        "ngo_phone": "+91 98200 44556"
+    },
+    {
+        "id": "b_06",
+        "city": "delhi",
+        "data_origin": "seed_scenario_fixture",
+        "is_demo_fixture": True,
+        "location_name": "Connaught Place Radial & Paharganj",
+        "lat": 28.6315,
+        "lon": 77.2167,
+        "zone_id": "delhi-Z-22",
+        "description": "30 gig workers and auto drivers enduring scorching 46.2°C ambient heatwave",
+        "image_url": "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=600&auto=format&fit=crop&q=80",
+        "verified": True,
+        "confidence": 0.98,
+        "detected_crowd": 30,
+        "severity_tier": "CRITICAL",
+        "condition": "Severe northern plains urban heat island effect with dry westerly loo winds.",
+        "reasoning": "Connaught Place outer circle asphalt radiation trapping extreme thermal energy.",
+        "actionable_recommendation": "Deploy Delhi Heat Action Collective with 40 chilled water cans and cooling mats to Rajiv Chowk radial.",
+        "model_used": "Gemini Flash Intelligence",
+        "status": "active",
+        "created_at": int(time.time()) - 1900,
+        "assigned_ngo": "Delhi Citizen Heat Defense",
+        "ngo_distance_meters": 150,
+        "ngo_phone": "+91 98110 99887"
+    },
+    {
+        "id": "b_07",
+        "city": "nanded",
+        "data_origin": "seed_scenario_fixture",
+        "is_demo_fixture": True,
+        "location_name": "Hazur Sahib Station Chowk & Degloor Naka",
+        "lat": 19.1528,
+        "lon": 77.3189,
+        "zone_id": "nanded-Z-19",
+        "description": "14 farm haulers and rickshaw drivers without drinking water near station",
+        "image_url": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&auto=format&fit=crop&q=80",
+        "verified": True,
+        "confidence": 0.92,
+        "detected_crowd": 14,
+        "severity_tier": "HIGH",
+        "condition": "Marathwada dry heatwave; river basin water levels low and municipal taps dry.",
+        "reasoning": "Station transit square exposed to direct solar irradiance with zero public shade shelters.",
+        "actionable_recommendation": "Dispatch Marathwada Drought & Heat Relief team with 20 water cans to Degloor Naka auto bay.",
+        "model_used": "Gemini Flash Intelligence",
+        "status": "active",
+        "created_at": int(time.time()) - 2200,
+        "assigned_ngo": "Marathwada Seva Samiti",
+        "ngo_distance_meters": 140,
+        "ngo_phone": "+91 98500 22334"
     }
 ]
 
@@ -659,13 +762,20 @@ class BeaconReportRequest(BaseModel):
     session_token: str
 
 @app.get("/api/beacons")
-async def get_beacons(include_fixtures: bool = Query(True, description="Include baseline demonstration scenario fixtures")):
+async def get_beacons(
+    city: Optional[str] = Query(None, description="Filter beacons by city id (e.g. pune, nagpur, mumbai)"),
+    include_fixtures: bool = Query(True, description="Include baseline demonstration scenario fixtures")
+):
     with STATE_LOCK:
         all_b = list(BEACONS)
         if not include_fixtures:
             all_b = [b for b in all_b if not b.get("is_demo_fixture", False)]
+        if city:
+            c_norm = city.lower().strip()
+            all_b = [b for b in all_b if b.get("city", "pune").lower() == c_norm]
         return {
             "beacons": all_b,
+            "city": city,
             "live_reports_count": sum(1 for b in all_b if not b.get("is_demo_fixture", False)),
             "scenario_fixtures_count": sum(1 for b in all_b if b.get("is_demo_fixture", False)),
         }
@@ -736,6 +846,7 @@ async def report_beacon(req: BeaconReportRequest):
         "lat": req.lat,
         "lon": req.lon,
         "city_id": matched_city_id,
+        "city": matched_city_id,
         "zone_id": resolved_zone_id,
         "supplied_zone_id": req.zone_id,
         "zone_coordinate_consistent": True,
@@ -776,6 +887,10 @@ DEFAULT_OUTAGES = [
     ("out_04", "nanded", "Hazur Sahib Station Chowk & Vazirabad", "CANAL_FEEDER_PIPELINE_BURST", "CRITICAL", "Godavari lift irrigation feeder pipeline burst at Degloor Naka: 12 municipal wards without water", 52000, 19.153, 77.319, "08:45 AM", "20:00 PM", "NWCMC Water Works", "active"),
     ("out_05", "nagpur", "Sitabuldi Inter-Change & Cotton Market", "GRID_LOAD_SHEDDING", "CRITICAL", "Substation thermal trip under 44.8°C ambient load: Commercial fan & AC outage", 60000, 21.1458, 79.0882, "12:00 PM", "16:30 PM", "MSEDCL Vidarbha Zone", "active"),
     ("out_06", "mumbai", "Dadar TT Circle & Kabutarkhana", "WATER_PRESSURE_DROP", "HIGH", "BMC hydraulic pipeline maintenance: Zero flow at Dadar Station and flower market taps", 75000, 19.0178, 72.8478, "10:00 AM", "19:00 PM", "BMC Hydraulic Dept", "active"),
+    ("out_07", "sambhajinagar", "Kranti Chowk & CIDCO Bus Station", "MAIN_PIPELINE_VALVE_BURST", "CRITICAL", "Jayakwadi water supply feeder main valve burst: CIDCO public taps dry", 38000, 19.8732, 75.3245, "09:30 AM", "17:00 PM", "CSMC Water Division", "active"),
+    ("out_08", "nashik", "Dwarka Circle & Panchavati Market", "SUBSTATION_OVERHEAT", "HIGH", "Panchavati distribution transformer tripped due to 42.5°C peak ambient heat", 31000, 19.988, 73.7995, "11:00 AM", "16:30 PM", "MSEDCL Nashik Circle", "active"),
+    ("out_09", "solapur", "Chhatrapati Shivaji Chowk & Old Poona Naka", "MUNICIPAL_BOOSTER_PUMP_TRIP", "CRITICAL", "Ujjani canal booster motor burnt out: 8 slum pockets facing acute water drought", 42000, 17.665, 75.902, "08:00 AM", "18:30 PM", "SMC Water Supply", "active"),
+    ("out_10", "delhi", "Connaught Place Radial & Paharganj", "TRANSFORMER_THERMAL_OVERLOAD", "CRITICAL", "Peak air-conditioning load trip: 2 public cooling centers on backup power", 68000, 28.6315, 77.2167, "12:30 PM", "18:00 PM", "NDMC Power Grid", "active"),
 ]
 
 @app.get("/api/outages")

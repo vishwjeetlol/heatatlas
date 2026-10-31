@@ -29,7 +29,13 @@
         </div>
         <p class="text-sm text-slate-400 mt-1">Ground Worker Photo Submissions, Gemini Vision Audits, and WhatsApp Squad Battle-Orders</p>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
+        <button onclick="testIncidentAlarm()" class="bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-lg flex items-center gap-1.5" title="Test the real-time audio chime and voice alert">
+          <span>🚨</span> Test Emergency Alarm
+        </button>
+        <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-3 py-2 rounded-xl font-mono font-semibold flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> 🔊 Audio Alerts: ACTIVE
+        </span>
         <a href="/" target="_top" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-lg flex items-center gap-1.5">
           <span>📱</span> Open Driver Mobile App
         </a>
@@ -39,10 +45,61 @@
       </div>
     </header>
 
+    <!-- REAL-TIME INCOMING INCIDENT ALERT BANNER (ANIMATED ON NEW PROBLEM) -->
+    <div id="incident-alert-banner" class="hidden bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 border border-red-400/50 p-4 rounded-2xl flex items-center justify-between shadow-2xl animate-pulse text-white">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl animate-bounce">🚨</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="font-display font-extrabold text-sm tracking-wide" id="alert-banner-title">NEW URGENT HEAT INCIDENT DETECTED</h3>
+            <span class="bg-white/20 text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded-full" id="alert-banner-time">JUST NOW</span>
+          </div>
+          <p class="text-xs text-red-100 font-medium mt-0.5" id="alert-banner-desc">15+ gig workers stranded in high wet-bulb temperature with dry municipal taps.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="dismissAlertBanner()" class="bg-black/30 hover:bg-black/50 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition-all">
+          Dismiss ✕
+        </button>
+      </div>
+    </div>
+
+    <!-- DISTRICT CITY SELECTOR BAR -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-lg">
+      <div class="flex items-center gap-2.5">
+        <span class="text-xs font-mono uppercase tracking-wider text-amber-300 font-extrabold flex items-center gap-1">
+          <span>🏢</span> Select District:
+        </span>
+        <select id="cmd-city-select" onchange="onCityChange(this.value)" class="bg-slate-800 border border-slate-700 text-slate-100 font-display font-bold text-xs px-3 py-1.5 rounded-xl focus:outline-none focus:border-indigo-500 cursor-pointer shadow-inner">
+          <option value="pune">📍 Pune (Western Ghats / Deccan)</option>
+          <option value="nagpur">📍 Nagpur (Vidarbha Epicenter)</option>
+          <option value="mumbai">📍 Mumbai (Konkan Coastal Megacity)</option>
+          <option value="sambhajinagar">📍 Chhatrapati Sambhajinagar (Marathwada)</option>
+          <option value="nashik">📍 Nashik (Northern Maharashtra)</option>
+          <option value="solapur">📍 Solapur (South Maharashtra)</option>
+          <option value="delhi">📍 Delhi NCR (Northern Plains)</option>
+          <option value="nanded">📍 Nanded (Marathwada Basin)</option>
+        </select>
+      </div>
+
+      <!-- QUICK SELECT PILLS -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full md:w-auto">
+        <span class="text-[11px] text-slate-400 font-medium shrink-0 mr-1">Quick Switch:</span>
+        <button onclick="onCityChange('pune')" class="cmd-city-pill text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all bg-indigo-600 text-white shadow-xs" data-city="pune">📍 Pune</button>
+        <button onclick="onCityChange('nagpur')" class="cmd-city-pill text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700" data-city="nagpur">📍 Nagpur</button>
+        <button onclick="onCityChange('mumbai')" class="cmd-city-pill text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700" data-city="mumbai">📍 Mumbai</button>
+        <button onclick="onCityChange('sambhajinagar')" class="cmd-city-pill text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700" data-city="sambhajinagar">📍 Sambhajinagar</button>
+        <button onclick="onCityChange('nashik')" class="cmd-city-pill text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700" data-city="nashik">📍 Nashik</button>
+        <button onclick="onCityChange('solapur')" class="cmd-city-pill text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700" data-city="solapur">📍 Solapur</button>
+        <button onclick="onCityChange('delhi')" class="cmd-city-pill text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700" data-city="delhi">📍 Delhi</button>
+        <button onclick="onCityChange('nanded')" class="cmd-city-pill text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700" data-city="nanded">📍 Nanded</button>
+      </div>
+    </div>
+
     <!-- LIVE SPATIAL COMMAND HEATMAP -->
     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
       <div class="flex justify-between items-center">
-        <h2 class="font-display font-bold text-sm text-white flex items-center gap-2">
+        <h2 id="command-map-title" class="font-display font-bold text-sm text-white flex items-center gap-2">
           <span>🗺️</span> Live Pune Spatial Deficit & Worker Beacon Map (64 Micro-Zones)
         </h2>
         <span class="text-xs font-mono text-emerald-400">Open-Meteo + WorldPop + Overpass Active</span>
@@ -100,7 +157,7 @@
         </div>
       </div>
 
-      <!-- RIGHT 1 COL: UTILITY OUTRAGES & NGO BATTLE-ORDERS -->
+      <!-- RIGHT 1 COL: UTILITY OUTAGES & NGO BATTLE-ORDERS -->
       <div class="flex flex-col gap-6">
         
         <!-- NGO SQUAD DISPATCH GENERATOR -->
@@ -121,7 +178,7 @@
             </div>
             <div>
               <label class="text-xs text-slate-400 block mb-1">Target Sector / Hotspot</label>
-              <input type="text" id="squad-target-input" value="Swargate Flyover (Z-44)" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-indigo-500" />
+              <input type="text" id="squad-target-input" value="Swargate Flyover (Jedhe Chowk)" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-indigo-500" />
             </div>
             <button onclick="triggerSquadOrder()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5">
               <span>🚀</span> Synthesize WhatsApp Battle-Orders
@@ -138,7 +195,7 @@
           </div>
         </div>
 
-        <!-- MUNICIPAL OUTRAGES BREAKDOWN -->
+        <!-- MUNICIPAL OUTAGES BREAKDOWN -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3">
           <div class="flex justify-between items-center">
             <h3 class="font-display font-bold text-sm text-red-400 flex items-center gap-1.5">
@@ -156,50 +213,210 @@
   </div>
 
   <script>
+    const DASHBOARD_CITIES = {
+      pune: { id: 'pune', name: 'Pune', state: 'Maharashtra', region: 'Western Ghats / Deccan', centroid: [18.5204, 73.8567], defaultJunction: 'Swargate Flyover (Jedhe Chowk)' },
+      nagpur: { id: 'nagpur', name: 'Nagpur', state: 'Maharashtra', region: 'Vidarbha (Heatwave Epicenter)', centroid: [21.1458, 79.0882], defaultJunction: 'Sitabuldi Interchange & Zero Mile Stone' },
+      mumbai: { id: 'mumbai', name: 'Mumbai', state: 'Maharashtra', region: 'Konkan Coastal Megacity', centroid: [19.0760, 72.8777], defaultJunction: 'Dadar TT Circle & Kabutarkhana' },
+      sambhajinagar: { id: 'sambhajinagar', name: 'Chhatrapati Sambhajinagar', state: 'Maharashtra', region: 'Marathwada Drought & Extreme Heat Belt', centroid: [19.8762, 75.3245], defaultJunction: 'Kranti Chowk Flyover Base' },
+      nashik: { id: 'nashik', name: 'Nashik', state: 'Maharashtra', region: 'Northern Maharashtra / Godavari Basin', centroid: [19.9975, 73.7898], defaultJunction: 'Dwarka Circle Flyover Junction' },
+      solapur: { id: 'solapur', name: 'Solapur', state: 'Maharashtra', region: 'South Maharashtra / Dry Arid Border', centroid: [17.6599, 75.9064], defaultJunction: 'Chhatrapati Shivaji Maharaj Chowk' },
+      delhi: { id: 'delhi', name: 'Delhi NCR', state: 'Delhi / NCR', region: 'Northern Plains / Thar Desert Fringe', centroid: [28.6139, 77.2090], defaultJunction: 'Connaught Place Radial Hub' },
+      nanded: { id: 'nanded', name: 'Nanded', state: 'Maharashtra', region: 'Marathwada / Godavari Basin', centroid: [19.1383, 77.3210], defaultJunction: 'Hazur Sahib Gurudwara & Station Circle' }
+    };
+
+    let selectedDashboardCity = 'pune';
     let globalBeacons = [];
     let globalNgos = [];
+    let knownBeaconIds = new Set();
+    let hasLoadedFirstTime = false;
     let cmdMap = null;
     let cmdZoneLayers = [];
     let cmdMarkers = [];
+    let pollingTimer = null;
 
+    // --- 🔔 SYNTHESIZED WEB AUDIO EMERGENCY CHIME ---
+    function playEmergencyChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        // Tone 1: High Attention Alert (880 Hz / A5)
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(880, now);
+        gain1.gain.setValueAtTime(0.35, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.3);
+
+        // Tone 2: Urgent Dispatch Harmonic (1174.66 Hz / D6)
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(1174.66, now + 0.18);
+        gain2.gain.setValueAtTime(0.4, now + 0.18);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.18);
+        osc2.stop(now + 0.55);
+      } catch (err) {
+        console.warn("Audio Context playback prevented by browser autoplay:", err);
+      }
+    }
+
+    // --- 🗣️ SYNTHESIZED EMERGENCY VOICE ANNOUNCEMENT ---
+    function speakEmergencyAlert(text) {
+      try {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.rate = 1.05;
+          utterance.pitch = 1.1;
+          utterance.volume = 0.95;
+          window.speechSynthesis.speak(utterance);
+        }
+      } catch (e) {
+        console.warn("Speech synthesis error:", e);
+      }
+    }
+
+    // --- 🚨 REAL-TIME INCIDENT NOTIFICATION BANNER & ALARM ---
+    function triggerIncidentNotification(beacon) {
+      playEmergencyChime();
+      const cityMeta = DASHBOARD_CITIES[selectedDashboardCity] || { name: 'District' };
+      const locName = beacon.location_name || 'Ground Location';
+      speakEmergencyAlert(`Attention Ground Command: New heat distress beacon reported at ${locName} in ${cityMeta.name}.`);
+
+      const banner = document.getElementById('incident-alert-banner');
+      if (banner) {
+        document.getElementById('alert-banner-title').innerText = `🚨 NEW HEAT EMERGENCY: ${locName.toUpperCase()}`;
+        document.getElementById('alert-banner-desc').innerText = beacon.description || 'Water shortage and extreme thermal stress reported by outdoor workers.';
+        document.getElementById('alert-banner-time').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        banner.classList.remove('hidden');
+        banner.classList.add('flex');
+      }
+    }
+
+    function dismissAlertBanner() {
+      const banner = document.getElementById('incident-alert-banner');
+      if (banner) {
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+      }
+    }
+
+    // --- 🧪 TEST BUTTON FOR JUDGES & DEMOS ---
+    function testIncidentAlarm() {
+      const cityMeta = DASHBOARD_CITIES[selectedDashboardCity] || { name: 'Pune' };
+      triggerIncidentNotification({
+        location_name: `${cityMeta.name} Transit Interchange (Sector 4)`,
+        description: `18 gig delivery drivers and manual loaders reporting acute heat cramps; municipal cooler line depleted.`
+      });
+    }
+
+    // --- 🗺️ LEAFLET MAP INITIALIZATION ---
     function initCommandMap() {
       if (cmdMap) return;
-      cmdMap = L.map('command-map').setView([18.515, 73.8567], 12);
+      const initialCity = DASHBOARD_CITIES[selectedDashboardCity];
+      cmdMap = L.map('command-map').setView(initialCity.centroid, 12);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         opacity: 0.85
       }).addTo(cmdMap);
     }
 
+    // --- 🏢 SWITCH DISTRICT CITY & RE-FILTER EVERYTHING ---
+    function onCityChange(cityId) {
+      if (!DASHBOARD_CITIES[cityId]) return;
+      selectedDashboardCity = cityId;
+
+      // Update Select Dropdown
+      const sel = document.getElementById('cmd-city-select');
+      if (sel) sel.value = cityId;
+
+      // Update Quick Pill Styling
+      document.querySelectorAll('.cmd-city-pill').forEach(btn => {
+        if (btn.getAttribute('data-city') === cityId) {
+          btn.className = 'cmd-city-pill text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all bg-indigo-600 text-white shadow-xs';
+        } else {
+          btn.className = 'cmd-city-pill text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700';
+        }
+      });
+
+      // Update Header Title
+      const cityMeta = DASHBOARD_CITIES[cityId];
+      const titleElem = document.getElementById('command-map-title');
+      if (titleElem) {
+        titleElem.innerHTML = `<span>🗺️</span> Live ${cityMeta.name} Spatial Deficit & Worker Beacon Map (64 Micro-Zones)`;
+      }
+
+      // Fly Map to City
+      if (cmdMap) {
+        cmdMap.flyTo(cityMeta.centroid, 12, { duration: 1.2 });
+      }
+
+      // Update Target Hotspot input
+      const targetInput = document.getElementById('squad-target-input');
+      if (targetInput) {
+        targetInput.value = cityMeta.defaultJunction;
+      }
+
+      // Reload Data strictly filtered for this city
+      loadDashboardData();
+    }
+
+    // --- 🔄 FETCH & RENDER CITY-FILTERED DATA ---
     async function loadDashboardData() {
       try {
         initCommandMap();
-        // 0. Fetch Zones for Spatial Heatmap
-        const zRes = await fetch('/api/zones?city=pune&hour=14');
+        const cityId = selectedDashboardCity;
+        const currentHour = new Date().getHours();
+
+        // 0. Fetch Zones for Spatial Heatmap (Strictly for Selected City)
+        const zRes = await fetch(`/api/zones?city=${cityId}&hour=${currentHour}`);
         const zData = await zRes.json();
         const zones = zData.zones || [];
 
-        // 1. Fetch Beacons
-        const bRes = await fetch('/api/beacons');
+        // 1. Fetch Beacons (Strictly for Selected City)
+        const bRes = await fetch(`/api/beacons?city=${cityId}`);
         const bData = await bRes.json();
-        globalBeacons = bData.beacons || [];
+        const incomingBeacons = bData.beacons || [];
+
+        // Check if any brand new beacon arrived
+        if (hasLoadedFirstTime) {
+          const newBeacons = incomingBeacons.filter(b => !knownBeaconIds.has(b.id) && b.status !== 'resolved');
+          if (newBeacons.length > 0) {
+            triggerIncidentNotification(newBeacons[0]);
+          }
+        }
+        incomingBeacons.forEach(b => knownBeaconIds.add(b.id));
+        hasLoadedFirstTime = true;
+
+        globalBeacons = incomingBeacons;
         renderBeacons(globalBeacons);
         renderCommandMapLayers(zones, globalBeacons);
 
-        // 2. Fetch Outages
-        const oRes = await fetch('/api/outages');
+        // 2. Fetch Outages (Strictly for Selected City)
+        const oRes = await fetch(`/api/outages?city=${cityId}`);
         const oData = await oRes.json();
         renderOutages(oData.outages || []);
 
-        // 3. Fetch NGOs
-        const nRes = await fetch('/api/ngos');
+        // 3. Fetch NGOs (Strictly for Selected City)
+        const nRes = await fetch(`/api/ngos?city=${cityId}`);
         const nData = await nRes.json();
         globalNgos = nData.ngos || [];
         renderNgos(globalNgos);
 
-        // Update stats
-        document.getElementById('stat-beacons').innerText = globalBeacons.filter(b => b.status !== 'resolved').length;
-        const totalCrowd = globalBeacons.reduce((sum, b) => sum + (b.detected_crowd || 0), 0);
+        // Update Stat Cards Strictly for Selected City
+        const activeBeacons = globalBeacons.filter(b => b.status !== 'resolved');
+        document.getElementById('stat-beacons').innerText = activeBeacons.length;
+        const totalCrowd = activeBeacons.reduce((sum, b) => sum + (b.detected_crowd || 0), 0);
         document.getElementById('stat-crowd').innerText = totalCrowd;
         document.getElementById('stat-outages').innerText = (oData.outages || []).length;
         document.getElementById('stat-ngos').innerText = globalNgos.length;
@@ -248,8 +465,9 @@
 
     function renderBeacons(beacons) {
       const container = document.getElementById('beacons-container');
+      const activeCityMeta = DASHBOARD_CITIES[selectedDashboardCity] || { name: 'Selected City' };
       if (beacons.length === 0) {
-        container.innerHTML = '<div class="text-slate-500 text-sm p-4 bg-slate-900 rounded-2xl border border-slate-800">No ground worker beacons active.</div>';
+        container.innerHTML = `<div class="text-slate-500 text-sm p-4 bg-slate-900 rounded-2xl border border-slate-800">No active ground worker beacons reported in ${activeCityMeta.name}.</div>`;
         return;
       }
 
@@ -278,7 +496,7 @@
                 <div class="flex items-start justify-between gap-2">
                   <div>
                     <h3 class="font-display font-bold text-base text-white">${b.location_name}</h3>
-                    <div class="text-xs text-slate-400 mt-0.5 font-mono">GPS: ${b.lat.toFixed(4)}, ${b.lon.toFixed(4)} · Sector: ${b.zone_id}</div>
+                    <div class="text-xs text-slate-400 mt-0.5 font-mono">GPS: ${b.lat.toFixed(4)}, ${b.lon.toFixed(4)} · Sector: ${b.zone_id || 'Core'} · City: ${b.city || selectedDashboardCity}</div>
                   </div>
                   <span class="${isResolved ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'} text-[10px] font-mono font-bold px-2 py-0.5 rounded uppercase">
                     ${isResolved ? '✓ Fulfilled' : '🚨 Urgent'}
@@ -332,8 +550,9 @@
     function renderOutages(outages) {
       document.getElementById('outage-count-tag').innerText = `${outages.length} Active`;
       const container = document.getElementById('outages-container');
+      const activeCityMeta = DASHBOARD_CITIES[selectedDashboardCity] || { name: 'District' };
       if (outages.length === 0) {
-        container.innerHTML = '<div class="text-slate-500 text-xs">No active municipal outages reported.</div>';
+        container.innerHTML = `<div class="text-slate-500 text-xs">No active municipal outages reported in ${activeCityMeta.name}.</div>`;
         return;
       }
       container.innerHTML = outages.map(o => `
@@ -353,6 +572,11 @@
 
     function renderNgos(ngos) {
       const select = document.getElementById('squad-ngo-select');
+      if (!select) return;
+      if (ngos.length === 0) {
+        select.innerHTML = '<option value="">No registered squads in this district</option>';
+        return;
+      }
       select.innerHTML = ngos.map(n => `
         <option value="${n.name}">${n.name} (${n.teams} Teams, ${n.water_cans} Cans)</option>
       `).join('');
@@ -361,14 +585,15 @@
     async function triggerSquadOrder() {
       const ngoName = document.getElementById('squad-ngo-select').value;
       const targetZone = document.getElementById('squad-target-input').value;
+      const cityMeta = DASHBOARD_CITIES[selectedDashboardCity] || { name: 'Pune' };
       try {
         const res = await fetch('/api/ngo/squad-orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            ngo_name: ngoName || 'Pune Heat Action Collective',
+            ngo_name: ngoName || `${cityMeta.name} Relief Action Squad`,
             resources: { teams: 3, water_cans: 60 },
-            target_zone: targetZone || 'Swargate (Z-44)'
+            target_zone: targetZone || cityMeta.defaultJunction
           })
         });
         const data = await res.json();
@@ -400,6 +625,12 @@
 
     // Auto-load on boot
     loadDashboardData();
+
+    // Real-time live polling for incoming incident problems every 5 seconds
+    if (pollingTimer) clearInterval(pollingTimer);
+    pollingTimer = setInterval(() => {
+      loadDashboardData();
+    }, 5000);
   </script>
 </body>
 </html>
