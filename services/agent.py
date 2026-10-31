@@ -13,6 +13,7 @@ import base64
 import re
 import time
 import io
+import hashlib
 from typing import List, Optional
 from pydantic import BaseModel, Field, ValidationError
 from PIL import Image
@@ -760,7 +761,8 @@ async def generate_cool_corridor_analysis(origin: str, destination: str, current
     """
     park_count = sum(1 for a in (assets or []) if a.get("type") in ["park", "shade", "cool_haven"])
     water_count = sum(1 for a in (assets or []) if a.get("type") == "drinking_water" and a.get("status") == "working")
-    base_Dist = round(max(2.1, min(6.8, 3.2 + (abs(hash(origin + destination)) % 18) * 0.1)), 1)
+    od_hash = int(hashlib.sha256((origin + destination).encode("utf-8")).hexdigest()[:8], 16)
+    base_Dist = round(max(2.1, min(6.8, 3.2 + (od_hash % 18) * 0.1)), 1)
     canopy_dist = round(base_Dist * 1.08, 1)
 
     highway_shade = max(8, min(22, int(round((1.0 - sky_view_factor) * 28))))

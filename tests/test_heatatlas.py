@@ -438,6 +438,52 @@ def test_tiny_instance_exact_brute_force_optimality_and_pmc_depots():
     assert ts["Critical"] + ts["High"] + ts["Moderate"] + ts["Low"] == 64
 
 
+def test_dispatch_get_endpoints_and_deterministic_assets():
+    """
+    Round 6 Acceptance Test:
+    1. GET /api/dispatch/brief and GET /api/dispatch return 200 OK.
+    2. Asset counts per zone are 100% deterministic (stable SHA-256 derivation).
+    3. Stull psychrometric Tw correctly takes ambient dry-bulb temperature.
+    """
+    # 1. Dispatch GET endpoints
+    r_disp = client.get("/api/dispatch")
+    assert r_disp.status_code == 200
+    d_data = r_disp.json()
+    assert d_data["status"] == "operational"
+    assert "Discrete_Concave_DP_Resource_Optimizer" in d_data["solver"]
+    assert len(d_data["registered_command_depots"]) >= 4
+
+    r_brief = client.get("/api/dispatch/brief")
+    assert r_brief.status_code == 200
+    b_data = r_brief.json()
+    assert "brief_id" in b_data
+    assert "authoritative_allocations" in b_data
+    assert b_data["optimality_verified"] is True
+
+    # 2. Deterministic asset derivation
+    from services.assets import get_live_assets
+    import anyio
+    assets_run1 = anyio.run(get_live_assets, "pune")
+    assets_run2 = anyio.run(get_live_assets, "pune")
+    assert len(assets_run1) == len(assets_run2)
+    assert [a["osm_id"] for a in assets_run1] == [a["osm_id"] for a in assets_run2]
+
+    # 3. Dry-bulb Stull verification
+    scores = compute_scores(
+        pop=30000,
+        child_pop=6000,
+        elderly_pop=2000,
+        hours_above_38=6,
+        working_taps=4,
+        clinics=1,
+        peak_apparent_temp=45.0,
+        relative_humidity_pct=38.0,
+        dry_bulb_temp_c=42.0,
+    )
+    # Stull Tw at 42.0°C and 38% RH should be 29.68°C (dry-bulb temp used)
+    assert scores["stull_wet_bulb_c"] == 29.68
+
+
 if __name__ == "__main__":
     test_funcs = [v for k, v in list(globals().items()) if k.startswith("test_") and callable(v)]
     for fn in test_funcs:

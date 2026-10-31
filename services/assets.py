@@ -2,6 +2,7 @@ import sqlite3
 import os
 import time
 import shutil
+import hashlib
 from cities import get_city
 from services.worldpop import EMBEDDED_WORLDPOP_V2_SNAPSHOT
 
@@ -92,8 +93,8 @@ def _build_pune_64_ward_osm_snapshot(city: dict) -> list:
             if zid in underserved_hubs:
                 taps, clinics, parks = underserved_hubs[zid]
             else:
-                # Natural demographic derivation without clipping caps or uniform modulo tuples
-                h = abs(hash(zid))
+                # Deterministic demographic derivation using stable SHA-256 hash (avoids Python session hash seed variance)
+                h = int(hashlib.sha256(zid.encode("utf-8")).hexdigest()[:8], 16)
                 t_rate = 6500 + (h % 2500)
                 c_rate = 20000 + ((h >> 4) % 8000)
                 taps = max(1, int(tot_pop / t_rate))

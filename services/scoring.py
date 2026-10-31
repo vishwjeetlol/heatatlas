@@ -68,6 +68,7 @@ def compute_scores(
     sky_view_factor: float = 0.65,
     transient_worker_flux: float = 1.0,
     relative_humidity_pct: float = 38.0,
+    dry_bulb_temp_c: Optional[float] = None,
 ) -> dict:
     """
     Deterministic Spatial Relief Deficit Engine:
@@ -98,7 +99,10 @@ def compute_scores(
         consecutive_heat_streak=max(0, min(48, int(streak))),
     )
 
-    stull_tw = compute_stull_wet_bulb(validated.peak_apparent_temp, validated.relative_humidity_pct)
+    # Stull (2011) psychrometric wet-bulb temperature strictly requires dry-bulb air temperature (T) and RH.
+    # Apparent temperature is maintained separately for the empirical heat strain factor.
+    air_temp_input = float(dry_bulb_temp_c) if dry_bulb_temp_c is not None else validated.peak_apparent_temp
+    stull_tw = compute_stull_wet_bulb(air_temp_input, validated.relative_humidity_pct)
 
     if validated.hours_above_38 <= 0:
         return {
