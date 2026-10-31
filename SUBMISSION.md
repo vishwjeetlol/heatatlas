@@ -1,8 +1,22 @@
 # 🏆 HeatAtlas: Forecast Heat. Prioritise Relief.
 > **Autonomous Extreme Heat Relief Engine & Emergency Spatial Intelligence**  
+> **Team Name:** `Team Strawhats`  |  **Team Code:** `627JUH`  
 > **FORGE'26 Track:** `Theme 2 — Climate, Resource Infrastructure & Global Supply Resilience`  
 > **Problem Spectrum:** *Autonomous Emergency Response & Supply Chain Logistics Swarm* · *Smart Grid & Urban Resource Allocation Controller*  
 > *Official Hackathon Submission | Powered by Google Gemini Flash, Open-Meteo, WorldPop & Overpass*
+
+---
+
+## 📋 FORGE'26 Official 6-Point Project Submission Checklist
+
+| # | Submission Field | Official Link / Summary |
+| :--- | :--- | :--- |
+| **1** | **Problem Statement** | **Target Issue:** City-wide weather alerts (`40°C Pune`) mask lethal `44.2°C` micro-zone heat traps while afternoon heat spikes trigger MSEDCL grid blackouts and municipal water cuts.<br>**Target Audience:** (1) 10M+ Outdoor Gig & Transit Workers & (2) NGO Volunteer Leads & Municipal Disaster Response Teams. |
+| **2** | **Solution Description** | **Overview:** Splits Pune (`18.41,73.70` to `18.65,73.95`) into 64 micro-zones (`Z-00` to `Z-77`) ranked by real-time Relief Deficit ($R_d$). Gemini 2.5 Flash converts English/Hindi/Marathi voice or text into tool-verified WhatsApp dispatch briefs, while Gemini Vision audits broken-tap & crowd distress photos.<br>**Architecture:** FastAPI + React 18 + Leaflet + SQLite. Deterministic Python computes $E_h, V_h, R_d$ from live Open-Meteo, WorldPop v2, and OSM Overpass APIs. |
+| **3** | **Prototype Link** | **Live Web App:** [https://heatatlas.vercel.app/](https://heatatlas.vercel.app/)<br>**Live Health Check:** [https://heatatlas.vercel.app/api/health](https://heatatlas.vercel.app/api/health) |
+| **4** | **Demo Video** | **Official YouTube Demo:** [https://youtu.be/C0-BQNND-b8](https://youtu.be/C0-BQNND-b8)<br>**Direct Hosted MP4:** [https://heatatlas.vercel.app/demo.mp4](https://heatatlas.vercel.app/demo.mp4) |
+| **5** | **GitHub Repository** | **Public Repo:** [https://github.com/vishwjeetlol/heatatlas](https://github.com/vishwjeetlol/heatatlas) |
+| **6** | **Pitch Deck & Checklist PDF** | **Pitch Deck PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf](https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf)<br>**Submission Checklist PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf](https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf)<br>**GitHub PDF Mirror:** [`HeatAtlas_Pitch_Deck.pdf`](HeatAtlas_Pitch_Deck.pdf) |
 
 ---
 
