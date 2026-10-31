@@ -29,3 +29,12 @@ Thumbs.db
 data/worldpop_cache.json
 *.log
 .vercel
+
+# Confidential / Internal Presentation & Defense Materials
+*speech*
+*defense*
+*judge*
+*mastery*
+*cheatsheet*
+private/
+notes/
