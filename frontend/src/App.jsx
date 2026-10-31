@@ -2113,18 +2113,18 @@ export default function App() {
             </div>
             <div className="flex items-center gap-3">
               <a 
-                href="http://localhost:8000/api/system/archify" 
+                href="/api/system/archify" 
                 target="_blank" 
                 rel="noreferrer"
                 className="px-3 py-1 bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 rounded-lg text-[11px] font-mono hover:bg-indigo-600/50"
               >
                 Inspect /api/system/archify ↗
               </a>
-              <span className="text-[11px] font-mono font-bold text-indigo-400">Port: 8000</span>
+              <span className="text-[11px] font-mono font-bold text-indigo-400">Production API</span>
             </div>
           </div>
           <iframe 
-            src="http://localhost:8000/docs" 
+            src="/docs" 
             title="FastAPI Interactive Swagger Docs"
             className="w-full flex-1 border-0 bg-white"
             style={{ minHeight: 'calc(88vh - 65px)' }}

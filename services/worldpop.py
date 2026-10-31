@@ -17,9 +17,12 @@ def _load_disk_cache():
     return {}
 
 def _save_disk_cache(cache):
-    os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
-    with open(CACHE_FILE, "w") as f:
-        json.dump(cache, f, indent=2)
+    try:
+        os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
+        with open(CACHE_FILE, "w") as f:
+            json.dump(cache, f, indent=2)
+    except Exception:
+        pass
 
 async def get_zone_population(zone_id: str, polygon_coords: list) -> dict:
     """

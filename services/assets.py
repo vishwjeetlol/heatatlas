@@ -1,26 +1,39 @@
 import sqlite3
 import os
 import time
+import shutil
 import httpx
 from config import NOMINATIM_URL
 from cities import get_city, CITIES
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "../heatatlas.db")
+_REPO_DB = os.path.join(os.path.dirname(__file__), "../heatatlas.db")
+if os.getenv("VERCEL") or not os.access(os.path.dirname(_REPO_DB), os.W_OK):
+    DB_PATH = "/tmp/heatatlas.db"
+    if not os.path.exists(DB_PATH) and os.path.exists(_REPO_DB):
+        try:
+            shutil.copyfile(_REPO_DB, DB_PATH)
+        except Exception:
+            pass
+else:
+    DB_PATH = _REPO_DB
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS asset_reports (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            osm_id TEXT NOT NULL,
-            status TEXT NOT NULL,
-            session_token TEXT NOT NULL,
-            created_at REAL NOT NULL
-        )
-    """)
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS asset_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                osm_id TEXT NOT NULL,
+                status TEXT NOT NULL,
+                session_token TEXT NOT NULL,
+                created_at REAL NOT NULL
+            )
+        """)
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
 
 init_db()
 
