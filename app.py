@@ -13,7 +13,7 @@ from config import GRID_ROWS, GRID_COLS
 from cities import get_city, list_all_cities, CITIES
 from services.weather import get_city_forecast, get_pune_forecast
 from services.worldpop import get_zone_population
-from services.assets import get_live_assets, add_asset_report
+from services.assets import get_live_assets, add_asset_report, get_asset_reports
 from services.scoring import compute_scores
 from services.video_engine import generate_heatatlas_remotion_manifest
 from services.rtk_optimizer import rtk_compress_prompt
@@ -21,6 +21,7 @@ from services.archify_spec import generate_archify_system_spec
 from services.awesome_ios_engine import get_ios_haptic_profile, get_ibeacon_mesh_spec, get_awesome_ios_catalog
 from services.agent import (
     generate_dispatch_brief,
+    parse_intake_request,
     audit_beacon_photo,
     audit_broken_tap_photo,
     transcribe_audio_to_text,
@@ -244,8 +245,11 @@ async def get_cities():
 async def health(city: str = Query("pune")):
     city_info = get_city(city)
     city_zones = build_city_grid(city)
+    api_key = os.getenv("GEMINI_API_KEY", "")
+    gemini_configured = bool(api_key and api_key != "replace_me")
     return {
         "status": "healthy",
+        "gemini_configured": gemini_configured,
         "city": f"{city_info['name']}, {city_info['state']}",
         "climate_zone": city_info["climate_zone"],
         "el_nino_vulnerability": city_info["el_nino_vulnerability"],
@@ -361,6 +365,20 @@ async def get_zones(city: str = Query("pune"), hour: int = Query(0, ge=0, le=47)
         "hourly_temperatures": hourly_official
     }
 
+@app.get("/api/zones/{zone_id}")
+async def get_zone_detail(zone_id: str, city: str = Query("pune"), hour: int = Query(0, ge=0, le=47)):
+    """Feature F4: Zone Detail Card — Eh, Vh, Rd, population split, hours above 38 C, asset counts."""
+    if "-Z-" in zone_id:
+        inferred_city = zone_id.split("-Z-", 1)[0]
+        if inferred_city in CITIES:
+            city = inferred_city
+    zones_res = await get_zones(city=city, hour=hour)
+    for z in zones_res["zones"]:
+        short_id = "Z-" + z["id"].split("-Z-", 1)[1] if "-Z-" in z["id"] else z["id"]
+        if z["id"].lower() == zone_id.lower() or short_id.lower() == zone_id.lower():
+            return z
+    raise HTTPException(status_code=404, detail=f"Zone '{zone_id}' not found in city '{city}'")
+
 @app.get("/api/priority")
 async def priority(city: str = Query("pune"), start: int = Query(0, ge=0, le=23), end: int = Query(6, ge=0, le=47), limit: int = Query(5, ge=1, le=64)):
     zones_res = await get_zones(city=city, hour=start)
@@ -370,10 +388,18 @@ async def priority(city: str = Query("pune"), start: int = Query(0, ge=0, le=23)
     return {"city": city, "priority_zones": sorted_zones[:limit], "window": [start, end]}
 
 @app.get("/api/assets")
-async def assets(city: str = Query("pune"), type: Optional[str] = None):
+async def assets(city: str = Query("pune"), type: Optional[str] = None, bbox: Optional[str] = None):
     all_assets = await get_live_assets(city)
     if type:
         all_assets = [a for a in all_assets if a["type"] == type]
+    if bbox:
+        try:
+            parts = [float(x.strip()) for x in bbox.split(",")]
+            if len(parts) == 4:
+                s, w, n, e = parts
+                all_assets = [a for a in all_assets if s <= a["lat"] <= n and w <= a["lon"] <= e]
+        except Exception:
+            pass
     return {"city": city, "assets": all_assets}
 
 class ReportRequest(BaseModel):
@@ -384,8 +410,15 @@ class ReportRequest(BaseModel):
 async def report_asset(osm_id: str, body: ReportRequest):
     if body.status not in ["working", "dry"]:
         raise HTTPException(status_code=422, detail="Status must be 'working' or 'dry'")
-    add_asset_report(osm_id, body.status, body.session_token)
+    added = add_asset_report(osm_id, body.status, body.session_token)
+    if not added:
+        raise HTTPException(status_code=429, detail="Thanks, you already reported this tap recently.")
     return {"status": "success", "osm_id": osm_id, "reported": body.status}
+
+@app.get("/api/assets/{osm_id}/reports")
+async def read_asset_reports(osm_id: str):
+    """Feature F6: Read crowd verification reports and effective consensus status for an asset."""
+    return get_asset_reports(osm_id)
 
 @app.get("/api/nearest")
 async def nearest_relief(lat: float, lon: float, type: Optional[str] = None):
@@ -652,6 +685,23 @@ async def save_api_key(req: KeyRequest):
         f.writelines(lines)
     return {"status": "success", "message": "Gemini API key saved!"}
 
+DISPATCH_BRIEFS = {}
+
+class IntakeRequest(BaseModel):
+    text: Optional[str] = None
+    request_text: Optional[str] = None
+    audio_base64: Optional[str] = None
+    language: str = "en"
+
+@app.post("/api/intake")
+async def intake_endpoint(req: IntakeRequest):
+    """Feature F7: Natural-Language Intake — parses text or audio into structured intent."""
+    query = req.request_text or req.text or ""
+    result = await parse_intake_request(request_text=query, audio_base64=req.audio_base64, language=req.language)
+    if result.get("intent") == "unclear":
+        raise HTTPException(status_code=422, detail=result.get("message", "Couldn't hear that. Try again or type your request."))
+    return result
+
 class DispatchRequest(BaseModel):
     city: str = "pune"
     request_text: str = "We have 2 teams and 40 water cans. Where should we go?"
@@ -672,7 +722,18 @@ async def dispatch_brief(req: DispatchRequest):
         ranked_zones=ranked,
         beacons=BEACONS
     )
+    brief_id = f"brief_{int(time.time() * 1000) % 1000000}"
+    brief["brief_id"] = brief_id
+    brief["language"] = req.language
+    DISPATCH_BRIEFS[brief_id] = brief
     return brief
+
+@app.get("/api/dispatch/{brief_id}")
+async def get_dispatch_brief(brief_id: str):
+    """Feature F9: Retrieve a generated dispatch brief by ID."""
+    if brief_id in DISPATCH_BRIEFS:
+        return DISPATCH_BRIEFS[brief_id]
+    raise HTTPException(status_code=404, detail="Dispatch brief not found")
 
 @app.get("/dashboard")
 async def serve_dashboard():

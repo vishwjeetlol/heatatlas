@@ -293,6 +293,118 @@ Return PURE JSON matching the exact schema:
         "is_simulated": True
     }
 
+def validate_dispatch_brief(parsed: dict, ranked_zones: list) -> dict:
+    """
+    Deterministic Validator Guardrail (Spec Section 6 & AC Scenario 2):
+    Every number in targets must equal the compute_scores output.
+    On mismatch the backend overwrites it with the tool value; unknown zone_ids are dropped.
+    Caps target list at 5 zones.
+    """
+    score_map = {}
+    for z in ranked_zones:
+        score_map[z["id"]] = z
+        if "-Z-" in z["id"]:
+            short_id = "Z-" + z["id"].split("-Z-", 1)[1]
+            score_map[short_id] = z
+
+    valid_targets = []
+    for target in parsed.get("targets", []):
+        zid = str(target.get("zone_id", "")).strip()
+        if zid in score_map:
+            real = score_map[zid]
+            target["zone_id"] = real["id"]
+            target["zone_name"] = target.get("zone_name") or real["name"]
+            target["rd"] = real["rd"]
+            target["vh"] = real["vh"]
+            target["eh"] = real.get("eh", real["pop"] * real["hours_above_38"])
+            target["hours_above_38"] = real["hours_above_38"]
+            target["tier"] = real["tier"]
+            valid_targets.append(target)
+
+    if not valid_targets and ranked_zones:
+        for z in ranked_zones[:3]:
+            valid_targets.append({
+                "zone_id": z["id"],
+                "zone_name": z["name"],
+                "tier": z["tier"],
+                "rd": z["rd"],
+                "vh": z["vh"],
+                "eh": z.get("eh", 0),
+                "hours_above_38": z["hours_above_38"],
+                "recommended_action": f"Deploy relief team with water cans to {z['name']}",
+                "assets_nearby": f"{z['working_taps']} working taps, {z['clinics']} clinics"
+            })
+
+    parsed["targets"] = valid_targets[:5]
+    return parsed
+
+async def parse_intake_request(request_text: str = "", audio_base64: str = None, language: str = "en") -> dict:
+    """
+    Feature F7: Natural-Language Intake (POST /api/intake).
+    Parses text or audio request into structured intent, time window, and resource counts.
+    """
+    text = (request_text or "").strip()
+    if audio_base64 and not text:
+        tr = await transcribe_audio_to_text(audio_base64, language)
+        text = tr.get("transcript", "")
+
+    if not text or len(text) < 3:
+        return {
+            "intent": "unclear",
+            "message": "Couldn't hear that. Try again or type your request.",
+            "start": 0,
+            "end": 6,
+            "resources": {"teams": 2, "water_cans": 40},
+            "language": language
+        }
+
+    # Extract numbers deterministically as baseline
+    teams_match = re.search(r'(\d+)\s*(?:team|squad|पथक|टीम)', text, re.IGNORECASE)
+    cans_match = re.search(r'(\d+)\s*(?:can|water|jar|bottle|कॅन|पाणी|कैन)', text, re.IGNORECASE)
+    teams = int(teams_match.group(1)) if teams_match else 2
+    water_cans = int(cans_match.group(1)) if cans_match else 40
+
+    api_key = GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
+    if api_key and api_key != "replace_me":
+        try:
+            from google import genai
+            client = genai.Client(api_key=api_key)
+            prompt = f"""Parse this volunteer relief request into structured JSON intent.
+Input: "{text}"
+Return JSON ONLY with keys:
+- "intent": one of ["dispatch_planning", "nearest_relief", "tap_report", "zone_inquiry"]
+- "start": integer hour offset 0-23 (default 2)
+- "end": integer hour offset 0-23 (default 6)
+- "resources": {{"teams": int, "water_cans": int}}
+- "target_locations": list of mentioned ward/area names
+- "language": "en" | "hi" | "mr"
+"""
+            res, _ = call_gemini_with_fallback(
+                client,
+                contents=prompt,
+                config={"response_mime_type": "application/json", "temperature": 0.0}
+            )
+            parsed = extract_json_from_text(res.text)
+            parsed.setdefault("intent", "dispatch_planning")
+            parsed.setdefault("start", 2)
+            parsed.setdefault("end", 6)
+            parsed.setdefault("resources", {"teams": teams, "water_cans": water_cans})
+            parsed.setdefault("language", language)
+            parsed["raw_text"] = text
+            return parsed
+        except Exception:
+            pass
+
+    return {
+        "intent": "dispatch_planning",
+        "raw_text": text,
+        "start": 2,
+        "end": 6,
+        "resources": {"teams": teams, "water_cans": water_cans},
+        "target_locations": [],
+        "language": language
+    }
+
 async def generate_dispatch_brief(request_text: str, start_hour: int, end_hour: int, resources: dict, ranked_zones: list, beacons: list = []) -> dict:
     top_targets = ranked_zones[:3]
     targets_json = []
@@ -314,7 +426,7 @@ async def generate_dispatch_brief(request_text: str, start_hour: int, end_hour: 
         beacon_summary = f"URGENT PRIORITY: {len(active_beacons)} active worker demand beacon(s) verified by Gemini 3.8 Vision at {active_beacons[0]['location_name']} ({active_beacons[0].get('detected_crowd', 10)} workers)."
 
     api_key = GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
-    if api_key:
+    if api_key and api_key != "replace_me":
         try:
             from google import genai
             client = genai.Client(api_key=api_key)
@@ -340,32 +452,22 @@ Generate the verified operational dispatch brief in valid JSON matching the few-
                 config={"response_mime_type": "application/json"}
             )
             parsed = extract_json_from_text(response.text)
-
-            # Deterministic Validator Guardrail:
-            score_map = {z["id"]: z for z in ranked_zones}
-            for target in parsed.get("targets", []):
-                zid = target.get("zone_id")
-                if zid in score_map:
-                    real = score_map[zid]
-                    target["rd"] = real["rd"]
-                    target["vh"] = real["vh"]
-                    target["hours_above_38"] = real["hours_above_38"]
-                    target["tier"] = real["tier"]
-
+            parsed = validate_dispatch_brief(parsed, ranked_zones)
             parsed["ai_generated"] = True
             return parsed
         except Exception as e:
             print(f"Gemini API fallback to deterministic template: {e}")
 
     # Fallback Template
-    return {
+    fallback_brief = {
         "summary": f"Prioritize water distribution across {top_targets[0]['name']} and {top_targets[1]['name'] if len(top_targets) > 1 else 'surrounding wards'}. {beacon_summary}",
         "window": f"+{start_hour}h to +{end_hour}h (Forecast peak heat window)",
         "targets": targets_json,
         "resource_allocation": f"Deploy {resources.get('teams', 2)} teams with {resources.get('water_cans', 40)} water cans directly to active beacons and high-deficit zones.",
-        "safety_note": "Ensure volunteer rotation every 45 minutes. For heat stroke symptoms (fainting, dry hot skin) call 108 immediately.",
+        "safety_note": "HeatAtlas provides planning information, not medical advice and does not replace IMD advisories. For heat stroke symptoms (confusion, fainting, very high body temperature) call 108 immediately.",
         "ai_generated": False
     }
+    return validate_dispatch_brief(fallback_brief, ranked_zones)
 
 async def audit_broken_tap_photo(image_base64: str) -> dict:
     """

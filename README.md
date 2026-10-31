@@ -79,30 +79,24 @@ While meteorological agencies issue broad regional heat alerts, the humanitarian
 
 ---
 
-## 🧮 4. Mathematical Relief Scoring Model
+## 🧮 4. Mathematical Relief Scoring Model (`services/scoring.py`)
 
-HeatAtlas does not rely on static guesswork. Relief priority is computed through a deterministic multi-variable index:
+HeatAtlas does not rely on LLM guesswork for arithmetic. All relief priority metrics are computed deterministically in Python (`compute_scores`) and enforced via a post-LLM validator (`validate_dispatch_brief`):
 
-### 1. Thermal Exposure Index ($E_h$)
-$$E_h = \frac{T_{\text{ambient}} - T_{\text{threshold}}}{T_{\text{critical}} - T_{\text{threshold}}} \times \left(1 + \frac{\text{UV}}{10}\right) \times \text{SunExposureFactor}$$
+### 1. Heat Exposure Person-Hours ($E_h$)
+$$E_h = \text{Population} \times \text{Hours\_above\_38C}$$
 
-Where:
-* $T_{\text{threshold}} = 38.0^\circ\text{C}$
-* $T_{\text{critical}} = 46.0^\circ\text{C}$
-* $\text{SunExposureFactor} = 1.35$ for exposed asphalt corridors; $0.75$ for tree-canopy shade.
-
-### 2. Vulnerability & Demand Multiplier ($V_h$)
-$$V_h = \log_{10}(N_{\text{workers}} + 1) \times \left(1 + 0.5 \times \mathbb{I}_{\text{outage}}\right) \times C_{\text{gemini}}$$
-
-Where:
-* $N_{\text{workers}}$ = Verified crowd count.
-* $\mathbb{I}_{\text{outage}} \in \{0, 1\}$ = Active municipal water or transformer failure indicator.
-* $C_{\text{gemini}} \in [0.0, 1.0]$ = Gemini Flash multimodal audit confidence score (0.95 for verified distress).
+### 2. Vulnerable Person-Hours ($V_h$)
+$$V_h = (\text{Child\_Pop}_{0\text{--}14} + \text{Elderly\_Pop}_{65+}) \times \text{Hours\_above\_38C}$$
 
 ### 3. Relief Deficit Index ($R_d$)
-$$R_d = \max\left(0, (E_h \times V_h) - \frac{S_{\text{existing}}}{D_{\text{required}}}\right)$$
+$$R_d = \frac{V_h}{\text{Working\_Water\_Taps} + (2 \times \text{Clinics}) + 1}$$
 
-Zones with $R_d \ge 8.5$ flash **CRITICAL - IMMEDIATE DISPATCH** on the NGO Command Map.
+* **Worked Example (`specs.md` AC3):** Zone `Z-34` with `7` hours above 38°C, Population `48,200`, Child `9,100`, Elderly `3,900`, `6` working taps, `2` clinics:
+  * $E_h = 48,200 \times 7 = 337,400$
+  * $V_h = (9,100 + 3,900) \times 7 = 91,000$
+  * $R_d = 91,000 / (6 + 4 + 1) = 8,272.7$ (`Critical` tier)
+* **If $\text{Hours\_above\_38C} = 0$:** $E_h = V_h = R_d = 0$ and the tier is `"No heat risk"`.
 
 ---
 
@@ -164,36 +158,71 @@ HeatAtlas integrates 9 open-source repositories and packages to deliver a produc
 
 ---
 
-## 🚀 7. Quickstart & Verification Guide
+## 🚀 7. Quickstart, Environment Setup & Verification Guide
+
+* **Live Production Deployment (Vercel):** [https://heatatlas.vercel.app](https://heatatlas.vercel.app)
+* **GitHub Repository:** [https://github.com/vishwjeetlol/heatatlas](https://github.com/vishwjeetlol/heatatlas)
+* **Specification Document:** [`specs.md`](file:///Users/vishwjeetchavan/Desktop/Hackathon/heatatlas/specs.md)
+* **One-Shot Prompts Directory:** [`prompts/extraction_prompt.txt`](file:///Users/vishwjeetchavan/Desktop/Hackathon/heatatlas/prompts/extraction_prompt.txt) & [`prompts/planner_prompt.txt`](file:///Users/vishwjeetchavan/Desktop/Hackathon/heatatlas/prompts/planner_prompt.txt)
 
 ### Prerequisites
 - Node.js 18+ and npm
-- Python 3.10+
-- FFmpeg (for video pipeline)
+- Python 3.11+
 
-### 1. Launch the Backend
+### 1. Environment Configuration (`.env`)
+Copy `.env.example` to `.env` in the root folder and set your Google Gemini API key:
+```env
+GEMINI_API_KEY=your_google_ai_studio_key
+GEMINI_MODEL=gemini-flash-lite-latest
+OPEN_METEO_BASE_URL=https://api.open-meteo.com
+WORLDPOP_BASE_URL=https://api.worldpop.org
+OVERPASS_URL=https://overpass-api.de/api/interpreter
+CORS_ORIGINS=http://localhost:5173,https://heatatlas.vercel.app
+PORT=8000
+DATABASE_URL=sqlite:///./heatatlas.db
+```
+
+Optional frontend `.env` (`frontend/.env.example` -> `frontend/.env`):
+```env
+VITE_API_URL=http://localhost:8000
+VITE_CURRENCY=INR
+```
+
+### 2. Launch the Backend
 ```bash
 cd /Users/vishwjeetchavan/Desktop/Hackathon/heatatlas
-source .venv/bin/activate
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 * Interactive API Documentation: [`http://localhost:8000/docs`](http://localhost:8000/docs)
 * Health Check: [`http://localhost:8000/api/health`](http://localhost:8000/api/health)
 
-### 2. Launch the Frontend
+### 3. Launch the Frontend
 ```bash
 cd /Users/vishwjeetchavan/Desktop/Hackathon/heatatlas/frontend
+npm install
 npm run dev
 ```
 * Unified Portal Application: [`http://localhost:5173`](http://localhost:5173)
-* Use the right-hand column buttons to switch between **📱 Phone App**, **🛡️ Ground Command**, and **⚡ Backend Swagger**.
+* Use the right-hand column buttons to switch between **📱 Mobile Phone**, **🛡️ NGO Command**, and **⚡ Backend API**.
 
-### 3. Play the Master Demo Video
+### 4. Run Acceptance Criteria Tests (`specs.md` Q10)
+```bash
+cd /Users/vishwjeetchavan/Desktop/Hackathon/heatatlas
+./venv/bin/python tests/test_heatatlas.py
+```
+
+### 5. Play the Master Demo Video
 ```bash
 open /Users/vishwjeetchavan/Desktop/HeatAtlas_Official_150s_Submission.mp4
 # Or stream directly in your browser:
-open http://localhost:8000/HeatAtlas_Official_150s_Submission.mp4
+open https://heatatlas.vercel.app/HeatAtlas_Official_150s_Submission.mp4
 ```
+
+### 6. Known Limitations & Troubleshooting
+- **Gemini Free Tier Rate Limits (`429 RESOURCE_EXHAUSTED`):** `services/agent.py` automatically fails over across `gemini-flash-lite-latest`, `gemini-3.5-flash-lite`, and `gemini-3.1-flash-lite`, and falls back to the deterministic Python template brief (`ai_generated: false`) if all model quotas are exhausted.
+- **Strict Visual Anti-Spoofing Guardrail:** Uploaded beacon or tap photos that do not visually depict real outdoor crowds, street junctions, or water infrastructure are strictly rejected (`verified: false`, `severity_tier: "REJECTED"`), overriding any persuasive text description.
+- **Medical Disclaimer:** HeatAtlas provides planning information, not medical advice, and does not replace IMD advisories. For heat stroke symptoms (confusion, fainting, very high body temperature) call **108** immediately.
 
 ---
 
