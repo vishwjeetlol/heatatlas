@@ -1987,10 +1987,10 @@ export default function App() {
             </section>
 
             {/* REAL LEAFLET MAP VIEWPORT */}
-            <section className="relative px-2.5 pt-1">
+            <section className="px-2.5 pt-1">
               {/* CITY SELECTION DIRECTLY ABOVE MAP IN NGO COMMAND */}
               {viewMode === "ngo" && (
-                <div className="mb-1.5 bg-blue-950/40 border border-blue-500/30 rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-1 shadow-xs">
+                <div className="mb-2 bg-blue-950/40 border border-blue-500/30 rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-1 shadow-xs">
                   <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                     <span className="text-[10px] font-mono uppercase tracking-wider text-amber-300 font-extrabold shrink-0 flex items-center gap-1">
                       <span>🏢</span> Command City:
@@ -2012,49 +2012,52 @@ export default function App() {
                 </div>
               )}
 
-              <div
-                ref={mapRef}
-                className="w-full h-[280px] rounded-2xl overflow-hidden border border-black/5 shadow-xs z-10"
-              />
+              {/* MAP CONTAINER WITH BOUNDED OVERLAYS */}
+              <div className="relative w-full h-[280px] rounded-2xl overflow-hidden border border-black/5 shadow-xs z-10">
+                <div
+                  ref={mapRef}
+                  className="w-full h-full"
+                />
 
-              {/* CITY DROPDOWN ANCHORED DIRECTLY ON MAP IN NGO COMMAND */}
-              {viewMode === "ngo" && (
-                <div className="absolute top-4 left-4 z-[500] flex items-center gap-1 bg-[#0f172a]/95 backdrop-blur-md px-2.5 py-1 rounded-xl border border-blue-400/40 shadow-xl text-white">
-                  <span className="text-xs">🏢</span>
-                  <select
-                    value={selectedCity}
-                    onChange={(e) => handleCityChange(e.target.value)}
-                    className="bg-transparent text-white text-[11px] font-bold py-0.5 focus:outline-none cursor-pointer"
+                {/* CITY DROPDOWN ANCHORED DIRECTLY ON MAP IN NGO COMMAND */}
+                {viewMode === "ngo" && (
+                  <div className="absolute top-3 left-3 z-[500] flex items-center gap-1 bg-[#0f172a]/95 backdrop-blur-md px-2.5 py-1 rounded-xl border border-blue-400/40 shadow-xl text-white">
+                    <span className="text-xs">🏢</span>
+                    <select
+                      value={selectedCity}
+                      onChange={(e) => handleCityChange(e.target.value)}
+                      className="bg-transparent text-white text-[11px] font-bold py-0.5 focus:outline-none cursor-pointer"
+                    >
+                      {cityList.map((c) => (
+                        <option key={c.id} value={c.id} className="bg-slate-900 text-white">
+                          📍 {c.name} ({c.region})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="absolute top-3 right-3 z-[500] flex flex-col gap-1.5">
+                  <button
+                    onClick={handleDetectGPSLocation}
+                    disabled={isLocatingDriver}
+                    className="bg-white/95 border border-sky-300 text-sky-800 text-[10.5px] font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1 hover:bg-sky-50 active:scale-95 transition-transform"
+                    title="Detect live satellite GPS location"
                   >
-                    {cityList.map((c) => (
-                      <option key={c.id} value={c.id} className="bg-slate-900 text-white">
-                        📍 {c.name} ({c.region})
-                      </option>
-                    ))}
-                  </select>
+                    <span>🛰️</span>{" "}
+                    {isLocatingDriver ? "Acquiring GPS..." : "My Live Location"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (currentCityMeta && mapInstance.current) {
+                        mapInstance.current.setView(currentCityMeta.centroid, 13);
+                      }
+                    }}
+                    className="bg-white/95 border border-black/10 text-[10.5px] font-semibold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1"
+                  >
+                    📍 {currentCityMeta?.name || "City"} Center
+                  </button>
                 </div>
-              )}
-
-              <div className="absolute top-3 right-5 z-[500] flex flex-col gap-1.5">
-                <button
-                  onClick={handleDetectGPSLocation}
-                  disabled={isLocatingDriver}
-                  className="bg-white/95 border border-sky-300 text-sky-800 text-[10.5px] font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1 hover:bg-sky-50 active:scale-95 transition-transform"
-                  title="Detect live satellite GPS location"
-                >
-                  <span>🛰️</span>{" "}
-                  {isLocatingDriver ? "Acquiring GPS..." : "My Live Location"}
-                </button>
-                <button
-                  onClick={() => {
-                    if (currentCityMeta && mapInstance.current) {
-                      mapInstance.current.setView(currentCityMeta.centroid, 13);
-                    }
-                  }}
-                  className="bg-white/95 border border-black/10 text-[10.5px] font-semibold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1"
-                >
-                  📍 {currentCityMeta?.name || "City"} Center
-                </button>
               </div>
             </section>
 
