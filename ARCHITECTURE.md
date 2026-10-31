@@ -46,6 +46,7 @@ flowchart TD
 ```
 
 ### Core Deterministic Mathematical Engine (Python)
+
 - **Heat Exposure ($E_h$):** $\text{Population} \times H_{38}$
 - **Vulnerable Person-Hours ($V_h$):** $(\text{Child Pop} + \text{Elderly Pop}) \times H_{38}$
 - **Relief Deficit ($R_d$):** $\frac{V_h}{\text{Working Taps} + 2 \times \text{Clinics} + 1}$

@@ -1,13 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-display: 'Sora', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: "Sora", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
   /* Emil Kowalski Curated Motion Tokens */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -20,7 +20,9 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-button, a, [role="button"] {
+button,
+a,
+[role="button"] {
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
@@ -35,7 +37,9 @@ button:active {
 /* Emil Kowalski Capability-gated hover */
 @media (hover: hover) and (pointer: fine) {
   button:hover {
-    transition: transform 180ms var(--ease-out), background-color 150ms var(--ease-out);
+    transition:
+      transform 180ms var(--ease-out),
+      background-color 150ms var(--ease-out);
   }
 }
 
@@ -94,7 +98,7 @@ body {
   background: #11141c;
   border-radius: 54px;
   padding: 11px;
-  box-shadow: 
+  box-shadow:
     0 0 0 2px #2d3345,
     0 0 0 6px #12151f,
     0 30px 80px rgba(0, 0, 0, 0.8),
@@ -107,7 +111,7 @@ body {
 
 /* Hardware Buttons */
 .phone-case::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 140px;
   left: -8px;
@@ -115,11 +119,13 @@ body {
   height: 48px;
   background: #2b3142;
   border-radius: 3px 0 0 3px;
-  box-shadow: 0 65px 0 #2b3142, 0 120px 0 #2b3142;
+  box-shadow:
+    0 65px 0 #2b3142,
+    0 120px 0 #2b3142;
 }
 
 .phone-case::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 180px;
   right: -8px;
@@ -212,8 +218,15 @@ body {
 }
 
 @keyframes pulse-subtle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.02); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
 }
 
 .animate-pulse-subtle {
@@ -221,12 +234,21 @@ body {
 }
 
 @keyframes heat-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .shimmer-badge {
-  background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 158, 11, 0.25) 50%, rgba(239, 68, 68, 0.1) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(239, 68, 68, 0.1) 0%,
+    rgba(245, 158, 11, 0.25) 50%,
+    rgba(239, 68, 68, 0.1) 100%
+  );
   background-size: 200% 100%;
   animation: heat-shimmer 2.5s infinite;
 }
