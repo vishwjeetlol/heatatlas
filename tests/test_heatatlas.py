@@ -53,7 +53,7 @@ def test_ac3_deterministic_scoring_worked_example():
         elderly_pop=3900,
         hours_above_38=7,
         working_taps=6,
-        clinics=2
+        clinics=2,
     )
     assert res["eh"] == 337400
     assert res["vh"] == 91000
@@ -69,7 +69,7 @@ def test_ac3_zero_heat_hours():
         elderly_pop=3900,
         hours_above_38=0,
         working_taps=6,
-        clinics=2
+        clinics=2,
     )
     assert res["eh"] == 0
     assert res["vh"] == 0
@@ -86,14 +86,17 @@ def test_ac4_dispatch_brief_and_retrieval():
     prio = client.get("/api/priority?city=pune&start=2&end=6&limit=10").json()
     prio_map = {z["id"]: z for z in prio["priority_zones"]}
 
-    res = client.post("/api/dispatch/brief", json={
-        "city": "pune",
-        "request_text": "We have 2 teams and 40 water cans. Where should we go between 12 and 4 pm?",
-        "start": 2,
-        "end": 6,
-        "resources": {"teams": 2, "water_cans": 40},
-        "language": "en"
-    })
+    res = client.post(
+        "/api/dispatch/brief",
+        json={
+            "city": "pune",
+            "request_text": "We have 2 teams and 40 water cans. Where should we go between 12 and 4 pm?",
+            "start": 2,
+            "end": 6,
+            "resources": {"teams": 2, "water_cans": 40},
+            "language": "en",
+        },
+    )
     assert res.status_code == 200
     brief = res.json()
     assert "targets" in brief
@@ -120,15 +123,21 @@ def test_ac5_crowd_verification_and_duplicate_guard():
     tok2 = f"tok_2_{int(time.time() * 1000)}"
 
     # First report from tok1 -> 200
-    r1 = client.post(f"/api/assets/{osm_id}/reports", json={"status": "dry", "session_token": tok1})
+    r1 = client.post(
+        f"/api/assets/{osm_id}/reports", json={"status": "dry", "session_token": tok1}
+    )
     assert r1.status_code == 200
 
     # Duplicate report from tok1 within 10 min -> 429
-    r_dup = client.post(f"/api/assets/{osm_id}/reports", json={"status": "dry", "session_token": tok1})
+    r_dup = client.post(
+        f"/api/assets/{osm_id}/reports", json={"status": "dry", "session_token": tok1}
+    )
     assert r_dup.status_code == 429
 
     # Second distinct report from tok2 -> 200, effective_status becomes 'dry'
-    r2 = client.post(f"/api/assets/{osm_id}/reports", json={"status": "dry", "session_token": tok2})
+    r2 = client.post(
+        f"/api/assets/{osm_id}/reports", json={"status": "dry", "session_token": tok2}
+    )
     assert r2.status_code == 200
 
     status_res = client.get(f"/api/assets/{osm_id}/reports").json()
@@ -142,7 +151,9 @@ def test_scenario_1_nearest_relief_finder():
     assert r.status_code == 200
     nearest = r.json()["nearest"]
     assert len(nearest) == 3
-    assert nearest[0]["distance_m"] <= nearest[1]["distance_m"] <= nearest[2]["distance_m"]
+    assert (
+        nearest[0]["distance_m"] <= nearest[1]["distance_m"] <= nearest[2]["distance_m"]
+    )
 
 
 def test_scenario_2_hallucination_guard():
@@ -162,7 +173,7 @@ def test_scenario_2_hallucination_guard():
             "pop": 48200,
             "hours_above_38": 7,
             "working_taps": 6,
-            "clinics": 2
+            "clinics": 2,
         }
     ]
     hallucinated_reply = {
@@ -173,15 +184,11 @@ def test_scenario_2_hallucination_guard():
                 "zone_name": "Swargate",
                 "tier": "Low",
                 "rd": 999999.9,  # Hallucinated Rd
-                "vh": 12345,     # Hallucinated Vh
-                "hours_above_38": 99
+                "vh": 12345,  # Hallucinated Vh
+                "hours_above_38": 99,
             },
-            {
-                "zone_id": "Z-99-FAKE",
-                "zone_name": "Atlantis",
-                "rd": 50000.0
-            }
-        ]
+            {"zone_id": "Z-99-FAKE", "zone_name": "Atlantis", "rd": 50000.0},
+        ],
     }
     validated = validate_dispatch_brief(hallucinated_reply, ranked_zones)
     assert len(validated["targets"]) == 1
@@ -201,15 +208,18 @@ def test_strict_anti_spoofing_vision_guardrail():
     Image.new("RGB", (160, 160), color=(128, 0, 200)).save(buf, format="JPEG")
     trash_b64 = base64.b64encode(buf.getvalue()).decode()
 
-    r = client.post("/api/beacons/report", json={
-        "location_name": "Swargate Test",
-        "lat": 18.5018,
-        "lon": 73.8578,
-        "zone_id": "Z-44",
-        "description": "15 delivery riders waiting under blazing flyover sun, tap dry",
-        "image_base64": trash_b64,
-        "session_token": "pytest_tok"
-    })
+    r = client.post(
+        "/api/beacons/report",
+        json={
+            "location_name": "Swargate Test",
+            "lat": 18.5018,
+            "lon": 73.8578,
+            "zone_id": "Z-44",
+            "description": "15 delivery riders waiting under blazing flyover sun, tap dry",
+            "image_base64": trash_b64,
+            "session_token": "pytest_tok",
+        },
+    )
     assert r.status_code == 200
     data = r.json()
     assert data["gemini_audit"]["verified"] is False
@@ -248,11 +258,20 @@ def test_quadtree_spatial_index_refchecker_and_webhooks():
     assert r_near.status_code == 200
     assert r_near.json().get("index_engine") == "QuadtreeSpatialIndex_O_log_N"
 
-    r_wa = client.post("/api/webhooks/whatsapp", json={"recipient_phone": "+91 98230 11223", "ngo_name": "Pune Heat Action Collective"})
+    r_wa = client.post(
+        "/api/webhooks/whatsapp",
+        json={
+            "recipient_phone": "+91 98230 11223",
+            "ngo_name": "Pune Heat Action Collective",
+        },
+    )
     assert r_wa.status_code == 200
     assert r_wa.json()["status"] == "dispatched"
 
-    r_108 = client.post("/api/webhooks/emergency-108", json={"worker_location": "Swargate", "lat": 18.5018, "lon": 73.8578})
+    r_108 = client.post(
+        "/api/webhooks/emergency-108",
+        json={"worker_location": "Swargate", "lat": 18.5018, "lon": 73.8578},
+    )
     assert r_108.status_code == 200
     assert r_108.json()["status"] == "EMERGENCY_DISPATCH_ROUTED"
 
@@ -266,14 +285,17 @@ def test_geofence_validation_and_fixture_separation():
     Verifies that coordinates outside the Indian operational corridor are rejected with HTTP 422,
     and that /api/beacons?include_fixtures=false cleanly separates live field reports from demo scenario fixtures.
     """
-    r_bad = client.post("/api/beacons/report", json={
-        "location_name": "Invalid Ocean Coord",
-        "lat": -45.0,
-        "lon": -120.0,
-        "zone_id": "Z-44",
-        "description": "15 delivery riders waiting under sun",
-        "session_token": "geo_test_tok"
-    })
+    r_bad = client.post(
+        "/api/beacons/report",
+        json={
+            "location_name": "Invalid Ocean Coord",
+            "lat": -45.0,
+            "lon": -120.0,
+            "zone_id": "Z-44",
+            "description": "15 delivery riders waiting under sun",
+            "session_token": "geo_test_tok",
+        },
+    )
     assert r_bad.status_code == 422
 
     r_all = client.get("/api/beacons?include_fixtures=true").json()
@@ -287,14 +309,17 @@ def test_constrained_vrp_solver_and_dynamic_cool_corridor():
     Verifies Constrained Resource Allocation Solver (Knapsack + Haversine VRP + sensitivity check)
     and dynamic OSM-driven cool corridor route calculation.
     """
-    res = client.post("/api/dispatch/brief", json={
-        "city": "pune",
-        "request_text": "Allocate 3 teams and 60 water cans across top deficit zones",
-        "start": 2,
-        "end": 6,
-        "resources": {"teams": 3, "water_cans": 60},
-        "language": "en"
-    })
+    res = client.post(
+        "/api/dispatch/brief",
+        json={
+            "city": "pune",
+            "request_text": "Allocate 3 teams and 60 water cans across top deficit zones",
+            "start": 2,
+            "end": 6,
+            "resources": {"teams": 3, "water_cans": 60},
+            "language": "en",
+        },
+    )
     assert res.status_code == 200
     data = res.json()
     assert "constrained_allocation" in data
@@ -303,11 +328,14 @@ def test_constrained_vrp_solver_and_dynamic_cool_corridor():
     assert alloc["total_water_cans_allocated"] == 60
     assert alloc["sensitivity_analysis"]["top_3_ranking_stability_pct"] >= 66.0
 
-    r_corr = client.post("/api/routes/cool-corridor", json={
-        "origin": "Swargate Flyover",
-        "destination": "Deccan Gymkhana",
-        "temp_c": 41.8
-    })
+    r_corr = client.post(
+        "/api/routes/cool-corridor",
+        json={
+            "origin": "Swargate Flyover",
+            "destination": "Deccan Gymkhana",
+            "temp_c": 41.8,
+        },
+    )
     assert r_corr.status_code == 200
     corr = r_corr.json()
     assert corr["computation_mode"] == "dynamic_osm_canopy_and_svf_routing"
@@ -322,17 +350,43 @@ def test_round3_scoring_monotonicity_and_invariants():
     3. Stull (2011) Wet-Bulb temperature bounded in (-10, 55) C and increases monotonically with RH.
     """
     for taps in range(0, 12):
-        r_curr = compute_scores(35000, 5000, 3000, 6, taps, 1, peak_apparent_temp=42.0, relative_humidity_pct=40.0)
-        r_next = compute_scores(35000, 5000, 3000, 6, taps + 1, 1, peak_apparent_temp=42.0, relative_humidity_pct=40.0)
-        assert r_next["rd"] <= r_curr["rd"], "Adding working taps must never increase Relief Deficit"
+        r_curr = compute_scores(
+            35000,
+            5000,
+            3000,
+            6,
+            taps,
+            1,
+            peak_apparent_temp=42.0,
+            relative_humidity_pct=40.0,
+        )
+        r_next = compute_scores(
+            35000,
+            5000,
+            3000,
+            6,
+            taps + 1,
+            1,
+            peak_apparent_temp=42.0,
+            relative_humidity_pct=40.0,
+        )
+        assert r_next["rd"] <= r_curr["rd"], (
+            "Adding working taps must never increase Relief Deficit"
+        )
         assert r_next["non_linear_rd"] <= r_curr["non_linear_rd"]
 
     r_low_v = compute_scores(35000, 2000, 1000, 6, 3, 1, peak_apparent_temp=42.0)
     r_high_v = compute_scores(35000, 6000, 3000, 6, 3, 1, peak_apparent_temp=42.0)
-    assert r_high_v["rd"] > r_low_v["rd"], "Increasing vulnerable population must strictly increase Relief Deficit"
+    assert r_high_v["rd"] > r_low_v["rd"], (
+        "Increasing vulnerable population must strictly increase Relief Deficit"
+    )
 
-    r_dry = compute_scores(35000, 5000, 3000, 6, 3, 1, peak_apparent_temp=42.0, relative_humidity_pct=20.0)
-    r_humid = compute_scores(35000, 5000, 3000, 6, 3, 1, peak_apparent_temp=42.0, relative_humidity_pct=65.0)
+    r_dry = compute_scores(
+        35000, 5000, 3000, 6, 3, 1, peak_apparent_temp=42.0, relative_humidity_pct=20.0
+    )
+    r_humid = compute_scores(
+        35000, 5000, 3000, 6, 3, 1, peak_apparent_temp=42.0, relative_humidity_pct=65.0
+    )
     assert r_humid["stull_wet_bulb_c"] > r_dry["stull_wet_bulb_c"]
     assert "coefficient_provenance" in r_humid
     assert r_humid["sphere_persons_per_tap"] > 0
@@ -345,30 +399,48 @@ def test_round3_concave_dp_optimality_and_ablation_and_audit_proof():
     2. Municipal polygon geofence rejects Delhi (28.61, 77.20) and (0, 0) with HTTP 422.
     3. /api/ready and /api/system/audit-proof return 200 OK with live execution proof.
     """
-    r_delhi = client.post("/api/beacons/report", json={
-        "location_name": "Connaught Place Delhi",
-        "lat": 28.6139,
-        "lon": 77.2090,
-        "zone_id": "pune-Z-44",
-        "description": "Out-of-corridor test coordinate in Delhi",
-        "session_token": "delhi_geofence_test"
-    })
+    r_delhi = client.post(
+        "/api/beacons/report",
+        json={
+            "location_name": "Connaught Place Delhi",
+            "lat": 28.6139,
+            "lon": 77.2090,
+            "zone_id": "pune-Z-44",
+            "description": "Out-of-corridor test coordinate in Delhi",
+            "session_token": "delhi_geofence_test",
+        },
+    )
     assert r_delhi.status_code == 422
 
     r_ready = client.get("/api/ready?city=pune")
     assert r_ready.status_code == 200
     assert r_ready.json()["status"] == "ready"
     assert r_ready.json()["sqlite_persistence_verified"] is True
-    assert "data/overpass_query_pune.ql" in r_ready.json().get("reproducible_overpass_query", "")
+    assert "data/overpass_query_pune.ql" in r_ready.json().get(
+        "reproducible_overpass_query", ""
+    )
 
     r_proof = client.get("/api/system/audit-proof?city=pune")
     assert r_proof.status_code == 200
     proof = r_proof.json()
     assert proof["security_and_geofence_verification"]["cors_wildcard_removed"] is True
-    assert proof["constrained_optimization_verification"]["optimality_verification"]["verified_global_optimum"] is True
-    assert proof["constrained_optimization_verification"]["optimality_verification"]["optimality_gap_pct"] == 0.0
+    assert (
+        proof["constrained_optimization_verification"]["optimality_verification"][
+            "verified_global_optimum"
+        ]
+        is True
+    )
+    assert (
+        proof["constrained_optimization_verification"]["optimality_verification"][
+            "optimality_gap_pct"
+        ]
+        == 0.0
+    )
     assert len(proof["ablation_study"]["ablation_variants"]) == 4
-    assert proof["exact_brute_force_optimality_proof"]["dp_matches_exact_brute_force"] is True
+    assert (
+        proof["exact_brute_force_optimality_proof"]["dp_matches_exact_brute_force"]
+        is True
+    )
     assert proof["exact_brute_force_optimality_proof"]["optimality_gap_pct"] == 0.0
 
 
@@ -384,9 +456,33 @@ def test_tiny_instance_exact_brute_force_optimality_and_pmc_depots():
     from services.spatial_index import ConstrainedLogisticsOptimizer
 
     tiny_candidates = [
-        {"id": "Z-01", "name": "Zone A", "vh": 100000.0, "working_taps": 2, "clinics": 1, "centroid": [18.50, 73.85], "rd": 20000.0},
-        {"id": "Z-02", "name": "Zone B", "vh": 80000.0, "working_taps": 1, "clinics": 0, "centroid": [18.51, 73.86], "rd": 40000.0},
-        {"id": "Z-03", "name": "Zone C", "vh": 50000.0, "working_taps": 3, "clinics": 2, "centroid": [18.52, 73.87], "rd": 6250.0},
+        {
+            "id": "Z-01",
+            "name": "Zone A",
+            "vh": 100000.0,
+            "working_taps": 2,
+            "clinics": 1,
+            "centroid": [18.50, 73.85],
+            "rd": 20000.0,
+        },
+        {
+            "id": "Z-02",
+            "name": "Zone B",
+            "vh": 80000.0,
+            "working_taps": 1,
+            "clinics": 0,
+            "centroid": [18.51, 73.86],
+            "rd": 40000.0,
+        },
+        {
+            "id": "Z-03",
+            "name": "Zone C",
+            "vh": 50000.0,
+            "working_taps": 3,
+            "clinics": 2,
+            "centroid": [18.52, 73.87],
+            "rd": 6250.0,
+        },
     ]
     pmc_depots = [
         {
@@ -408,16 +504,20 @@ def test_tiny_instance_exact_brute_force_optimality_and_pmc_depots():
         max_targets=3,
     )
     actual_travel_times = [a["est_travel_time_minutes"] for a in dp_res["allocations"]]
-    brute_obj, brute_allocs, states = ConstrainedLogisticsOptimizer.solve_exact_brute_force(
-        candidates=tiny_candidates,
-        total_teams=2,
-        total_cans=8,
-        travel_times=actual_travel_times,
-        max_cans_per_team=35,
+    brute_obj, brute_allocs, states = (
+        ConstrainedLogisticsOptimizer.solve_exact_brute_force(
+            candidates=tiny_candidates,
+            total_teams=2,
+            total_cans=8,
+            travel_times=actual_travel_times,
+            max_cans_per_team=35,
+        )
     )
 
     dp_obj = dp_res["optimality_verification"]["dp_objective_value"]
-    assert abs(dp_obj - round(brute_obj, 2)) < 1e-4, f"DP ({dp_obj}) must match brute force ({brute_obj})"
+    assert abs(dp_obj - round(brute_obj, 2)) < 1e-4, (
+        f"DP ({dp_obj}) must match brute force ({brute_obj})"
+    )
     assert dp_res["optimality_verification"]["optimality_gap_pct"] == 0.0
 
     # Verify PMC official disaster depot origin in dispatch allocations
@@ -425,10 +525,15 @@ def test_tiny_instance_exact_brute_force_optimality_and_pmc_depots():
         assert a["depot_data_origin"] == "pmc_official_disaster_response_depots"
 
     # Verify historical replay endpoint provenance
-    r_zones = client.get("/api/zones?city=pune&hour=14&weather_mode=historical_peak_replay")
+    r_zones = client.get(
+        "/api/zones?city=pune&hour=14&weather_mode=historical_peak_replay"
+    )
     assert r_zones.status_code == 200
     z_data = r_zones.json()
-    assert z_data["replay_provenance"]["source_station"] == "IMD Shivajinagar Pune (#43063)"
+    assert (
+        z_data["replay_provenance"]["source_station"]
+        == "IMD Shivajinagar Pune (#43063)"
+    )
     assert z_data["replay_provenance"]["observation_date"] == "2024-05-19"
     assert len(z_data["replay_provenance"]["relative_humidity_series_pct"]) == 24
 
@@ -463,6 +568,7 @@ def test_dispatch_get_endpoints_and_deterministic_assets():
     # 2. Deterministic asset derivation
     from services.assets import get_live_assets
     import anyio
+
     assets_run1 = anyio.run(get_live_assets, "pune")
     assets_run2 = anyio.run(get_live_assets, "pune")
     assert len(assets_run1) == len(assets_run2)
@@ -485,7 +591,9 @@ def test_dispatch_get_endpoints_and_deterministic_assets():
 
 
 if __name__ == "__main__":
-    test_funcs = [v for k, v in list(globals().items()) if k.startswith("test_") and callable(v)]
+    test_funcs = [
+        v for k, v in list(globals().items()) if k.startswith("test_") and callable(v)
+    ]
     for fn in test_funcs:
         print(f"Running {fn.__name__}...")
         fn()

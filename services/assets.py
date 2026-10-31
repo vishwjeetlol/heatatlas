@@ -58,21 +58,31 @@ def _build_pune_64_ward_osm_snapshot(city: dict) -> list:
         all_assets.append(dict(a, provenance="canonical_ground_truth_osm_node"))
 
     wards = city.get("wards", [])
-    bbox = city.get("bbox", {"south": 18.41, "west": 73.70, "north": 18.65, "east": 73.95})
+    bbox = city.get(
+        "bbox", {"south": 18.41, "west": 73.70, "north": 18.65, "east": 73.95}
+    )
     south, west, north, east = bbox["south"], bbox["west"], bbox["north"], bbox["east"]
     lat_step = (north - south) / 8.0
     lon_step = (east - west) / 8.0
 
     # Real documented high-congestion transit and market hubs with severe infrastructure strain per capita
     underserved_hubs = {
-        "Z-45": (2, 1, 1),   # Swargate Transit Concourse (196k pop, 2 taps, 1 clinic -> #1 Critical Deficit)
-        "Z-47": (3, 0, 0),   # Hadapsar APMC Wholesale Market (137k pop, 3 taps, 0 clinics -> #2 Critical Deficit)
-        "Z-44": (2, 2, 1),   # Kasba Peth / Deccan Fringe (131k pop, 2 taps, 2 clinics)
-        "Z-35": (2, 2, 1),   # Yerawada / Bund Garden (128k pop, 2 taps, 2 clinics)
-        "Z-14": (3, 0, 0),   # Bhosari MIDC Industrial Hub (118k pop, 3 taps, 0 clinics)
-        "Z-55": (2, 1, 0),   # Market Yard Terminal (110k pop, 2 taps, 1 clinic)
-        "Z-65": (4, 1, 1),   # Kondhwa Khurd (142k pop, 4 taps, 1 clinic)
-        "Z-12": (5, 1, 0),   # Pimpri Chinchwad (158k pop, 5 taps, 1 clinic)
+        "Z-45": (
+            2,
+            1,
+            1,
+        ),  # Swargate Transit Concourse (196k pop, 2 taps, 1 clinic -> #1 Critical Deficit)
+        "Z-47": (
+            3,
+            0,
+            0,
+        ),  # Hadapsar APMC Wholesale Market (137k pop, 3 taps, 0 clinics -> #2 Critical Deficit)
+        "Z-44": (2, 2, 1),  # Kasba Peth / Deccan Fringe (131k pop, 2 taps, 2 clinics)
+        "Z-35": (2, 2, 1),  # Yerawada / Bund Garden (128k pop, 2 taps, 2 clinics)
+        "Z-14": (3, 0, 0),  # Bhosari MIDC Industrial Hub (118k pop, 3 taps, 0 clinics)
+        "Z-55": (2, 1, 0),  # Market Yard Terminal (110k pop, 2 taps, 1 clinic)
+        "Z-65": (4, 1, 1),  # Kondhwa Khurd (142k pop, 4 taps, 1 clinic)
+        "Z-12": (5, 1, 0),  # Pimpri Chinchwad (158k pop, 5 taps, 1 clinic)
     }
 
     for r in range(8):
@@ -87,7 +97,9 @@ def _build_pune_64_ward_osm_snapshot(city: dict) -> list:
                 # Swargate uses the canonical ground-truth nodes already loaded above
                 continue
 
-            pop_info = EMBEDDED_WORLDPOP_V2_SNAPSHOT.get(zid, {"total_pop": 25000, "child_pop": 6000, "elderly_pop": 2500})
+            pop_info = EMBEDDED_WORLDPOP_V2_SNAPSHOT.get(
+                zid, {"total_pop": 25000, "child_pop": 6000, "elderly_pop": 2500}
+            )
             tot_pop = pop_info.get("total_pop", 25000)
 
             if zid in underserved_hubs:
@@ -106,45 +118,51 @@ def _build_pune_64_ward_osm_snapshot(city: dict) -> list:
             for t_idx in range(taps):
                 offset_lat = clat + ((t_idx % 5) - 2) * 0.0025
                 offset_lon = clon + ((t_idx // 5) - 2) * 0.0025
-                all_assets.append({
-                    "osm_id": f"osm_tap_{zid}_{t_idx+1}",
-                    "name": f"{wname} Municipal Drinking Water Kiosk #{t_idx+1}",
-                    "type": "drinking_water",
-                    "lat": round(offset_lat, 5),
-                    "lon": round(offset_lon, 5),
-                    "status": "working",
-                    "category": "Water",
-                    "address": f"{wname} Ward ({zid}), Pune",
-                    "provenance": "pmc_scenario_baseline_fixture",
-                })
+                all_assets.append(
+                    {
+                        "osm_id": f"osm_tap_{zid}_{t_idx + 1}",
+                        "name": f"{wname} Municipal Drinking Water Kiosk #{t_idx + 1}",
+                        "type": "drinking_water",
+                        "lat": round(offset_lat, 5),
+                        "lon": round(offset_lon, 5),
+                        "status": "working",
+                        "category": "Water",
+                        "address": f"{wname} Ward ({zid}), Pune",
+                        "provenance": "pmc_scenario_baseline_fixture",
+                    }
+                )
             for c_idx in range(clinics):
                 offset_lat = clat + ((c_idx % 4) - 1.5) * 0.003
                 offset_lon = clon + ((c_idx // 4) - 1.5) * 0.003
-                all_assets.append({
-                    "osm_id": f"osm_clinic_{zid}_{c_idx+1}",
-                    "name": f"{wname} Urban Primary Health Clinic #{c_idx+1}",
-                    "type": "clinic",
-                    "lat": round(offset_lat, 5),
-                    "lon": round(offset_lon, 5),
-                    "status": "working",
-                    "category": "Clinics & ORS",
-                    "address": f"{wname} Ward ({zid}), Pune",
-                    "provenance": "pmc_scenario_baseline_fixture",
-                })
+                all_assets.append(
+                    {
+                        "osm_id": f"osm_clinic_{zid}_{c_idx + 1}",
+                        "name": f"{wname} Urban Primary Health Clinic #{c_idx + 1}",
+                        "type": "clinic",
+                        "lat": round(offset_lat, 5),
+                        "lon": round(offset_lon, 5),
+                        "status": "working",
+                        "category": "Clinics & ORS",
+                        "address": f"{wname} Ward ({zid}), Pune",
+                        "provenance": "pmc_scenario_baseline_fixture",
+                    }
+                )
             for p_idx in range(parks):
                 offset_lat = clat + (p_idx - 1) * 0.0035
                 offset_lon = clon + (p_idx - 1) * 0.0035
-                all_assets.append({
-                    "osm_id": f"osm_park_{zid}_{p_idx+1}",
-                    "name": f"{wname} Public Shaded Tree Canopy #{p_idx+1}",
-                    "type": "park",
-                    "lat": round(offset_lat, 5),
-                    "lon": round(offset_lon, 5),
-                    "status": "working",
-                    "category": "Shade & Parks",
-                    "address": f"{wname} Ward ({zid}), Pune",
-                    "provenance": "pmc_scenario_baseline_fixture",
-                })
+                all_assets.append(
+                    {
+                        "osm_id": f"osm_park_{zid}_{p_idx + 1}",
+                        "name": f"{wname} Public Shaded Tree Canopy #{p_idx + 1}",
+                        "type": "park",
+                        "lat": round(offset_lat, 5),
+                        "lon": round(offset_lon, 5),
+                        "status": "working",
+                        "category": "Shade & Parks",
+                        "address": f"{wname} Ward ({zid}), Pune",
+                        "provenance": "pmc_scenario_baseline_fixture",
+                    }
+                )
     return all_assets
 
 
@@ -159,18 +177,24 @@ async def get_live_assets(city_id: str = "pune"):
     if cid == "pune":
         curated = _build_pune_64_ward_osm_snapshot(city)
     else:
-        curated = [dict(a, provenance="osm_overpass_snapshot_2026_05") for a in city.get("assets", [])]
+        curated = [
+            dict(a, provenance="osm_overpass_snapshot_2026_05")
+            for a in city.get("assets", [])
+        ]
 
     # Query crowd consensus from SQLite (last 24h)
     cutoff = time.time() - 86400
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         SELECT osm_id, status, COUNT(DISTINCT session_token) as votes
         FROM asset_reports
         WHERE created_at > ?
         GROUP BY osm_id, status
-    """, (cutoff,))
+    """,
+        (cutoff,),
+    )
     rows = cur.fetchall()
     conn.close()
 
@@ -207,19 +231,25 @@ def add_asset_report(osm_id: str, status: str, session_token: str) -> bool:
     now = time.time()
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         SELECT COUNT(*) FROM asset_reports
         WHERE osm_id = ? AND session_token = ? AND created_at > ?
-    """, (str(osm_id), session_token, now - 600))
+    """,
+        (str(osm_id), session_token, now - 600),
+    )
     recent_count = cur.fetchone()[0]
     if recent_count > 0:
         conn.close()
         return False
 
-    cur.execute("""
+    cur.execute(
+        """
         INSERT INTO asset_reports (osm_id, status, session_token, created_at)
         VALUES (?, ?, ?, ?)
-    """, (str(osm_id), status, session_token, now))
+    """,
+        (str(osm_id), status, session_token, now),
+    )
     conn.commit()
     conn.close()
     _assets_cache.clear()
@@ -231,27 +261,39 @@ def get_asset_reports(osm_id: str) -> dict:
     cutoff = time.time() - 86400
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         SELECT status, session_token, created_at
         FROM asset_reports
         WHERE osm_id = ? AND created_at > ?
         ORDER BY created_at DESC
-    """, (str(osm_id), cutoff))
+    """,
+        (str(osm_id), cutoff),
+    )
     rows = cur.fetchall()
     conn.close()
 
     reports = [
-        {"osm_id": str(osm_id), "status": r[0], "session_token": r[1][:8] + "...", "created_at": r[2]}
+        {
+            "osm_id": str(osm_id),
+            "status": r[0],
+            "session_token": r[1][:8] + "...",
+            "created_at": r[2],
+        }
         for r in rows
     ]
     dry_tokens = {r[1] for r in rows if r[0] == "dry"}
     working_tokens = {r[1] for r in rows if r[0] == "working"}
-    effective_status = "dry" if (len(dry_tokens) >= 2 and len(dry_tokens) >= len(working_tokens)) else "working"
+    effective_status = (
+        "dry"
+        if (len(dry_tokens) >= 2 and len(dry_tokens) >= len(working_tokens))
+        else "working"
+    )
 
     return {
         "osm_id": str(osm_id),
         "effective_status": effective_status,
         "dry_votes": len(dry_tokens),
         "working_votes": len(working_tokens),
-        "reports": reports
+        "reports": reports,
     }

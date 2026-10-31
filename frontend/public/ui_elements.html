@@ -1,0 +1,1446 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HeatAtlas — Master Living UI Component System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+    <style>
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: #080c14;
+        color: #f1f5f9;
+      }
+      .font-display {
+        font-family: "Sora", sans-serif;
+      }
+      .font-mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+      .component-card {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 1.25rem;
+      }
+      .component-section {
+        scroll-margin-top: 5rem;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen pb-32">
+    <!-- TOP STICKY HEADER -->
+    <header
+      class="sticky top-0 z-50 bg-[#080c14]/95 backdrop-blur-md border-b border-slate-800/80 px-6 py-3.5"
+    >
+      <div
+        class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3"
+      >
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🔥</span>
+          <div>
+            <h1
+              class="font-display font-extrabold text-lg text-white tracking-tight flex items-center gap-2"
+            >
+              HeatAtlas
+              <span
+                class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-mono px-2 py-0.5 rounded-full font-bold"
+                >ALL UI ELEMENTS IN ONE FILE</span
+              >
+            </h1>
+            <p class="text-[11px] text-slate-400">
+              Living Component System & Interactive Styleguide · Every UI
+              Element Rendered Separately
+            </p>
+          </div>
+        </div>
+
+        <!-- NAV ANCHORS -->
+        <nav class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
+          <a
+            href="#section-badges"
+            class="px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
+            >Pills & Badges</a
+          >
+          <a
+            href="#section-buttons"
+            class="px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
+            >Buttons</a
+          >
+          <a
+            href="#section-inputs"
+            class="px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
+            >Inputs & Scrubber</a
+          >
+          <a
+            href="#section-bento"
+            class="px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
+            >Bento Cards</a
+          >
+          <a
+            href="#section-incidents"
+            class="px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
+            >Incident Cards</a
+          >
+          <a
+            href="#section-modals"
+            class="px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
+            >Modals & Alerts</a
+          >
+          <a
+            href="#section-map-controls"
+            class="px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
+            >Map Elements</a
+          >
+          <a
+            href="#section-audio"
+            class="px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
+            >Audio Synthesizer</a
+          >
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <a
+            href="/"
+            target="_blank"
+            class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition-all shadow-md"
+          >
+            Open Live App ↗
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- INTRO BANNER -->
+    <div class="max-w-7xl mx-auto px-6 pt-8 pb-4 text-center">
+      <span
+        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-mono font-bold"
+      >
+        <span>🧩</span> COMPREHENSIVE LIVING UI SPECIFICATION
+      </span>
+      <h2
+        class="font-display font-extrabold text-3xl md:text-4xl text-white mt-2"
+      >
+        Interactive UI Component Catalog
+      </h2>
+      <p
+        class="text-slate-400 text-xs md:text-sm max-w-2xl mx-auto mt-2 leading-relaxed"
+      >
+        Every single button, card, status badge, input slider, audio
+        synthesizer, modal window, and map control used across HeatAtlas,
+        rendered individually with interactive states.
+      </p>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 flex flex-col gap-14 mt-6">
+      <!-- ========================================== -->
+      <!-- 1. STATUS BADGES & THERMAL PILLS -->
+      <!-- ========================================== -->
+      <section
+        id="section-badges"
+        class="component-section flex flex-col gap-4"
+      >
+        <div
+          class="flex items-center justify-between border-b border-slate-800 pb-2"
+        >
+          <div>
+            <h3
+              class="font-display font-bold text-xl text-white flex items-center gap-2"
+            >
+              <span>🏷️</span> Status Badges, Indicators & Thermal Pills
+            </h3>
+            <p class="text-xs text-slate-400">
+              High-contrast status chips for data provenance, live telemetry,
+              and heat hazard levels.
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500">14 Elements</span>
+        </div>
+
+        <div
+          class="component-card p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <!-- Element 1: Live Meteo Pulse -->
+          <div
+            class="flex flex-col gap-2 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >1. Live Upstream Telemetry</span
+            >
+            <div class="flex items-center">
+              <div
+                class="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full text-xs font-bold"
+              >
+                <span
+                  class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"
+                ></span>
+                <span>Live Meteo</span>
+              </div>
+            </div>
+            <span class="text-[10px] text-slate-500"
+              >Verifies live Open-Meteo European ECMWF satellite
+              telemetry.</span
+            >
+          </div>
+
+          <!-- Element 2: Real-time LIVE Time Badge -->
+          <div
+            class="flex flex-col gap-2 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >2. Real-Time Scrubber Sync</span
+            >
+            <div class="flex items-center">
+              <span
+                class="inline-flex items-center gap-1.5 bg-red-500/20 text-red-400 text-xs font-mono font-bold px-2.5 py-1 rounded-full border border-red-500/30"
+              >
+                <span
+                  class="w-2 h-2 rounded-full bg-red-500 animate-ping"
+                ></span>
+                <span id="demo-live-badge-time">LIVE 06:45 PM</span>
+              </span>
+            </div>
+            <span class="text-[10px] text-slate-500"
+              >Auto-extracted from selected city timezone (e.g.
+              Asia/Kolkata).</span
+            >
+          </div>
+
+          <!-- Element 3: Critical Deficit Badge -->
+          <div
+            class="flex flex-col gap-2 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >3. Critical Deficit Tier</span
+            >
+            <div class="flex items-center">
+              <span
+                class="bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 animate-pulse"
+              >
+                <span>🚨</span> CRITICAL DEFICIT
+              </span>
+            </div>
+            <span class="text-[10px] text-slate-500"
+              >Triggered when Ward Deficit Rd ≥ 4000 or WBGT > 32°C.</span
+            >
+          </div>
+
+          <!-- Element 4: High Deficit Badge -->
+          <div
+            class="flex flex-col gap-2 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >4. High Deficit Tier</span
+            >
+            <div class="flex items-center">
+              <span
+                class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider"
+              >
+                ⚠️ HIGH VULNERABILITY
+              </span>
+            </div>
+            <span class="text-[10px] text-slate-500"
+              >Triggered when Deficit Rd ≥ 1500 (Asphalt hotspots).</span
+            >
+          </div>
+
+          <!-- Element 5: Safe / Verified Badge -->
+          <div
+            class="flex flex-col gap-2 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >5. Safe / Delivered Tier</span
+            >
+            <div class="flex items-center">
+              <span
+                class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider"
+              >
+                ✓ RELIEF DELIVERED
+              </span>
+            </div>
+            <span class="text-[10px] text-slate-500"
+              >Confirmed water supply or WBGT under 26°C.</span
+            >
+          </div>
+
+          <!-- Element 6: Live Field Report Provenance -->
+          <div
+            class="flex flex-col gap-2 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >6. Data Provenance (Live Report)</span
+            >
+            <div class="flex items-center">
+              <span
+                class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+              >
+                🛰️ LIVE FIELD REPORT
+              </span>
+            </div>
+            <span class="text-[10px] text-slate-500"
+              >Submitted directly by field driver or community member.</span
+            >
+          </div>
+
+          <!-- Element 7: Scenario Fixture Badge -->
+          <div
+            class="flex flex-col gap-2 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >7. Data Provenance (Fixture)</span
+            >
+            <div class="flex items-center">
+              <span
+                class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30"
+              >
+                📋 SCENARIO FIXTURE
+              </span>
+            </div>
+            <span class="text-[10px] text-slate-500"
+              >Baseline benchmark scenario for judge verification.</span
+            >
+          </div>
+
+          <!-- Element 8: Gemini Flash Neural Tag -->
+          <div
+            class="flex flex-col gap-2 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >8. Neural AI Model Tag</span
+            >
+            <div class="flex items-center">
+              <span
+                class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono px-2 py-0.5 rounded font-bold"
+              >
+                ⚡ Gemini 2.5 Flash Multimodal
+              </span>
+            </div>
+            <span class="text-[10px] text-slate-500"
+              >Performs automated photo verification & crowd audits.</span
+            >
+          </div>
+
+          <!-- Element 9: Live Audio Alarm Active Tag -->
+          <div
+            class="flex flex-col gap-2 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >9. Emergency Alarm Status</span
+            >
+            <div class="flex items-center">
+              <span
+                class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-xl font-mono font-semibold flex items-center gap-1.5"
+              >
+                <span
+                  class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"
+                ></span>
+                🔊 Audio Alerts: ACTIVE
+              </span>
+            </div>
+            <span class="text-[10px] text-slate-500"
+              >Web Audio API context listening for incoming incidents.</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 2. BUTTONS & INTERACTIVE ACTION TRIGGERS -->
+      <!-- ========================================== -->
+      <section
+        id="section-buttons"
+        class="component-section flex flex-col gap-4"
+      >
+        <div
+          class="flex items-center justify-between border-b border-slate-800 pb-2"
+        >
+          <div>
+            <h3
+              class="font-display font-bold text-xl text-white flex items-center gap-2"
+            >
+              <span>🔘</span> Buttons & Action Triggers
+            </h3>
+            <p class="text-xs text-slate-400">
+              Tactile buttons with active scaling, ripple effects, and
+              audio-visual feedback.
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500">12 Elements</span>
+        </div>
+
+        <div
+          class="component-card p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <!-- Button 1: Primary Need Water SOS -->
+          <div
+            class="flex flex-col gap-2 p-4 bg-slate-950/60 rounded-xl border border-slate-800"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >1. Primary Citizen Action</span
+            >
+            <button
+              onclick="triggerToast('🚨 Water Beacon Modal Opened!')"
+              class="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 active:scale-95 text-white font-display font-extrabold text-xs py-2.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform"
+            >
+              <span class="text-base">🚨</span>
+              <span>Need Water? (Report Crisis)</span>
+            </button>
+            <span class="text-[10px] text-slate-500"
+              >Triggers distress beacon report modal with GPS lock.</span
+            >
+          </div>
+
+          <!-- Button 2: Test Emergency Alarm -->
+          <div
+            class="flex flex-col gap-2 p-4 bg-slate-950/60 rounded-xl border border-slate-800"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >2. Test Alarm Siren (Sound + Voice)</span
+            >
+            <button
+              onclick="
+                playDualToneAlarm();
+                triggerDemoBanner();
+              "
+              class="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 active:scale-95 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform"
+            >
+              <span>🚨</span> <span>Test Emergency Alarm</span>
+            </button>
+            <span class="text-[10px] text-slate-500"
+              >Click to play synthesized dual-tone siren & banner.</span
+            >
+          </div>
+
+          <!-- Button 3: Voice Note Recording Toggle -->
+          <div
+            class="flex flex-col gap-2 p-4 bg-slate-950/60 rounded-xl border border-slate-800"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >3. Vernacular Voice Note</span
+            >
+            <button
+              id="demo-voice-btn"
+              onclick="toggleDemoVoiceRecording()"
+              class="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 transition-all"
+            >
+              <span class="text-red-500 text-base">🎙️</span>
+              <span>Voice Note (Marathi/Hindi)</span>
+            </button>
+            <span class="text-[10px] text-slate-500"
+              >Click to toggle listening state with pulsing red ring.</span
+            >
+          </div>
+
+          <!-- Button 4: Mark Delivered (Confetti Action) -->
+          <div
+            class="flex flex-col gap-2 p-4 bg-slate-950/60 rounded-xl border border-slate-800"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >4. Delivery Confirmation</span
+            >
+            <button
+              onclick="triggerConfettiReward()"
+              class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-transform"
+            >
+              <span>✓</span> <span>Mark Delivered (Confetti!)</span>
+            </button>
+            <span class="text-[10px] text-slate-500"
+              >Click to trigger confetti celebration micro-interaction.</span
+            >
+          </div>
+
+          <!-- Button 5: Solve Constrained Dispatch -->
+          <div
+            class="flex flex-col gap-2 p-4 bg-slate-950/60 rounded-xl border border-slate-800"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >5. Operations Research Solver</span
+            >
+            <button
+              onclick="triggerToast('🚀 Concave DP Optimized across 64 Wards!')"
+              class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-transform"
+            >
+              <span>🚀</span> <span>Solve Constrained Dispatch</span>
+            </button>
+            <span class="text-[10px] text-slate-500"
+              >Executes Concave DP Diminishing-Returns optimizer.</span
+            >
+          </div>
+
+          <!-- Button 6: Persona Switcher Segment -->
+          <div
+            class="flex flex-col gap-2 p-4 bg-slate-950/60 rounded-xl border border-slate-800"
+          >
+            <span
+              class="text-[10px] font-mono uppercase text-slate-400 font-bold"
+              >6. Persona Toggle Segment</span
+            >
+            <div
+              class="bg-slate-900 p-1 rounded-xl border border-slate-800 flex gap-1"
+            >
+              <button
+                id="demo-persona-worker"
+                onclick="switchDemoPersona('worker')"
+                class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all bg-red-600 text-white shadow-xs"
+              >
+                Worker Mode
+              </button>
+              <button
+                id="demo-persona-ngo"
+                onclick="switchDemoPersona('ngo')"
+                class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white"
+              >
+                NGO Command
+              </button>
+            </div>
+            <span class="text-[10px] text-slate-500"
+              >Seamless toggle between Citizen and NGO command modes.</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 3. INPUTS, SELECTORS & TIMELINE SCRUBBER -->
+      <!-- ========================================== -->
+      <section
+        id="section-inputs"
+        class="component-section flex flex-col gap-4"
+      >
+        <div
+          class="flex items-center justify-between border-b border-slate-800 pb-2"
+        >
+          <div>
+            <h3
+              class="font-display font-bold text-xl text-white flex items-center gap-2"
+            >
+              <span>🎛️</span> Inputs, Selectors & Scrubber
+            </h3>
+            <p class="text-xs text-slate-400">
+              Controls for time-travel simulation, district filtering, and
+              multi-language switching.
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500">8 Elements</span>
+        </div>
+
+        <div class="component-card p-6 flex flex-col gap-6">
+          <!-- Scrubber Component -->
+          <div
+            class="bg-slate-950 p-5 rounded-2xl border border-slate-800 flex flex-col gap-3"
+          >
+            <div class="flex justify-between items-center">
+              <span
+                class="text-xs font-bold text-slate-300 flex items-center gap-1.5"
+              >
+                <span>⏱️</span> 24-Hour Forecast Timeline Scrubber
+              </span>
+              <div class="flex items-center gap-2">
+                <span
+                  id="demo-scrubber-time"
+                  class="font-mono text-sm font-bold text-blue-400"
+                  >14:00 (02:00 PM)</span
+                >
+                <button
+                  onclick="resetScrubberToNow()"
+                  class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 font-bold transition-all"
+                >
+                  ⏱️ Snap to Live
+                </button>
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min="0"
+              max="23"
+              value="14"
+              id="demo-scrubber-range"
+              oninput="updateScrubberTime(this.value)"
+              class="w-full accent-blue-500 cursor-pointer h-2 bg-slate-800 rounded-lg"
+            />
+
+            <div
+              class="flex justify-between text-[10px] font-mono text-slate-500"
+            >
+              <span>00:00 (Night)</span>
+              <span>06:00 (Dawn)</span>
+              <span class="text-amber-400 font-bold">12:00 (Peak Heat)</span>
+              <span>18:00 (Sunset)</span>
+              <span>23:00 (Night)</span>
+            </div>
+          </div>
+
+          <!-- District City Pill Bar -->
+          <div
+            class="bg-slate-950 p-5 rounded-2xl border border-slate-800 flex flex-col gap-3"
+          >
+            <div class="flex justify-between items-center">
+              <span
+                class="text-xs font-mono uppercase tracking-wider text-amber-300 font-extrabold flex items-center gap-1.5"
+              >
+                <span>🏢</span> Quick-Switch District Pills (8 Indian
+                Metropolises)
+              </span>
+              <span
+                class="text-[11px] text-slate-400"
+                id="demo-selected-city-label"
+                >Active: Pune</span
+              >
+            </div>
+
+            <div
+              class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"
+            >
+              <button
+                onclick="selectDemoCity('pune', this)"
+                class="demo-city-btn text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 transition-all bg-indigo-600 text-white shadow-md"
+              >
+                📍 Pune
+              </button>
+              <button
+                onclick="selectDemoCity('nagpur', this)"
+                class="demo-city-btn text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                📍 Nagpur
+              </button>
+              <button
+                onclick="selectDemoCity('mumbai', this)"
+                class="demo-city-btn text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                📍 Mumbai
+              </button>
+              <button
+                onclick="selectDemoCity('sambhajinagar', this)"
+                class="demo-city-btn text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                📍 Sambhajinagar
+              </button>
+              <button
+                onclick="selectDemoCity('nashik', this)"
+                class="demo-city-btn text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                📍 Nashik
+              </button>
+              <button
+                onclick="selectDemoCity('solapur', this)"
+                class="demo-city-btn text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                📍 Solapur
+              </button>
+              <button
+                onclick="selectDemoCity('delhi', this)"
+                class="demo-city-btn text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                📍 Delhi
+              </button>
+              <button
+                onclick="selectDemoCity('nanded', this)"
+                class="demo-city-btn text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                📍 Nanded
+              </button>
+            </div>
+          </div>
+
+          <!-- Radar Category Filter Bar -->
+          <div
+            class="bg-slate-950 p-5 rounded-2xl border border-slate-800 flex flex-col gap-3"
+          >
+            <span
+              class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold"
+            >
+              Nearby Relief Radar Segmented Filter
+            </span>
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+              <button
+                onclick="filterRadar('all', this)"
+                class="radar-filter-btn text-xs font-bold px-3.5 py-1.5 rounded-xl bg-blue-600 text-white shadow-xs"
+              >
+                All Assets
+              </button>
+              <button
+                onclick="filterRadar('water', this)"
+                class="radar-filter-btn text-xs font-bold px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                💧 Water Taps (342)
+              </button>
+              <button
+                onclick="filterRadar('shade', this)"
+                class="radar-filter-btn text-xs font-bold px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                🌳 Parks & Canopy (189)
+              </button>
+              <button
+                onclick="filterRadar('ac', this)"
+                class="radar-filter-btn text-xs font-bold px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                ❄️ AC Cool Haven (84)
+              </button>
+              <button
+                onclick="filterRadar('clinic', this)"
+                class="radar-filter-btn text-xs font-bold px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+              >
+                🏥 Emergency Clinics (56)
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 4. BENTO TELEMETRY & OPERATIONAL CARDS -->
+      <!-- ========================================== -->
+      <section id="section-bento" class="component-section flex flex-col gap-4">
+        <div
+          class="flex items-center justify-between border-b border-slate-800 pb-2"
+        >
+          <div>
+            <h3
+              class="font-display font-bold text-xl text-white flex items-center gap-2"
+            >
+              <span>🍱</span> Bento Telemetry & Operational Cards
+            </h3>
+            <p class="text-xs text-slate-400">
+              Apple Bento Grid geometry displaying real-time micro-zone science
+              and climatology.
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500">6 Elements</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Bento 1: Ward Thermal Telemetry Card -->
+          <div class="component-card p-5 flex flex-col justify-between gap-4">
+            <div>
+              <div class="flex justify-between items-start">
+                <div>
+                  <span
+                    class="text-[11px] font-mono uppercase tracking-wider text-red-400 font-bold flex items-center gap-1.5"
+                  >
+                    <span
+                      class="w-2 h-2 rounded-full bg-red-500 animate-ping"
+                    ></span>
+                    SWARGATE (Z-44)
+                  </span>
+                  <h4 class="font-display font-black text-4xl text-white mt-1">
+                    41.8°<span class="text-lg text-slate-400 font-normal"
+                      >C</span
+                    >
+                  </h4>
+                </div>
+                <span
+                  class="bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono"
+                >
+                  CRITICAL
+                </span>
+              </div>
+              <div
+                class="mt-3 grid grid-cols-2 gap-2 text-[11px] font-mono bg-slate-950 p-2.5 rounded-xl border border-slate-800"
+              >
+                <div>
+                  <span class="text-slate-500">WBGT Hazard:</span>
+                  <strong class="text-red-400">32.4°C</strong>
+                </div>
+                <div>
+                  <span class="text-slate-500">Deficit Rd:</span>
+                  <strong class="text-amber-400">4,280</strong>
+                </div>
+                <div>
+                  <span class="text-slate-500">Pop Exposure:</span>
+                  <strong class="text-slate-200">38,500</strong>
+                </div>
+                <div>
+                  <span class="text-slate-500">Tree Canopy:</span>
+                  <strong class="text-emerald-400">6.2%</strong>
+                </div>
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-400">
+              Dense asphalt transit hub; acute dehydration trap for gig delivery
+              workers.
+            </div>
+          </div>
+
+          <!-- Bento 2: El Niño Anomaly Card -->
+          <div
+            class="component-card p-5 flex flex-col justify-between gap-4 bg-gradient-to-br from-amber-950/20 to-slate-900"
+          >
+            <div>
+              <div class="flex justify-between items-center">
+                <span
+                  class="text-xs font-bold text-amber-400 flex items-center gap-1.5"
+                >
+                  <span>🌍</span> El Niño Climate Anomaly
+                </span>
+                <span
+                  class="bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-amber-500/30"
+                >
+                  +2.2°C Anomaly
+                </span>
+              </div>
+              <p class="text-xs text-slate-300 mt-2.5 leading-relaxed">
+                <strong
+                  >Pre-monsoon drought & severe asphalt heat traps:</strong
+                >
+                Ground surface temperature boosted by regional dry winds and
+                depleted reservoir levels.
+              </p>
+            </div>
+            <div
+              class="text-[10px] font-mono text-amber-400/80 pt-2 border-t border-slate-800"
+            >
+              Climate Zone: Tropical Wet & Dry / Deccan Plateau
+            </div>
+          </div>
+
+          <!-- Bento 3: Cooling Corridor Comparison -->
+          <div
+            class="component-card p-5 flex flex-col justify-between gap-4 bg-gradient-to-br from-emerald-950/20 to-slate-900"
+          >
+            <div>
+              <div class="flex justify-between items-center">
+                <span
+                  class="text-xs font-bold text-emerald-400 flex items-center gap-1.5"
+                >
+                  <span>🌿</span> Cool Corridor vs Direct Highway
+                </span>
+                <span
+                  class="bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-emerald-500/30"
+                >
+                  34% Less Heat
+                </span>
+              </div>
+              <div class="mt-3 flex flex-col gap-2 text-xs">
+                <div
+                  class="flex justify-between items-center bg-slate-950 p-2 rounded-lg border border-slate-800"
+                >
+                  <span class="text-slate-400">Direct Highway:</span>
+                  <span class="font-mono text-red-400 font-bold"
+                    >1.2 km (43.5°C direct sun)</span
+                  >
+                </div>
+                <div
+                  class="flex justify-between items-center bg-slate-950 p-2 rounded-lg border border-emerald-500/30"
+                >
+                  <span class="text-emerald-400 font-semibold"
+                    >Cooling Route:</span
+                  >
+                  <span class="font-mono text-emerald-300 font-bold"
+                    >1.4 km (31.2°C tree canopy)</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-400">
+              Routes pedestrians via shaded avenues and 2 public hydration
+              points.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 5. INCIDENT CARDS & NEURAL VISION AUDITS -->
+      <!-- ========================================== -->
+      <section
+        id="section-incidents"
+        class="component-section flex flex-col gap-4"
+      >
+        <div
+          class="flex items-center justify-between border-b border-slate-800 pb-2"
+        >
+          <div>
+            <h3
+              class="font-display font-bold text-xl text-white flex items-center gap-2"
+            >
+              <span>📸</span> Incident Cards & Gemini Vision Neural Audits
+            </h3>
+            <p class="text-xs text-slate-400">
+              Verified ground distress reports audited by Gemini 2.5 Flash
+              Vision.
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500"
+            >Live Incident Stream</span
+          >
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Incident Card 1: Swargate Transit Hub -->
+          <div class="component-card p-5 flex flex-col gap-4">
+            <div class="flex justify-between items-start">
+              <div>
+                <h4 class="font-display font-bold text-base text-white">
+                  Swargate Flyover Base (Jedhe Chowk)
+                </h4>
+                <span class="text-xs font-mono text-slate-400"
+                  >GPS: 18.5018, 73.8578 · Sector: Z-44 (Pune)</span
+                >
+              </div>
+              <span
+                class="bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-mono font-bold px-2 py-0.5 rounded"
+              >
+                🚨 CRITICAL
+              </span>
+            </div>
+
+            <p
+              class="text-xs text-slate-300 bg-slate-950 p-3 rounded-xl border border-slate-800 leading-relaxed"
+            >
+              "15+ delivery riders waiting between food delivery orders under
+              direct sun, municipal tap dry."
+            </p>
+
+            <!-- Gemini Neural Audit Box -->
+            <div
+              class="bg-slate-950 p-3 rounded-xl border border-indigo-500/30 flex flex-col gap-2"
+            >
+              <div class="flex justify-between items-center text-xs">
+                <span
+                  class="font-bold text-indigo-300 flex items-center gap-1.5"
+                >
+                  <span>⚡</span> Gemini 2.5 Flash Vision Audit:
+                </span>
+                <span class="text-emerald-400 font-mono font-bold"
+                  >96% Conf (16 Workers)</span
+                >
+              </div>
+              <p class="text-[11px] text-slate-300 italic">
+                "High confidence: Transit hub verified with dense cluster of gig
+                workers enduring 41.8°C radiant heat and dry municipal cooler
+                line."
+              </p>
+              <div
+                class="text-[11px] text-blue-300 bg-blue-950/40 p-2 rounded-lg border border-blue-900/60"
+              >
+                <strong>🎯 Squad Plan:</strong> Dispatch Squad 1 with 20 chilled
+                20L water cans + 40 ORS sachets to Flyover pillar #12.
+              </div>
+            </div>
+
+            <div
+              class="flex justify-between items-center pt-2 border-t border-slate-800 text-xs"
+            >
+              <span class="text-slate-400"
+                >Assigned:
+                <strong class="text-indigo-400"
+                  >Pune Heat Action Collective</strong
+                ></span
+              >
+              <button
+                onclick="triggerConfettiReward()"
+                class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-all active:scale-95 shadow-sm"
+              >
+                ✓ Mark Delivered
+              </button>
+            </div>
+          </div>
+
+          <!-- Incident Card 2: Nagpur Sitabuldi -->
+          <div class="component-card p-5 flex flex-col gap-4">
+            <div class="flex justify-between items-start">
+              <div>
+                <h4 class="font-display font-bold text-base text-white">
+                  Sitabuldi Interchange & Cotton Market
+                </h4>
+                <span class="text-xs font-mono text-slate-400"
+                  >GPS: 21.1458, 79.0882 · Sector: Z-28 (Nagpur)</span
+                >
+              </div>
+              <span
+                class="bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-mono font-bold px-2 py-0.5 rounded"
+              >
+                🚨 CRITICAL
+              </span>
+            </div>
+
+            <p
+              class="text-xs text-slate-300 bg-slate-950 p-3 rounded-xl border border-slate-800 leading-relaxed"
+            >
+              "18 street vendors and rickshaw pullers facing 45.8°C dry Loo
+              winds with zero water."
+            </p>
+
+            <!-- Gemini Neural Audit Box -->
+            <div
+              class="bg-slate-950 p-3 rounded-xl border border-indigo-500/30 flex flex-col gap-2"
+            >
+              <div class="flex justify-between items-center text-xs">
+                <span
+                  class="font-bold text-indigo-300 flex items-center gap-1.5"
+                >
+                  <span>⚡</span> Gemini 2.5 Flash Vision Audit:
+                </span>
+                <span class="text-emerald-400 font-mono font-bold"
+                  >97% Conf (18 Workers)</span
+                >
+              </div>
+              <p class="text-[11px] text-slate-300 italic">
+                "Sitabuldi junction urban heat dome verified. Direct asphalt
+                radiation exceeds 47°C."
+              </p>
+              <div
+                class="text-[11px] text-blue-300 bg-blue-950/40 p-2 rounded-lg border border-blue-900/60"
+              >
+                <strong>🎯 Squad Plan:</strong> Deploy Vidarbha Heat Resilience
+                Taskforce with 30 ORS boxes and misting canopy to Zero Mile
+                square.
+              </div>
+            </div>
+
+            <div
+              class="flex justify-between items-center pt-2 border-t border-slate-800 text-xs"
+            >
+              <span class="text-slate-400"
+                >Assigned:
+                <strong class="text-indigo-400"
+                  >Vidarbha Heat Relief Taskforce</strong
+                ></span
+              >
+              <button
+                onclick="triggerConfettiReward()"
+                class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-all active:scale-95 shadow-sm"
+              >
+                ✓ Mark Delivered
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 6. MODALS, ALERTS & EMERGENCY OVERLAYS -->
+      <!-- ========================================== -->
+      <section
+        id="section-modals"
+        class="component-section flex flex-col gap-4"
+      >
+        <div
+          class="flex items-center justify-between border-b border-slate-800 pb-2"
+        >
+          <div>
+            <h3
+              class="font-display font-bold text-xl text-white flex items-center gap-2"
+            >
+              <span>🚨</span> Modals, Emergency Banners & Alerts
+            </h3>
+            <p class="text-xs text-slate-400">
+              High-priority overlays designed to intercept operator attention.
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500">4 Elements</span>
+        </div>
+
+        <div class="flex flex-col gap-6">
+          <!-- Live Sliding Incident Banner -->
+          <div
+            id="demo-banner-box"
+            class="bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 border border-red-400/50 p-4 rounded-2xl flex items-center justify-between shadow-2xl animate-pulse text-white"
+          >
+            <div class="flex items-center gap-3">
+              <span class="text-2xl animate-bounce">🚨</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h4 class="font-display font-extrabold text-sm tracking-wide">
+                    NEW URGENT HEAT INCIDENT DETECTED
+                  </h4>
+                  <span
+                    class="bg-white/20 text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded-full"
+                    >JUST NOW</span
+                  >
+                </div>
+                <p class="text-xs text-red-100 font-medium mt-0.5">
+                  Swargate Flyover Base: 15+ delivery riders dehydrated under
+                  direct sun; municipal tap dry.
+                </p>
+              </div>
+            </div>
+            <button
+              onclick="dismissDemoBanner()"
+              class="bg-black/30 hover:bg-black/50 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition-all"
+            >
+              Dismiss ✕
+            </button>
+          </div>
+
+          <!-- CNS Heat Stroke Medical Warning Banner -->
+          <div
+            class="bg-rose-950/60 border border-rose-500/40 p-4 rounded-2xl flex items-center justify-between text-rose-200"
+          >
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">⚠️</span>
+              <div>
+                <strong class="text-white text-xs block"
+                  >Central Nervous System (CNS) Heat Stroke Triage
+                  Warning:</strong
+                >
+                <p class="text-[11px] text-rose-300 mt-0.5">
+                  Slurred speech and disoriented cadence detected by audio
+                  screener. High risk of thermal encephalopathy.
+                </p>
+              </div>
+            </div>
+            <a
+              href="tel:108"
+              class="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-md transition-all shrink-0"
+            >
+              📞 Dial 108 Ambulance
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 7. MAP GEOMETRY & CUSTOM SVG MARKERS -->
+      <!-- ========================================== -->
+      <section
+        id="section-map-controls"
+        class="component-section flex flex-col gap-4"
+      >
+        <div
+          class="flex items-center justify-between border-b border-slate-800 pb-2"
+        >
+          <div>
+            <h3
+              class="font-display font-bold text-xl text-white flex items-center gap-2"
+            >
+              <span>🗺️</span> Map Geometry & Custom SVG Markers
+            </h3>
+            <p class="text-xs text-slate-400">
+              Map markers and polygon color ramps used on Leaflet geospatial
+              canvases.
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500">6 Elements</span>
+        </div>
+
+        <div
+          class="component-card p-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center"
+        >
+          <div
+            class="p-4 bg-slate-950 rounded-xl border border-slate-800 flex flex-col items-center gap-2"
+          >
+            <div
+              class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-bold shadow-lg"
+            >
+              💧
+            </div>
+            <span class="text-xs font-bold text-white">Water Tap Point</span>
+            <span class="text-[10px] text-slate-500 font-mono"
+              >amenity=drinking_water</span
+            >
+          </div>
+
+          <div
+            class="p-4 bg-slate-950 rounded-xl border border-slate-800 flex flex-col items-center gap-2"
+          >
+            <div
+              class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center text-lg font-bold shadow-lg"
+            >
+              🌳
+            </div>
+            <span class="text-xs font-bold text-white"
+              >Tree Canopy Shelter</span
+            >
+            <span class="text-[10px] text-slate-500 font-mono"
+              >leisure=park</span
+            >
+          </div>
+
+          <div
+            class="p-4 bg-slate-950 rounded-xl border border-slate-800 flex flex-col items-center gap-2"
+          >
+            <div
+              class="w-10 h-10 rounded-full bg-cyan-600 text-white flex items-center justify-center text-lg font-bold shadow-lg"
+            >
+              ❄️
+            </div>
+            <span class="text-xs font-bold text-white">AC Cool Haven</span>
+            <span class="text-[10px] text-slate-500 font-mono"
+              >amenity=community_centre</span
+            >
+          </div>
+
+          <div
+            class="p-4 bg-slate-950 rounded-xl border border-slate-800 flex flex-col items-center gap-2"
+          >
+            <div
+              class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center text-lg font-bold shadow-lg animate-pulse ring-4 ring-red-500/20"
+            >
+              🚨
+            </div>
+            <span class="text-xs font-bold text-white"
+              >Active Distress Beacon</span
+            >
+            <span class="text-[10px] text-slate-500 font-mono"
+              >Verified by Gemini</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 8. AUDIO SYNTHESIZER & SPEECH DISPATCH -->
+      <!-- ========================================== -->
+      <section id="section-audio" class="component-section flex flex-col gap-4">
+        <div
+          class="flex items-center justify-between border-b border-slate-800 pb-2"
+        >
+          <div>
+            <h3
+              class="font-display font-bold text-xl text-white flex items-center gap-2"
+            >
+              <span>🔊</span> Web Audio Synthesizer & Speech Dispatch
+            </h3>
+            <p class="text-xs text-slate-400">
+              Zero-MP3 synthesized dual-tone audio alarm and text-to-speech
+              engine.
+            </p>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500"
+            >Interactive Controls</span
+          >
+        </div>
+
+        <div
+          class="component-card p-6 flex flex-col md:flex-row items-center justify-between gap-6"
+        >
+          <div class="flex-1">
+            <h4 class="font-display font-bold text-lg text-white">
+              Test Real-Time Dispatch Audio
+            </h4>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+              Uses the browser's native
+              <code class="text-blue-400">AudioContext</code> to generate an
+              attention-grabbing dual-tone sweep (880 Hz to 1174.66 Hz) paired
+              with vocal speech synthesis via
+              <code class="text-blue-400">SpeechSynthesisUtterance</code>.
+            </p>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <button
+              onclick="playDualToneAlarm()"
+              class="bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 active:scale-95 text-white font-bold text-xs px-5 py-3 rounded-xl shadow-lg transition-transform flex items-center gap-2"
+            >
+              <span>🚨</span> <span>Play Dual-Tone Alarm</span>
+            </button>
+            <button
+              onclick="speakDemoVoice()"
+              class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-xs px-5 py-3 rounded-xl border border-slate-700 transition-transform flex items-center gap-2"
+            >
+              <span>🗣️</span> <span>Play Voice Dispatch</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- FLOATING TOAST CONTAINER -->
+    <div
+      id="demo-toast"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl hidden transition-all"
+    >
+      <span id="demo-toast-msg">Toast notification</span>
+    </div>
+
+    <script>
+      // Audio Context Dual-Tone Synthesizer
+      function playDualToneAlarm() {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          const ctx = new AudioCtx();
+          const now = ctx.currentTime;
+
+          const osc1 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          osc1.type = "sine";
+          osc1.frequency.setValueAtTime(880, now);
+          gain1.gain.setValueAtTime(0.35, now);
+          gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.3);
+
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.type = "triangle";
+          osc2.frequency.setValueAtTime(1174.66, now + 0.18);
+          gain2.gain.setValueAtTime(0.4, now + 0.18);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.start(now + 0.18);
+          osc2.stop(now + 0.55);
+
+          triggerToast("🔊 Playing Synthesized Dual-Tone Emergency Siren!");
+        } catch (err) {
+          console.warn("Audio Context playback prevented:", err);
+        }
+      }
+
+      function speakDemoVoice() {
+        try {
+          if ("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(
+              "Attention Ground Command: New heat emergency beacon reported at Swargate transit hub. High risk of dehydration.",
+            );
+            utterance.rate = 1.05;
+            utterance.pitch = 1.1;
+            window.speechSynthesis.speak(utterance);
+            triggerToast("🗣️ Playing Vocal Speech Synthesis Alert!");
+          }
+        } catch (e) {
+          console.warn("Speech synthesis error:", e);
+        }
+      }
+
+      function triggerConfettiReward() {
+        if (typeof confetti === "function") {
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.7 },
+          });
+        }
+        triggerToast("🎉 Water Delivered! Confetti Celebration triggered.");
+      }
+
+      function triggerToast(msg) {
+        const toast = document.getElementById("demo-toast");
+        const msgElem = document.getElementById("demo-toast-msg");
+        if (toast && msgElem) {
+          msgElem.innerText = msg;
+          toast.classList.remove("hidden");
+          setTimeout(() => toast.classList.add("hidden"), 2800);
+        }
+      }
+
+      function triggerDemoBanner() {
+        const b = document.getElementById("demo-banner-box");
+        if (b) {
+          b.classList.remove("hidden");
+        }
+      }
+
+      function dismissDemoBanner() {
+        const b = document.getElementById("demo-banner-box");
+        if (b) {
+          b.classList.add("hidden");
+        }
+      }
+
+      function updateScrubberTime(val) {
+        const h = parseInt(val);
+        const ampm = h >= 12 ? "PM" : "AM";
+        const formatted = (h > 12 ? h - 12 : h === 0 ? 12 : h) + ":00 " + ampm;
+        document.getElementById("demo-scrubber-time").innerText =
+          `${val.padStart(2, "0")}:00 (${formatted})`;
+      }
+
+      function resetScrubberToNow() {
+        const nowH = new Date().getHours();
+        document.getElementById("demo-scrubber-range").value = nowH;
+        updateScrubberTime(nowH.toString());
+        triggerToast(`⏱️ Snapped to current hour: ${nowH}:00`);
+      }
+
+      function selectDemoCity(cityId, btn) {
+        document.querySelectorAll(".demo-city-btn").forEach((b) => {
+          b.className =
+            "demo-city-btn text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700";
+        });
+        btn.className =
+          "demo-city-btn text-xs font-bold px-3 py-1.5 rounded-xl shrink-0 transition-all bg-indigo-600 text-white shadow-md";
+        document.getElementById("demo-selected-city-label").innerText =
+          `Active: ${cityId.toUpperCase()}`;
+        triggerToast(`🏢 District switched to ${cityId.toUpperCase()}`);
+      }
+
+      function filterRadar(cat, btn) {
+        document.querySelectorAll(".radar-filter-btn").forEach((b) => {
+          b.className =
+            "radar-filter-btn text-xs font-bold px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700";
+        });
+        btn.className =
+          "radar-filter-btn text-xs font-bold px-3.5 py-1.5 rounded-xl bg-blue-600 text-white shadow-xs";
+        triggerToast(`Radar filter applied: ${cat.toUpperCase()}`);
+      }
+
+      let isRecording = false;
+      function toggleDemoVoiceRecording() {
+        const btn = document.getElementById("demo-voice-btn");
+        isRecording = !isRecording;
+        if (isRecording) {
+          btn.className =
+            "w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border border-red-500 bg-red-600 text-white animate-pulse ring-4 ring-red-500/30";
+          btn.innerHTML =
+            "<span>🔴</span> <span>Listening to Voice Note... (Marathi/Hindi)</span>";
+          triggerToast(
+            "🎙️ Voice note recording active! Speak in Marathi or Hindi.",
+          );
+        } else {
+          btn.className =
+            "w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 transition-all";
+          btn.innerHTML =
+            '<span class="text-red-500 text-base">🎙️</span> <span>Voice Note (Marathi/Hindi)</span>';
+          triggerToast(
+            "✓ Voice note captured and transcribed via Gemini Flash!",
+          );
+        }
+      }
+
+      function switchDemoPersona(p) {
+        const w = document.getElementById("demo-persona-worker");
+        const n = document.getElementById("demo-persona-ngo");
+        if (p === "worker") {
+          w.className =
+            "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all bg-red-600 text-white shadow-xs";
+          n.className =
+            "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
+          triggerToast("Switched to Worker Citizen Mode");
+        } else {
+          n.className =
+            "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-xs";
+          w.className =
+            "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
+          triggerToast("Switched to NGO Command Center Mode");
+        }
+      }
+
+      // Format Prettier time
+      setInterval(() => {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        const badge = document.getElementById("demo-live-badge-time");
+        if (badge) badge.innerText = `LIVE ${timeStr}`;
+      }, 1000);
+    </script>
+  </body>
+</html>

@@ -424,7 +424,7 @@ export default function App() {
       try {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(
-          `Attention Command Center: New heat distress beacon reported at ${b.location_name || "Ground Location"} in ${currentCityMeta?.name || "district"}`
+          `Attention Command Center: New heat distress beacon reported at ${b.location_name || "Ground Location"} in ${currentCityMeta?.name || "district"}`,
         );
         utterance.rate = 1.05;
         window.speechSynthesis.speak(utterance);
@@ -433,7 +433,10 @@ export default function App() {
     showToast(`🚨 NEW EMERGENCY: ${b.location_name || "Beacon"} reported!`);
   };
 
-  const fetchBeacons = async (excludeFixtures = hideDemoFixtures, city = selectedCity) => {
+  const fetchBeacons = async (
+    excludeFixtures = hideDemoFixtures,
+    city = selectedCity,
+  ) => {
     try {
       const res = await fetch(
         `/api/beacons?include_fixtures=${!excludeFixtures}&city=${city}`,
@@ -442,7 +445,8 @@ export default function App() {
       const incoming = data.beacons || [];
       if (hasLoadedBeaconsRef.current) {
         const brandNew = incoming.filter(
-          (b) => !knownBeaconIdsRef.current.has(b.id) && b.status !== "resolved",
+          (b) =>
+            !knownBeaconIdsRef.current.has(b.id) && b.status !== "resolved",
         );
         if (brandNew.length > 0) {
           triggerIncidentNotification(brandNew[0]);
@@ -898,16 +902,22 @@ export default function App() {
       setHourOffset(liveHr);
       setIsLiveRealtime(true);
       fetchZones(liveHr, cityId);
-      showToast(`📍 Switched to ${meta.name} (${meta.region}) · Live Hour: ${liveHr}:00`);
+      showToast(
+        `📍 Switched to ${meta.name} (${meta.region}) · Live Hour: ${liveHr}:00`,
+      );
     }
   };
 
   const snapToRealtimeHour = () => {
-    const liveHr = getCityRealtimeHour(currentCityMeta?.timezone || "Asia/Kolkata");
+    const liveHr = getCityRealtimeHour(
+      currentCityMeta?.timezone || "Asia/Kolkata",
+    );
     setHourOffset(liveHr);
     setIsLiveRealtime(true);
     fetchZones(liveHr, selectedCity);
-    showToast(`⏱️ Synced to Real-Time Hour: ${liveHr}:00 (${currentCityMeta?.name || "City"})`);
+    showToast(
+      `⏱️ Synced to Real-Time Hour: ${liveHr}:00 (${currentCityMeta?.name || "City"})`,
+    );
   };
 
   // Real GPS Geolocation for Driver
@@ -1328,7 +1338,9 @@ export default function App() {
   const handleHourChange = (e) => {
     const val = parseInt(e.target.value, 10);
     setHourOffset(val);
-    const liveHr = getCityRealtimeHour(currentCityMeta?.timezone || "Asia/Kolkata");
+    const liveHr = getCityRealtimeHour(
+      currentCityMeta?.timezone || "Asia/Kolkata",
+    );
     setIsLiveRealtime(val === liveHr);
     fetchZones(val, selectedCity);
   };
@@ -1488,7 +1500,9 @@ export default function App() {
   }, [zones]);
 
   const currentLiveTimeStr = useMemo(() => {
-    return getCityRealtimeFormatted(currentCityMeta?.timezone || "Asia/Kolkata");
+    return getCityRealtimeFormatted(
+      currentCityMeta?.timezone || "Asia/Kolkata",
+    );
   }, [currentCityMeta]);
 
   const displayTime = useMemo(() => {
@@ -2086,7 +2100,8 @@ export default function App() {
                     onClick={() =>
                       triggerIncidentNotification({
                         location_name: `${currentCityMeta?.name || "District"} Transit Hub`,
-                        description: "15+ gig workers facing acute heat stress and dry public taps",
+                        description:
+                          "15+ gig workers facing acute heat stress and dry public taps",
                       })
                     }
                     className="shrink-0 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-[9.5px] px-2 py-1 rounded-lg flex items-center gap-1 shadow-xs active:scale-95 transition-transform"
@@ -2099,10 +2114,7 @@ export default function App() {
 
               {/* MAP CONTAINER WITH BOUNDED OVERLAYS */}
               <div className="relative w-full h-[280px] rounded-2xl overflow-hidden border border-black/5 shadow-xs z-10">
-                <div
-                  ref={mapRef}
-                  className="w-full h-full"
-                />
+                <div ref={mapRef} className="w-full h-full" />
 
                 {/* CITY DROPDOWN ANCHORED DIRECTLY ON MAP IN NGO COMMAND */}
                 {viewMode === "ngo" && (
@@ -2114,7 +2126,11 @@ export default function App() {
                       className="bg-transparent text-white text-[11px] font-bold py-0.5 focus:outline-none cursor-pointer"
                     >
                       {cityList.map((c) => (
-                        <option key={c.id} value={c.id} className="bg-slate-900 text-white">
+                        <option
+                          key={c.id}
+                          value={c.id}
+                          className="bg-slate-900 text-white"
+                        >
                           📍 {c.name} ({c.region})
                         </option>
                       ))}
@@ -2135,7 +2151,10 @@ export default function App() {
                   <button
                     onClick={() => {
                       if (currentCityMeta && mapInstance.current) {
-                        mapInstance.current.setView(currentCityMeta.centroid, 13);
+                        mapInstance.current.setView(
+                          currentCityMeta.centroid,
+                          13,
+                        );
                       }
                     }}
                     className="bg-white/95 border border-black/10 text-[10.5px] font-semibold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1"
@@ -2976,7 +2995,9 @@ export default function App() {
           title="Open Portals Slider"
           aria-label="Open Portals Navigation Slider"
         >
-          <span className="text-xs text-amber-400 group-hover:-translate-x-0.5 transition-transform">◀</span>
+          <span className="text-xs text-amber-400 group-hover:-translate-x-0.5 transition-transform">
+            ◀
+          </span>
           <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest [writing-mode:vertical-rl] rotate-180 text-slate-300">
             Portals
           </span>

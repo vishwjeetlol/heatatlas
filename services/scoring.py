@@ -9,8 +9,12 @@ class ZoneTelemetryInput(BaseModel):
     pop: int = Field(ge=0, description="Total residential population from WorldPop v2")
     child_pop: int = Field(ge=0, description="Child population (0-14 yrs)")
     elderly_pop: int = Field(ge=0, description="Elderly population (65+ yrs)")
-    hours_above_38: int = Field(ge=0, le=48, description="Forecast hours with apparent temp >= 38°C")
-    working_taps: int = Field(ge=0, description="Crowd-verified working drinking water taps")
+    hours_above_38: int = Field(
+        ge=0, le=48, description="Forecast hours with apparent temp >= 38°C"
+    )
+    working_taps: int = Field(
+        ge=0, description="Crowd-verified working drinking water taps"
+    )
     clinics: int = Field(ge=0, description="Primary health clinics / ORS centers")
     peak_apparent_temp: float = Field(default=38.0, ge=-10.0, le=65.0)
     relative_humidity_pct: float = Field(default=38.0, ge=1.0, le=100.0)
@@ -35,13 +39,15 @@ def compute_stull_wet_bulb(temp_c: float, rh_pct: float) -> float:
         t * math.atan(0.151977 * math.sqrt(rh + 8.313659))
         + math.atan(t + rh)
         - math.atan(rh - 1.676331)
-        + 0.00391838 * (rh ** 1.5) * math.atan(0.023101 * rh)
+        + 0.00391838 * (rh**1.5) * math.atan(0.023101 * rh)
         - 4.686035
     )
     return round(tw, 2)
 
 
-def _longest_streak_above_38(hourly_temps: Optional[List[float]], fallback_hours: int) -> int:
+def _longest_streak_above_38(
+    hourly_temps: Optional[List[float]], fallback_hours: int
+) -> int:
     if not hourly_temps:
         return max(0, int(fallback_hours))
     best = 0
@@ -101,7 +107,11 @@ def compute_scores(
 
     # Stull (2011) psychrometric wet-bulb temperature strictly requires dry-bulb air temperature (T) and RH.
     # Apparent temperature is maintained separately for the empirical heat strain factor.
-    air_temp_input = float(dry_bulb_temp_c) if dry_bulb_temp_c is not None else validated.peak_apparent_temp
+    air_temp_input = (
+        float(dry_bulb_temp_c)
+        if dry_bulb_temp_c is not None
+        else validated.peak_apparent_temp
+    )
     stull_tw = compute_stull_wet_bulb(air_temp_input, validated.relative_humidity_pct)
 
     if validated.hours_above_38 <= 0:
@@ -144,19 +154,27 @@ def compute_scores(
 
     # Factor 1: Psychrometric heat-strain multiplier scaled above PMC Heat Action Plan 38°C operational threshold
     excess_temp = max(0.0, validated.peak_apparent_temp - 38.0)
-    heat_strain_multiplier = round(1.0 + 0.08 * (excess_temp ** 1.35), 3)
+    heat_strain_multiplier = round(1.0 + 0.08 * (excess_temp**1.35), 3)
 
     # Factor 2: Built-up density SVF proxy retention factor
     svf_canyon_factor = round(1.0 + 0.15 * (1.0 - validated.sky_view_factor), 3)
 
     # Factor 3: Sphere Humanitarian Standard (250 persons per working tap headcount capacity; 500 per primary clinic)
     effective_daytime_pop = int(validated.pop * validated.transient_worker_flux)
-    sphere_nominal_headcount_capacity = max(250, (validated.working_taps * 250) + (validated.clinics * 500))
-    capacity_saturation_ratio = round(effective_daytime_pop / sphere_nominal_headcount_capacity, 2)
+    sphere_nominal_headcount_capacity = max(
+        250, (validated.working_taps * 250) + (validated.clinics * 500)
+    )
+    capacity_saturation_ratio = round(
+        effective_daytime_pop / sphere_nominal_headcount_capacity, 2
+    )
     sphere_persons_per_tap = round(validated.pop / max(1, validated.working_taps), 1)
-    saturation_penalty = round(min(1.5, 1.0 + 0.015 * max(0.0, capacity_saturation_ratio - 1.0)), 3)
+    saturation_penalty = round(
+        min(1.5, 1.0 + 0.015 * max(0.0, capacity_saturation_ratio - 1.0)), 3
+    )
 
-    combined_multiplier = round(heat_strain_multiplier * svf_canyon_factor * saturation_penalty, 3)
+    combined_multiplier = round(
+        heat_strain_multiplier * svf_canyon_factor * saturation_penalty, 3
+    )
     non_linear_rd = round(rd * combined_multiplier, 1)
 
     if rd >= 5000:
@@ -236,22 +254,31 @@ def compute_ablation_study(zones: List[dict]) -> dict:
         return {"status": "empty", "variants": []}
 
     # M0: Naive Vulnerability-Only Baseline (ignoring OSM water & clinic supply)
-    m0_pop_only = [z["id"] for z in sorted(zones, key=lambda x: x.get("vh", 0), reverse=True)]
+    m0_pop_only = [
+        z["id"] for z in sorted(zones, key=lambda x: x.get("vh", 0), reverse=True)
+    ]
     # M1: Core Spec Rd = Vh / (1 + Taps + 2*Clinics)
-    m1_spec_rd = [z["id"] for z in sorted(zones, key=lambda x: x.get("rd", 0.0), reverse=True)]
+    m1_spec_rd = [
+        z["id"] for z in sorted(zones, key=lambda x: x.get("rd", 0.0), reverse=True)
+    ]
     # M2: Spec Rd * Thermal * Built-Up Density Proxy
     m2_thermal_svf = [
         z["id"]
         for z in sorted(
             zones,
-            key=lambda x: x.get("rd", 0.0)
-            * x.get("wbgt_severity_multiplier", 1.0)
-            * (1.0 + 0.15 * (1.0 - x.get("sky_view_factor", 0.65))),
+            key=lambda x: (
+                x.get("rd", 0.0)
+                * x.get("wbgt_severity_multiplier", 1.0)
+                * (1.0 + 0.15 * (1.0 - x.get("sky_view_factor", 0.65)))
+            ),
             reverse=True,
         )
     ]
     # M3: Full Extended Non-Linear Rd (with Sphere 250-person/tap headcount saturation)
-    m3_full = [z["id"] for z in sorted(zones, key=lambda x: x.get("non_linear_rd", 0.0), reverse=True)]
+    m3_full = [
+        z["id"]
+        for z in sorted(zones, key=lambda x: x.get("non_linear_rd", 0.0), reverse=True)
+    ]
 
     return {
         "methodology": "Pairwise Kendall-tau rank correlation across all 64 Pune wards (demonstrating how OSM supply denominator and thermal/saturation modifiers re-order naive population rankings)",

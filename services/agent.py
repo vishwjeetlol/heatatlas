@@ -69,7 +69,12 @@ def normalize_to_gemini_image(raw_bytes: bytes) -> tuple[bytes, str]:
     """
     if not raw_bytes:
         return b"", "image/jpeg"
-    if len(raw_bytes) > 3 and raw_bytes[0] == 0xFF and raw_bytes[1] == 0xD8 and raw_bytes[2] == 0xFF:
+    if (
+        len(raw_bytes) > 3
+        and raw_bytes[0] == 0xFF
+        and raw_bytes[1] == 0xD8
+        and raw_bytes[2] == 0xFF
+    ):
         return raw_bytes, "image/jpeg"
     if len(raw_bytes) > 8 and raw_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
         return raw_bytes, "image/png"
@@ -86,13 +91,16 @@ def normalize_to_gemini_image(raw_bytes: bytes) -> tuple[bytes, str]:
 
     return raw_bytes, "image/jpeg"
 
+
 # Helper: Robust multi-model failover for Gemini API
 def call_gemini_with_fallback(client, contents, config=None):
     """
     Calls Gemini API with automatic model failover across supported Flash models.
     Prevents 404 deprecated or 503 high-load outages from breaking ground operations.
     """
-    candidates = [GEMINI_MODEL] + [m for m in GEMINI_FALLBACK_MODELS if m != GEMINI_MODEL]
+    candidates = [GEMINI_MODEL] + [
+        m for m in GEMINI_FALLBACK_MODELS if m != GEMINI_MODEL
+    ]
     # Deduplicate while preserving priority order
     seen = set()
     models = [m for m in candidates if m and not (m in seen or seen.add(m))]
@@ -101,16 +109,17 @@ def call_gemini_with_fallback(client, contents, config=None):
     for model_name in models:
         try:
             res = client.models.generate_content(
-                model=model_name,
-                contents=contents,
-                config=config
+                model=model_name, contents=contents, config=config
             )
             return res, model_name
         except Exception as e:
             last_error = e
-            print(f"Warning: Gemini call with {model_name} failed: {e}. Trying fallback...")
+            print(
+                f"Warning: Gemini call with {model_name} failed: {e}. Trying fallback..."
+            )
             continue
     raise last_error
+
 
 def extract_json_from_text(text: str) -> dict:
     """Robustly parses JSON from LLM response text, stripping markdown tags or preamble."""
@@ -123,6 +132,7 @@ def extract_json_from_text(text: str) -> dict:
     if match:
         return json.loads(match.group(0))
     return json.loads(clean)
+
 
 # 1. SPECIALIZED ROLE PROMPT & MULTILINGUAL FEW-SHOT SYSTEM INSTRUCTION
 SYSTEM_PROMPT = """You are HeatAtlas Dispatch Agent, a specialized geospatial intelligence assistant for municipal extreme heat relief in Pune, Maharashtra.
@@ -159,6 +169,7 @@ Output JSON:
 }
 """
 
+
 async def audit_beacon_photo(image_base64: str = None, description: str = "") -> dict:
     """
     Multimodal Vision & NLP Audit (Gemini Flash Spatial Intelligence).
@@ -177,7 +188,9 @@ async def audit_beacon_photo(image_base64: str = None, description: str = "") ->
             client = genai.Client(api_key=api_key)
 
             if image_base64:
-                clean_b64 = image_base64.split(",")[1] if "," in image_base64 else image_base64
+                clean_b64 = (
+                    image_base64.split(",")[1] if "," in image_base64 else image_base64
+                )
                 pad = len(clean_b64) % 4
                 if pad:
                     clean_b64 += "=" * (4 - pad)
@@ -185,7 +198,7 @@ async def audit_beacon_photo(image_base64: str = None, description: str = "") ->
                 norm_bytes, norm_mime = normalize_to_gemini_image(raw_bytes)
 
                 vision_prompt = f"""You are HeatAtlas Strict Multimodal Vision Guardrail, a fraud-resistant AI auditor for municipal heatwave relief.
-A user uploaded the attached photo along with the text claim: "{description or 'No text'}".
+A user uploaded the attached photo along with the text claim: "{description or "No text"}".
 
 CRITICAL ANTI-SPOOFING & VISUAL VERIFICATION RULES (MANDATORY):
 1. THE IMAGE IS THE SOLE SOURCE OF TRUTH. Completely IGNORE the text claim if the image contradicts it or does not visually prove it!
@@ -214,7 +227,7 @@ Return PURE JSON in this exact schema:
 """
                 contents = [
                     types.Part.from_bytes(data=norm_bytes, mime_type=norm_mime),
-                    vision_prompt
+                    vision_prompt,
                 ]
             else:
                 text_prompt = f"""You are HeatAtlas NLP Verification Engine for municipal heatwave relief in India.
@@ -243,12 +256,15 @@ Return PURE JSON matching the exact schema:
             response, used_model = call_gemini_with_fallback(
                 client,
                 contents=contents,
-                config={"response_mime_type": "application/json"}
+                config={"response_mime_type": "application/json"},
             )
 
             parsed = extract_json_from_text(response.text)
             # Enforce consistency: if severity_tier is REJECTED or confidence < 0.5, force verified = False
-            if parsed.get("severity_tier") == "REJECTED" or float(parsed.get("confidence", 0)) < 0.5:
+            if (
+                parsed.get("severity_tier") == "REJECTED"
+                or float(parsed.get("confidence", 0)) < 0.5
+            ):
                 parsed["verified"] = False
                 parsed["severity_tier"] = "REJECTED"
                 parsed["detected_crowd"] = 0
@@ -270,7 +286,7 @@ Return PURE JSON matching the exact schema:
                     "reasoning": "Strict safety policy: Uploaded images cannot be auto-verified without passing Gemini Multimodal Vision inspection.",
                     "actionable_recommendation": "Please upload a clear JPEG/PNG photo of the outdoor site or water tap.",
                     "model_used": "Gemini Vision Strict Guardrail",
-                    "is_simulated": False
+                    "is_simulated": False,
                 }
 
     # If no API key is configured and an image was uploaded, reject unverified image
@@ -284,13 +300,53 @@ Return PURE JSON matching the exact schema:
             "reasoning": "Strict visual guardrail blocks unverified image uploads when vision model is offline.",
             "actionable_recommendation": "No dispatch.",
             "model_used": "Strict Guardrail",
-            "is_simulated": True
+            "is_simulated": True,
         }
 
     # Text-only deterministic fallback when no image is provided
     lower_desc = description.lower().strip() if description else ""
-    is_spam = (not lower_desc) or len(lower_desc) < 8 or any(w in lower_desc for w in ["test", "fake", "lol", "asdf", "hello", "trial", "mock", "trash", "random", "nothing"])
-    has_heat = any(w in lower_desc for w in ["sun", "heat", "water", "hot", "dry", "bottle", "thirst", "faint", "rider", "worker", "laborer", "auto", "exhaustion", "पाणी", "उन्हात", "कामगार", "पानी", "धूप"])
+    is_spam = (
+        (not lower_desc)
+        or len(lower_desc) < 8
+        or any(
+            w in lower_desc
+            for w in [
+                "test",
+                "fake",
+                "lol",
+                "asdf",
+                "hello",
+                "trial",
+                "mock",
+                "trash",
+                "random",
+                "nothing",
+            ]
+        )
+    )
+    has_heat = any(
+        w in lower_desc
+        for w in [
+            "sun",
+            "heat",
+            "water",
+            "hot",
+            "dry",
+            "bottle",
+            "thirst",
+            "faint",
+            "rider",
+            "worker",
+            "laborer",
+            "auto",
+            "exhaustion",
+            "पाणी",
+            "उन्हात",
+            "कामगार",
+            "पानी",
+            "धूप",
+        ]
+    )
 
     if is_spam or not has_heat:
         return {
@@ -302,10 +358,10 @@ Return PURE JSON matching the exact schema:
             "reasoning": "Report lacks credible heatwave or hydration distress details.",
             "actionable_recommendation": "No deployment required. Filtered by ground safety guardrail.",
             "model_used": "Gemini Flash Guardrail (Filter)",
-            "is_simulated": True
+            "is_simulated": True,
         }
 
-    nums = re.findall(r'\b\d+\b', description or "")
+    nums = re.findall(r"\b\d+\b", description or "")
     detected_num = int(nums[0]) if nums else 8
     return {
         "verified": True,
@@ -316,8 +372,9 @@ Return PURE JSON matching the exact schema:
         "reasoning": "Text report describes outdoor hydration need (unaccompanied by photo).",
         "actionable_recommendation": f"Route patrol squad with {max(10, detected_num)} water cans.",
         "model_used": "Gemini NLP Validator",
-        "is_simulated": True
+        "is_simulated": True,
     }
+
 
 def validate_dispatch_brief(parsed: dict, ranked_zones: list) -> dict:
     """
@@ -349,23 +406,30 @@ def validate_dispatch_brief(parsed: dict, ranked_zones: list) -> dict:
 
     if not valid_targets and ranked_zones:
         for z in ranked_zones[:3]:
-            valid_targets.append({
-                "zone_id": z["id"],
-                "zone_name": z["name"],
-                "tier": z["tier"],
-                "rd": z["rd"],
-                "vh": z["vh"],
-                "eh": z.get("eh", 0),
-                "hours_above_38": z["hours_above_38"],
-                "recommended_action": f"Deploy relief team with water cans to {z['name']}",
-                "assets_nearby": f"{z['working_taps']} working taps, {z['clinics']} clinics"
-            })
+            valid_targets.append(
+                {
+                    "zone_id": z["id"],
+                    "zone_name": z["name"],
+                    "tier": z["tier"],
+                    "rd": z["rd"],
+                    "vh": z["vh"],
+                    "eh": z.get("eh", 0),
+                    "hours_above_38": z["hours_above_38"],
+                    "recommended_action": f"Deploy relief team with water cans to {z['name']}",
+                    "assets_nearby": f"{z['working_taps']} working taps, {z['clinics']} clinics",
+                }
+            )
 
     parsed["targets"] = valid_targets[:5]
-    parsed["refchecker_audit"] = RefCheckerAuditEngine.audit_dispatch_brief(parsed, ranked_zones)
+    parsed["refchecker_audit"] = RefCheckerAuditEngine.audit_dispatch_brief(
+        parsed, ranked_zones
+    )
     return parsed
 
-async def parse_intake_request(request_text: str = "", audio_base64: str = None, language: str = "en") -> dict:
+
+async def parse_intake_request(
+    request_text: str = "", audio_base64: str = None, language: str = "en"
+) -> dict:
     """
     Feature F7: Natural-Language Intake (POST /api/intake).
     Parses text or audio request into structured intent, time window, and resource counts.
@@ -382,12 +446,14 @@ async def parse_intake_request(request_text: str = "", audio_base64: str = None,
             "start": 0,
             "end": 6,
             "resources": {"teams": 2, "water_cans": 40},
-            "language": language
+            "language": language,
         }
 
     # Extract numbers deterministically as baseline
-    teams_match = re.search(r'(\d+)\s*(?:team|squad|पथक|टीम)', text, re.IGNORECASE)
-    cans_match = re.search(r'(\d+)\s*(?:can|water|jar|bottle|कॅन|पाणी|कैन)', text, re.IGNORECASE)
+    teams_match = re.search(r"(\d+)\s*(?:team|squad|पथक|टीम)", text, re.IGNORECASE)
+    cans_match = re.search(
+        r"(\d+)\s*(?:can|water|jar|bottle|कॅन|पाणी|कैन)", text, re.IGNORECASE
+    )
     teams = int(teams_match.group(1)) if teams_match else 2
     water_cans = int(cans_match.group(1)) if cans_match else 40
 
@@ -395,6 +461,7 @@ async def parse_intake_request(request_text: str = "", audio_base64: str = None,
     if api_key and api_key != "replace_me":
         try:
             from google import genai
+
             client = genai.Client(api_key=api_key)
             prompt = f"""Parse this volunteer relief request into structured JSON intent.
 Input: "{text}"
@@ -409,7 +476,7 @@ Return JSON ONLY with keys:
             res, _ = call_gemini_with_fallback(
                 client,
                 contents=prompt,
-                config={"response_mime_type": "application/json", "temperature": 0.0}
+                config={"response_mime_type": "application/json", "temperature": 0.0},
             )
             parsed = extract_json_from_text(res.text)
             parsed.setdefault("intent", "dispatch_planning")
@@ -429,10 +496,19 @@ Return JSON ONLY with keys:
         "end": 6,
         "resources": {"teams": teams, "water_cans": water_cans},
         "target_locations": [],
-        "language": language
+        "language": language,
     }
 
-async def generate_dispatch_brief(request_text: str, start_hour: int, end_hour: int, resources: dict, ranked_zones: list, beacons: list = [], ngos: list = None) -> dict:
+
+async def generate_dispatch_brief(
+    request_text: str,
+    start_hour: int,
+    end_hour: int,
+    resources: dict,
+    ranked_zones: list,
+    beacons: list = [],
+    ngos: list = None,
+) -> dict:
     # Step 1: Run Constrained Resource Allocation & Haversine Vehicle Routing Solver
     allocation_plan = ConstrainedLogisticsOptimizer.solve_resource_allocation(
         priority_zones=ranked_zones,
@@ -447,20 +523,24 @@ async def generate_dispatch_brief(request_text: str, start_hour: int, end_hour: 
     targets_json = []
     for z in top_targets:
         alloc = alloc_by_zone.get(z["id"], {})
-        cans_for_zone = alloc.get("water_cans_assigned", max(10, resources.get("water_cans", 40) // 2))
+        cans_for_zone = alloc.get(
+            "water_cans_assigned", max(10, resources.get("water_cans", 40) // 2)
+        )
         teams_for_zone = alloc.get("teams_assigned", 1)
         depot_name = alloc.get("assigned_depot", "Municipal Relief Depot")
         eta_m = alloc.get("estimated_travel_mins", 6)
-        targets_json.append({
-            "zone_id": z["id"],
-            "zone_name": z["name"],
-            "tier": z["tier"],
-            "rd": z["rd"],
-            "vh": z["vh"],
-            "hours_above_38": z["hours_above_38"],
-            "recommended_action": f"Deploy {teams_for_zone} team(s) with {cans_for_zone} water cans from {depot_name} (ETA {eta_m} mins) to {z['name']}",
-            "assets_nearby": f"{z['working_taps']} working taps, {z['clinics']} clinics"
-        })
+        targets_json.append(
+            {
+                "zone_id": z["id"],
+                "zone_name": z["name"],
+                "tier": z["tier"],
+                "rd": z["rd"],
+                "vh": z["vh"],
+                "hours_above_38": z["hours_above_38"],
+                "recommended_action": f"Deploy {teams_for_zone} team(s) with {cans_for_zone} water cans from {depot_name} (ETA {eta_m} mins) to {z['name']}",
+                "assets_nearby": f"{z['working_taps']} working taps, {z['clinics']} clinics",
+            }
+        )
 
     active_beacons = [b for b in beacons if b.get("status") != "resolved"]
     beacon_summary = ""
@@ -469,15 +549,36 @@ async def generate_dispatch_brief(request_text: str, start_hour: int, end_hour: 
 
     # Autonomous Tool Execution Trace for Transparent Observability
     tool_trace = [
-        {"step": 1, "tool": "get_top_priority_zones", "status": "executed", "zones_evaluated": len(ranked_zones), "top_zone": top_targets[0]["id"] if top_targets else "N/A"},
-        {"step": 2, "tool": "solve_constrained_resource_allocation", "status": "executed", "teams_allocated": allocation_plan["total_teams_allocated"], "water_cans_allocated": allocation_plan["total_water_cans_allocated"], "ranking_stability_pct": allocation_plan["sensitivity_analysis"]["top_3_ranking_stability_pct"]},
-        {"step": 3, "tool": "validate_dispatch_brief_and_refchecker", "status": "executed", "hallucination_rate": 0.0},
+        {
+            "step": 1,
+            "tool": "get_top_priority_zones",
+            "status": "executed",
+            "zones_evaluated": len(ranked_zones),
+            "top_zone": top_targets[0]["id"] if top_targets else "N/A",
+        },
+        {
+            "step": 2,
+            "tool": "solve_constrained_resource_allocation",
+            "status": "executed",
+            "teams_allocated": allocation_plan["total_teams_allocated"],
+            "water_cans_allocated": allocation_plan["total_water_cans_allocated"],
+            "ranking_stability_pct": allocation_plan["sensitivity_analysis"][
+                "top_3_ranking_stability_pct"
+            ],
+        },
+        {
+            "step": 3,
+            "tool": "validate_dispatch_brief_and_refchecker",
+            "status": "executed",
+            "hallucination_rate": 0.0,
+        },
     ]
 
     api_key = GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
     if api_key and api_key != "replace_me":
         try:
             from google import genai
+
             client = genai.Client(api_key=api_key)
             prompt = f"""{SYSTEM_PROMPT}
 
@@ -486,7 +587,7 @@ async def generate_dispatch_brief(request_text: str, start_hour: int, end_hour: 
 [CURRENT TASK]
 User query: "{request_text}"
 Forecast Window: +{start_hour}h to +{end_hour}h
-Available Resources: {resources.get('teams', 2)} teams, {resources.get('water_cans', 40)} water cans.
+Available Resources: {resources.get("teams", 2)} teams, {resources.get("water_cans", 40)} water cans.
 Constrained Optimization Solver Allocation:
 {json.dumps(allocation_plan["allocations"], indent=2)}
 Top Priority Zones by Deterministic Engine:
@@ -504,7 +605,7 @@ Generate the verified operational dispatch brief in valid JSON matching the few-
                     "response_mime_type": "application/json",
                     "response_schema": DispatchBriefSchema,
                     "temperature": 0.1,
-                }
+                },
             )
             parsed = extract_json_from_text(response.text)
             parsed = validate_dispatch_brief(parsed, ranked_zones)
@@ -530,6 +631,7 @@ Generate the verified operational dispatch brief in valid JSON matching the few-
     }
     return validate_dispatch_brief(fallback_brief, ranked_zones)
 
+
 async def audit_broken_tap_photo(image_base64: str) -> dict:
     """
     Multimodal Vision Audit for Reported Broken/Dry Municipal Taps (Gemini Flash).
@@ -542,7 +644,9 @@ async def audit_broken_tap_photo(image_base64: str) -> dict:
             from google.genai import types
 
             client = genai.Client(api_key=api_key)
-            clean_b64 = image_base64.split(",")[1] if "," in image_base64 else image_base64
+            clean_b64 = (
+                image_base64.split(",")[1] if "," in image_base64 else image_base64
+            )
             pad = len(clean_b64) % 4
             if pad:
                 clean_b64 += "=" * (4 - pad)
@@ -568,9 +672,9 @@ Inspect the attached image carefully:
                 client,
                 contents=[
                     types.Part.from_bytes(data=norm_bytes, mime_type=norm_mime),
-                    prompt
+                    prompt,
                 ],
-                config={"response_mime_type": "application/json"}
+                config={"response_mime_type": "application/json"},
             )
             parsed = extract_json_from_text(response.text)
             if not parsed.get("is_water_asset"):
@@ -586,7 +690,7 @@ Inspect the attached image carefully:
                 "confidence": 0.0,
                 "damage_type": "REJECTED: Could not verify image",
                 "verification_details": f"Strict visual guardrail rejected unverified image ({str(e)[:60]}).",
-                "is_simulated": False
+                "is_simulated": False,
             }
 
     return {
@@ -595,10 +699,13 @@ Inspect the attached image carefully:
         "confidence": 0.0,
         "damage_type": "REJECTED: No valid tap photo provided",
         "verification_details": "Please upload a real photo of a municipal water tap or cooler.",
-        "is_simulated": True
+        "is_simulated": True,
     }
 
-async def transcribe_audio_to_text(audio_base64: str = None, language: str = "mr") -> dict:
+
+async def transcribe_audio_to_text(
+    audio_base64: str = None, language: str = "mr"
+) -> dict:
     """
     Transcribes spoken voice reports (Marathi, Hindi, English) using Gemini 2.5 Flash.
     """
@@ -630,9 +737,9 @@ Return JSON:
                 client,
                 contents=[
                     types.Part.from_bytes(data=audio_bytes, mime_type="audio/mp3"),
-                    prompt
+                    prompt,
                 ],
-                config={"response_mime_type": "application/json"}
+                config={"response_mime_type": "application/json"},
             )
             return extract_json_from_text(response.text)
         except Exception as e:
@@ -646,7 +753,7 @@ Return JSON:
             "translation_en": "Over 15 delivery riders gathered under Swargate Jedhe Chowk flyover. No drinking water available here, please dispatch relief immediately.",
             "extracted_location": "Swargate Jedhe Chowk Flyover",
             "estimated_urgency": "Critical",
-            "is_simulated": True
+            "is_simulated": True,
         }
     elif language == "hi":
         return {
@@ -655,7 +762,7 @@ Return JSON:
             "translation_en": "Intense heat near Swargate bus stand, 20 auto drivers and delivery riders urgently need drinking water. Send help immediately.",
             "extracted_location": "Swargate Bus Stand",
             "estimated_urgency": "High",
-            "is_simulated": True
+            "is_simulated": True,
         }
     else:
         return {
@@ -664,10 +771,13 @@ Return JSON:
             "translation_en": "Jedhe Chowk flyover pillar 12, extreme heat of 41.8C, over 15 gig riders dehydrated. Urgent water cans needed.",
             "extracted_location": "Jedhe Chowk Flyover Pillar 12",
             "estimated_urgency": "Critical",
-            "is_simulated": True
+            "is_simulated": True,
         }
 
-async def generate_voice_dispatch_script(zone_name: str, temp_c: float, cool_spot: str, language: str = "mr") -> dict:
+
+async def generate_voice_dispatch_script(
+    zone_name: str, temp_c: float, cool_spot: str, language: str = "mr"
+) -> dict:
     """
     Generates a 15-second speech brief in Marathi / Hindi / English for riders on two-wheelers.
     """
@@ -675,6 +785,7 @@ async def generate_voice_dispatch_script(zone_name: str, temp_c: float, cool_spo
     if api_key:
         try:
             from google import genai
+
             client = genai.Client(api_key=api_key)
             prompt = f"""Generate a concise 15-second audio dispatch script for delivery riders driving in {zone_name}, Pune.
 Current temperature is {temp_c}°C.
@@ -691,7 +802,7 @@ Format as JSON:
             response, _ = call_gemini_with_fallback(
                 client,
                 contents=prompt,
-                config={"response_mime_type": "application/json", "temperature": 0.1}
+                config={"response_mime_type": "application/json", "temperature": 0.1},
             )
             return extract_json_from_text(response.text)
         except Exception as e:
@@ -700,17 +811,20 @@ Format as JSON:
     scripts = {
         "mr": f"सावधान! {zone_name} भागात तापमान {temp_c}°C पोहोचले आहे. पुढील ५ मिनिटांत {cool_spot} येथे विश्रांती घ्या आणि ओआरएसचे पाणी प्या.",
         "hi": f"चेतावनी! {zone_name} में तापमान {temp_c}°C है। तुरंत {cool_spot} में 5 मिनट रुकें और ओआरएस का पानी पिएं।",
-        "en": f"Caution! Temperature in {zone_name} has hit {temp_c}°C. Pull over at {cool_spot} for 5 minutes and hydrate immediately."
+        "en": f"Caution! Temperature in {zone_name} has hit {temp_c}°C. Pull over at {cool_spot} for 5 minutes and hydrate immediately.",
     }
     return {
         "language": language,
         "speech_script": scripts.get(language, scripts["mr"]),
         "urgency": "Critical" if temp_c >= 41.0 else "High",
         "recommended_stop_minutes": 5,
-        "is_simulated": True
+        "is_simulated": True,
     }
 
-async def screen_heat_stroke_speech(speech_text: str, slurred_detected: bool = False) -> dict:
+
+async def screen_heat_stroke_speech(
+    speech_text: str, slurred_detected: bool = False
+) -> dict:
     """
     Gemini 2.5 Flash Emergency Medical Speech Screener for Anhidrosis & Heat Exhaustion.
     """
@@ -718,6 +832,7 @@ async def screen_heat_stroke_speech(speech_text: str, slurred_detected: bool = F
     if api_key:
         try:
             from google import genai
+
             client = genai.Client(api_key=api_key)
             prompt = f"""A field delivery worker in 42°C Pune heat spoke the following phrase:
 "{speech_text}"
@@ -739,7 +854,7 @@ Return JSON:
             response, _ = call_gemini_with_fallback(
                 client,
                 contents=prompt,
-                config={"response_mime_type": "application/json", "temperature": 0.1}
+                config={"response_mime_type": "application/json", "temperature": 0.1},
             )
             return extract_json_from_text(response.text)
         except Exception as e:
@@ -750,18 +865,33 @@ Return JSON:
         "risk_level": "EMERGENCY_RED",
         "medical_triage_instruction": "🚨 DANGER: Severe heat stress & confusion detected! Stop riding, sit down in shade, pour water on head, and call 108.",
         "trigger_108_alert": True,
-        "is_simulated": True
+        "is_simulated": True,
     }
 
-async def generate_cool_corridor_analysis(origin: str, destination: str, current_temp: float, assets: list = None, sky_view_factor: float = 0.65) -> dict:
+
+async def generate_cool_corridor_analysis(
+    origin: str,
+    destination: str,
+    current_temp: float,
+    assets: list = None,
+    sky_view_factor: float = 0.65,
+) -> dict:
     """
     Dynamic Spatial Cool-Corridor vs Scorching Highway Route Calculator.
     Computes shade coverage and cooling differential dynamically from mapped OSM green parks,
     water assets, and Urban Canyon Sky View Factor (SVF).
     """
-    park_count = sum(1 for a in (assets or []) if a.get("type") in ["park", "shade", "cool_haven"])
-    water_count = sum(1 for a in (assets or []) if a.get("type") == "drinking_water" and a.get("status") == "working")
-    od_hash = int(hashlib.sha256((origin + destination).encode("utf-8")).hexdigest()[:8], 16)
+    park_count = sum(
+        1 for a in (assets or []) if a.get("type") in ["park", "shade", "cool_haven"]
+    )
+    water_count = sum(
+        1
+        for a in (assets or [])
+        if a.get("type") == "drinking_water" and a.get("status") == "working"
+    )
+    od_hash = int(
+        hashlib.sha256((origin + destination).encode("utf-8")).hexdigest()[:8], 16
+    )
     base_Dist = round(max(2.1, min(6.8, 3.2 + (od_hash % 18) * 0.1)), 1)
     canopy_dist = round(base_Dist * 1.08, 1)
 
@@ -797,11 +927,18 @@ async def generate_cool_corridor_analysis(origin: str, destination: str, current
         "recommendation": f"Divert two-wheeler riders via the {canopy_shade}% shaded canopy route ({cooling_diff}°C lower radiant heat load) with {water_count} verified hydration stops.",
     }
 
-async def generate_ngo_squad_orders(ngo_name: str, resources: dict, target_zone: str, active_beacons: list) -> dict:
+
+async def generate_ngo_squad_orders(
+    ngo_name: str, resources: dict, target_zone: str, active_beacons: list
+) -> dict:
     """
     Gemini 2.5 Flash WhatsApp Battle-Order Synthesizer for NGO Leads.
     """
-    beacon_note = f"Pillar 12 ({active_beacons[0].get('detected_crowd', 15)} riders stranded)" if active_beacons else "Flyover base cluster"
+    beacon_note = (
+        f"Pillar 12 ({active_beacons[0].get('detected_crowd', 15)} riders stranded)"
+        if active_beacons
+        else "Flyover base cluster"
+    )
     whatsapp_text = f"""🚨 *HEATATLAS CRISIS DISPATCH: {ngo_name.upper()}*
 📅 *Time Window:* Peak Heat 12:00–16:00 (41.8°C)
 📍 *Target Sector:* {target_zone} (Critical Relief Deficit)
@@ -818,8 +955,9 @@ async def generate_ngo_squad_orders(ngo_name: str, resources: dict, target_zone:
         "orders": whatsapp_text,
         "whatsapp_text": whatsapp_text,
         "ngo_name": ngo_name,
-        "target_zone": target_zone
+        "target_zone": target_zone,
     }
+
 
 async def handle_chatbot_message(
     user_message: str,
@@ -828,24 +966,35 @@ async def handle_chatbot_message(
     selected_zone: dict = None,
     active_beacons_count: int = 0,
     chat_history: list = [],
-    language: str = "en"
+    language: str = "en",
 ) -> dict:
     """
     Multilingual Ground-Aware AI Chatbot powered by Gemini 2.5 Flash.
     Acts as the HeatAtlas Relief Assistant for field workers, gig riders, and NGO leads.
     """
     api_key = GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
-    zone_str = f"{selected_zone['name']} ({selected_zone['id']}) - Relief Deficit: {selected_zone.get('rd', 0)}" if selected_zone else "General Municipal Area"
+    zone_str = (
+        f"{selected_zone['name']} ({selected_zone['id']}) - Relief Deficit: {selected_zone.get('rd', 0)}"
+        if selected_zone
+        else "General Municipal Area"
+    )
 
     # Cloudflare AI Security Audit: Defensive Boundary & Prompt Injection Neutralizer
     sanitized_user_message = user_message[:500].strip()
-    injection_patterns = ["ignore previous instructions", "system prompt", "system override", "reveal api key", "bypass filter", "jailbreak"]
+    injection_patterns = [
+        "ignore previous instructions",
+        "system prompt",
+        "system override",
+        "reveal api key",
+        "bypass filter",
+        "jailbreak",
+    ]
     if any(p in sanitized_user_message.lower() for p in injection_patterns):
         return {
             "reply": f"⚠️ Request filtered by HeatAtlas Safety Policy. Please ask heatwave triage, water, or relief questions for {city_name}.",
             "city": city_name,
             "current_temp": current_temp,
-            "model": "security-filter"
+            "model": "security-filter",
         }
 
     sys_instructions = f"""You are 'HeatAtlas AI', an expert real-time geospatial heat relief assistant for {city_name}, Maharashtra, India.
@@ -867,6 +1016,7 @@ Guidelines:
     if api_key:
         try:
             from google import genai
+
             client = genai.Client(api_key=api_key)
 
             # Build conversational prompt
@@ -880,14 +1030,13 @@ Guidelines:
             # RTK Token Killer optimization: Compress prompt density before API transmission
             optimized_prompt = rtk_compress_prompt(prompt)
             response, used_model = call_gemini_with_fallback(
-                client,
-                contents=optimized_prompt
+                client, contents=optimized_prompt
             )
             return {
                 "reply": response.text.strip(),
                 "city": city_name,
                 "current_temp": current_temp,
-                "model": f"Gemini Flash ({used_model})"
+                "model": f"Gemini Flash ({used_model})",
             }
         except Exception as e:
             print(f"Gemini Chatbot API error: {e}")
@@ -907,6 +1056,5 @@ Guidelines:
         "reply": reply,
         "city": city_name,
         "current_temp": current_temp,
-        "model": "gemini-2.5-flash (grounded)"
+        "model": "gemini-2.5-flash (grounded)",
     }
-

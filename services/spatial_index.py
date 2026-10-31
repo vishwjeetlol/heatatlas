@@ -23,7 +23,15 @@ def haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> floa
 class QuadtreeNode:
     """2D Spatial Quadtree Node for fast O(log N) geospatial relief asset queries."""
 
-    def __init__(self, south: float, west: float, north: float, east: float, capacity: int = 6, depth: int = 0):
+    def __init__(
+        self,
+        south: float,
+        west: float,
+        north: float,
+        east: float,
+        capacity: int = 6,
+        depth: int = 0,
+    ):
         self.south = south
         self.west = west
         self.north = north
@@ -45,10 +53,18 @@ class QuadtreeNode:
         mid_lat = (self.south + self.north) / 2.0
         mid_lon = (self.west + self.east) / 2.0
         d = self.depth + 1
-        self.nw = QuadtreeNode(mid_lat, self.west, self.north, mid_lon, self.capacity, d)
-        self.ne = QuadtreeNode(mid_lat, mid_lon, self.north, self.east, self.capacity, d)
-        self.sw = QuadtreeNode(self.south, self.west, mid_lat, mid_lon, self.capacity, d)
-        self.se = QuadtreeNode(self.south, mid_lon, mid_lat, self.east, self.capacity, d)
+        self.nw = QuadtreeNode(
+            mid_lat, self.west, self.north, mid_lon, self.capacity, d
+        )
+        self.ne = QuadtreeNode(
+            mid_lat, mid_lon, self.north, self.east, self.capacity, d
+        )
+        self.sw = QuadtreeNode(
+            self.south, self.west, mid_lat, mid_lon, self.capacity, d
+        )
+        self.se = QuadtreeNode(
+            self.south, mid_lon, mid_lat, self.east, self.capacity, d
+        )
         self.divided = True
 
     def insert(self, asset: Dict[str, Any]) -> bool:
@@ -67,7 +83,9 @@ class QuadtreeNode:
             or self.se.insert(asset)
         )
 
-    def query_range(self, s: float, w: float, n: float, e: float, found: List[Dict[str, Any]]):
+    def query_range(
+        self, s: float, w: float, n: float, e: float, found: List[Dict[str, Any]]
+    ):
         if self.north < s or self.south > n or self.east < w or self.west > e:
             return
         for p in self.points:
@@ -83,7 +101,9 @@ class QuadtreeNode:
 class SpatialQuadtreeIndex:
     """Wraps QuadtreeNode to provide O(log N) radius/k-NN relief asset search."""
 
-    def __init__(self, bbox: Tuple[float, float, float, float] = (17.0, 72.0, 29.5, 80.0)):
+    def __init__(
+        self, bbox: Tuple[float, float, float, float] = (17.0, 72.0, 29.5, 80.0)
+    ):
         self.root = QuadtreeNode(*bbox)
         self.total_indexed = 0
 
@@ -92,14 +112,20 @@ class SpatialQuadtreeIndex:
             if self.root.insert(a):
                 self.total_indexed += 1
 
-    def query_range(self, s: float, w: float, n: float, e: float) -> List[Dict[str, Any]]:
+    def query_range(
+        self, s: float, w: float, n: float, e: float
+    ) -> List[Dict[str, Any]]:
         found: List[Dict[str, Any]] = []
         self.root.query_range(s, w, n, e, found)
         return found
 
-    def find_k_nearest(self, lat: float, lon: float, k: int = 3, only_working: bool = True) -> List[Dict[str, Any]]:
+    def find_k_nearest(
+        self, lat: float, lon: float, k: int = 3, only_working: bool = True
+    ) -> List[Dict[str, Any]]:
         for delta in (0.03, 0.08, 0.25, 2.0):
-            candidates = self.query_range(lat - delta, lon - delta, lat + delta, lon + delta)
+            candidates = self.query_range(
+                lat - delta, lon - delta, lat + delta, lon + delta
+            )
             if only_working:
                 candidates = [c for c in candidates if c.get("status") != "dry"]
             if len(candidates) >= k:
@@ -116,11 +142,22 @@ class SpatialQuadtreeIndex:
         enriched.sort(key=lambda x: x["distance_m"])
         return enriched[:k]
 
-    def query_nearest(self, lat: float, lon: float, k: int = 3, asset_type: Optional[str] = None, only_working: bool = True) -> List[Dict[str, Any]]:
+    def query_nearest(
+        self,
+        lat: float,
+        lon: float,
+        k: int = 3,
+        asset_type: Optional[str] = None,
+        only_working: bool = True,
+    ) -> List[Dict[str, Any]]:
         multiplier = 10 if asset_type else 1
         res = self.find_k_nearest(lat, lon, k=k * multiplier, only_working=only_working)
         if asset_type:
-            res = [a for a in res if a.get("type") == asset_type or a.get("category") == asset_type]
+            res = [
+                a
+                for a in res
+                if a.get("type") == asset_type or a.get("category") == asset_type
+            ]
         return res[:k]
 
 
@@ -131,7 +168,9 @@ class RefCheckerAuditEngine:
     """
 
     @staticmethod
-    def audit_dispatch_brief(brief: Dict[str, Any], ground_truth_zones: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def audit_dispatch_brief(
+        brief: Dict[str, Any], ground_truth_zones: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         zone_map = {z["id"]: z for z in ground_truth_zones}
         for z in ground_truth_zones:
             short_id = z["id"].split("-", 1)[-1] if "-" in z["id"] else z["id"]
@@ -150,11 +189,15 @@ class RefCheckerAuditEngine:
             t_rd = float(t.get("rd", 0.0))
             gt_rd = float(gt.get("rd", 0.0))
             rd_match = abs(t_rd - gt_rd) <= 0.1
-            triplets.append({
-                "triplet": [zid, "has_relief_deficit_rd", str(gt_rd)],
-                "verdict": "ENTAILED" if rd_match else "CONTRADICTION_AUTO_CORRECTED",
-                "citation_source": "services.scoring.compute_scores (Deterministic Python Spec)",
-            })
+            triplets.append(
+                {
+                    "triplet": [zid, "has_relief_deficit_rd", str(gt_rd)],
+                    "verdict": "ENTAILED"
+                    if rd_match
+                    else "CONTRADICTION_AUTO_CORRECTED",
+                    "citation_source": "services.scoring.compute_scores (Deterministic Python Spec)",
+                }
+            )
             if rd_match:
                 entailed_count += 1
             else:
@@ -163,21 +206,27 @@ class RefCheckerAuditEngine:
             t_vh = int(t.get("vh", 0))
             gt_vh = int(gt.get("vh", 0))
             vh_match = t_vh == gt_vh
-            triplets.append({
-                "triplet": [zid, "has_vulnerable_person_hours_vh", str(gt_vh)],
-                "verdict": "ENTAILED" if vh_match else "CONTRADICTION_AUTO_CORRECTED",
-                "citation_source": "WorldPop v2 1km Demographic Cohort API + Open-Meteo Forecast",
-            })
+            triplets.append(
+                {
+                    "triplet": [zid, "has_vulnerable_person_hours_vh", str(gt_vh)],
+                    "verdict": "ENTAILED"
+                    if vh_match
+                    else "CONTRADICTION_AUTO_CORRECTED",
+                    "citation_source": "WorldPop v2 1km Demographic Cohort API + Open-Meteo Forecast",
+                }
+            )
             if vh_match:
                 entailed_count += 1
             else:
                 corrected_contradictions += 1
 
-            triplets.append({
-                "triplet": [zid, "assigned_risk_tier", gt.get("tier", "Critical")],
-                "verdict": "ENTAILED",
-                "citation_source": "OSM Overpass Relief Infrastructure + Deterministic Tier Rules",
-            })
+            triplets.append(
+                {
+                    "triplet": [zid, "assigned_risk_tier", gt.get("tier", "Critical")],
+                    "verdict": "ENTAILED",
+                    "citation_source": "OSM Overpass Relief Infrastructure + Deterministic Tier Rules",
+                }
+            )
             entailed_count += 1
 
         total = max(1, len(triplets))
@@ -210,7 +259,14 @@ class ConstrainedLogisticsOptimizer:
     """
 
     @staticmethod
-    def _zone_utility(vh: float, taps: int, clinics: int, w_cans: int, teams_assigned: int, travel_min: float) -> Tuple[float, float, float]:
+    def _zone_utility(
+        vh: float,
+        taps: int,
+        clinics: int,
+        w_cans: int,
+        teams_assigned: int,
+        travel_min: float,
+    ) -> Tuple[float, float, float]:
         """
         Returns (utility_gain, pre_rd, post_rd) for assigning `w_cans` (20L cans) and `teams_assigned` to a zone.
         No artificial positive floor: if travel cost exceeds deficit reduction, utility can be <= 0.
@@ -219,7 +275,12 @@ class ConstrainedLogisticsOptimizer:
         pre_rd = vh / base_denom
         if w_cans <= 0 and teams_assigned <= 0:
             return 0.0, round(pre_rd, 1), round(pre_rd, 1)
-        aug_denom = 1.0 + float(taps) + 0.25 * float(w_cans) + 2.0 * (float(clinics) + float(teams_assigned))
+        aug_denom = (
+            1.0
+            + float(taps)
+            + 0.25 * float(w_cans)
+            + 2.0 * (float(clinics) + float(teams_assigned))
+        )
         post_rd = vh / aug_denom
         rd_reduction = pre_rd - post_rd
         travel_penalty = 1.5 * travel_min * float(teams_assigned)
@@ -244,7 +305,13 @@ class ConstrainedLogisticsOptimizer:
         best_allocs = [(0, 0)] * k
         states_count = 0
 
-        def _recurse(idx: int, rem_t: int, rem_w: int, current_obj: float, current_path: List[Tuple[int, int]]):
+        def _recurse(
+            idx: int,
+            rem_t: int,
+            rem_w: int,
+            current_obj: float,
+            current_path: List[Tuple[int, int]],
+        ):
             nonlocal best_obj, best_allocs, states_count
             if idx == k:
                 states_count += 1
@@ -260,7 +327,9 @@ class ConstrainedLogisticsOptimizer:
             travel_min = travel_times[idx]
 
             for t_alloc in range(rem_t + 1):
-                max_w_alloc = 0 if t_alloc == 0 else min(rem_w, t_alloc * max_cans_per_team)
+                max_w_alloc = (
+                    0 if t_alloc == 0 else min(rem_w, t_alloc * max_cans_per_team)
+                )
                 for w_alloc in range(max_w_alloc + 1):
                     u_gain, _, _ = ConstrainedLogisticsOptimizer._zone_utility(
                         vh, taps, clinics, w_alloc, t_alloc, travel_min
@@ -268,7 +337,13 @@ class ConstrainedLogisticsOptimizer:
                     if (t_alloc > 0 or w_alloc > 0) and u_gain <= 0.0:
                         continue
                     current_path.append((t_alloc, w_alloc))
-                    _recurse(idx + 1, rem_t - t_alloc, rem_w - w_alloc, current_obj + u_gain, current_path)
+                    _recurse(
+                        idx + 1,
+                        rem_t - t_alloc,
+                        rem_w - w_alloc,
+                        current_obj + u_gain,
+                        current_path,
+                    )
                     current_path.pop()
 
         _recurse(0, total_teams, total_cans, 0.0, [])
@@ -281,7 +356,7 @@ class ConstrainedLogisticsOptimizer:
         teams_available: int = 2,
         water_cans_available: int = 40,
         max_targets: int = 5,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         zones_list = ranked_zones or kwargs.get("priority_zones") or []
         depot_list = depots or kwargs.get("ngos") or []
@@ -292,7 +367,9 @@ class ConstrainedLogisticsOptimizer:
         total_teams = max(1, min(12, int(teams_available)))
         total_cans = max(1, min(200, int(water_cans_available)))
         k_zones = len(candidates)
-        max_cans_per_team = 35  # Vehicle payload capacity: up to 35 x 20L cans (700L) per squad
+        max_cans_per_team = (
+            35  # Vehicle payload capacity: up to 35 x 20L cans (700L) per squad
+        )
 
         zone_depots = []
         for z in candidates:
@@ -300,21 +377,48 @@ class ConstrainedLogisticsOptimizer:
             best_depot = None
             best_dist_m = 999999
             for d in depot_list:
-                dist_m = round(haversine_meters(z_lat, z_lon, float(d.get("lat", 18.502)), float(d.get("lon", 73.858))))
+                dist_m = round(
+                    haversine_meters(
+                        z_lat,
+                        z_lon,
+                        float(d.get("lat", 18.502)),
+                        float(d.get("lon", 73.858)),
+                    )
+                )
                 if dist_m < best_dist_m:
                     best_dist_m = dist_m
                     best_depot = d
-            depot_name = best_depot["name"] if best_depot else "PMC Central Disaster Management Cell (Shivajinagar HQ)"
-            depot_origin = best_depot.get("data_origin", "pmc_official_disaster_response_depots") if best_depot else "pmc_official_disaster_response_depots"
-            travel_min = max(4, round((best_dist_m / 1000.0) / 22.0 * 60.0)) if best_dist_m < 999999 else 12
-            zone_depots.append((depot_name, depot_origin, best_dist_m if best_dist_m < 999999 else 1200, travel_min))
+            depot_name = (
+                best_depot["name"]
+                if best_depot
+                else "PMC Central Disaster Management Cell (Shivajinagar HQ)"
+            )
+            depot_origin = (
+                best_depot.get("data_origin", "pmc_official_disaster_response_depots")
+                if best_depot
+                else "pmc_official_disaster_response_depots"
+            )
+            travel_min = (
+                max(4, round((best_dist_m / 1000.0) / 22.0 * 60.0))
+                if best_dist_m < 999999
+                else 12
+            )
+            zone_depots.append(
+                (
+                    depot_name,
+                    depot_origin,
+                    best_dist_m if best_dist_m < 999999 else 1200,
+                    travel_min,
+                )
+            )
 
         # Exact 2D Dynamic Programming over integer (t_used in 0..total_teams, w_used in 0..total_cans)
         # at 1-can (20L) granularity — zero bundle quantization and zero leftover dumping!
         dp = [[-1e18] * (total_cans + 1) for _ in range(total_teams + 1)]
         dp[0][0] = 0.0
         parent: List[List[List[Optional[Tuple[int, int, int, int]]]]] = [
-            [[None] * (total_cans + 1) for _ in range(total_teams + 1)] for _ in range(k_zones)
+            [[None] * (total_cans + 1) for _ in range(total_teams + 1)]
+            for _ in range(k_zones)
         ]
 
         for idx, z in enumerate(candidates):
@@ -329,7 +433,11 @@ class ConstrainedLogisticsOptimizer:
                     if dp[t_prev][w_prev] <= -1e17:
                         continue
                     for t_alloc in range(total_teams - t_prev + 1):
-                        max_w_for_t = 0 if t_alloc == 0 else min(total_cans - w_prev, t_alloc * max_cans_per_team)
+                        max_w_for_t = (
+                            0
+                            if t_alloc == 0
+                            else min(total_cans - w_prev, t_alloc * max_cans_per_team)
+                        )
                         for w_alloc in range(max_w_for_t + 1):
                             u_gain, _, _ = ConstrainedLogisticsOptimizer._zone_utility(
                                 vh, taps, clinics, w_alloc, t_alloc, travel_min
@@ -342,7 +450,12 @@ class ConstrainedLogisticsOptimizer:
                             cand_val = dp[t_prev][w_prev] + u_gain
                             if cand_val > new_dp[t_new][w_new]:
                                 new_dp[t_new][w_new] = cand_val
-                                parent[idx][t_new][w_new] = (t_prev, w_prev, t_alloc, w_alloc)
+                                parent[idx][t_new][w_new] = (
+                                    t_prev,
+                                    w_prev,
+                                    t_alloc,
+                                    w_alloc,
+                                )
             dp = new_dp
 
         best_val = -1e18
@@ -371,8 +484,14 @@ class ConstrainedLogisticsOptimizer:
 
         travel_times_list = [travel_min for _, _, _, travel_min in zone_depots]
         if k_zones <= 3 and total_teams <= 3 and total_cans <= 12:
-            exact_brute_force_best, _, exact_states_evaluated = ConstrainedLogisticsOptimizer.solve_exact_brute_force(
-                candidates, total_teams, total_cans, travel_times_list, max_cans_per_team
+            exact_brute_force_best, _, exact_states_evaluated = (
+                ConstrainedLogisticsOptimizer.solve_exact_brute_force(
+                    candidates,
+                    total_teams,
+                    total_cans,
+                    travel_times_list,
+                    max_cans_per_team,
+                )
             )
             exact_brute_force_available = True
             diff = abs(best_val - exact_brute_force_best)
@@ -385,6 +504,7 @@ class ConstrainedLogisticsOptimizer:
         states_enumerated = 0
 
         if k_zones <= 5 and total_teams <= 4 and n_bundles <= 10:
+
             def _enum(z_idx: int, rem_t: int, rem_b: int, acc_u: float):
                 nonlocal brute_force_best, states_enumerated
                 if z_idx == k_zones:
@@ -398,7 +518,11 @@ class ConstrainedLogisticsOptimizer:
                 clinics = int(z.get("clinics", 0))
                 _, _, _, travel_min = zone_depots[z_idx]
                 for ta in range(rem_t + 1):
-                    max_ba = 0 if ta == 0 else min(rem_b, (ta * max_cans_per_team) // bundle_step)
+                    max_ba = (
+                        0
+                        if ta == 0
+                        else min(rem_b, (ta * max_cans_per_team) // bundle_step)
+                    )
                     for ba in range(max_ba + 1):
                         ug, _, _ = ConstrainedLogisticsOptimizer._zone_utility(
                             vh, taps, clinics, ba * bundle_step, ta, travel_min
@@ -436,36 +560,44 @@ class ConstrainedLogisticsOptimizer:
             total_people_3l += people_3l
             total_people_15l += people_15l
 
-            allocations.append({
-                "zone_id": z["id"],
-                "zone_name": z.get("name", z["id"]),
-                "rd": pre_rd,
-                "post_intervention_rd": post_rd,
-                "marginal_rd_reduction": round(pre_rd - post_rd, 1),
-                "net_objective_gain": round(u_gain, 2),
-                "allocated_teams": t_alloc,
-                "allocated_water_cans_20l": w_alloc,
-                "liters_delivered": liters,
-                "people_served_sphere_3l_survival": people_3l,
-                "people_served_sphere_15l_total": people_15l,
-                "field_triage_capacity_persons": t_alloc * 150,
-                "ors_sachets_assigned": w_alloc * 15,
-                "assigned_depot": depot_name,
-                "depot_data_origin": depot_origin,
-                "depot_distance_m": dist_m,
-                "est_travel_time_minutes": travel_min,
-            })
+            allocations.append(
+                {
+                    "zone_id": z["id"],
+                    "zone_name": z.get("name", z["id"]),
+                    "rd": pre_rd,
+                    "post_intervention_rd": post_rd,
+                    "marginal_rd_reduction": round(pre_rd - post_rd, 1),
+                    "net_objective_gain": round(u_gain, 2),
+                    "allocated_teams": t_alloc,
+                    "allocated_water_cans_20l": w_alloc,
+                    "liters_delivered": liters,
+                    "people_served_sphere_3l_survival": people_3l,
+                    "people_served_sphere_15l_total": people_15l,
+                    "field_triage_capacity_persons": t_alloc * 150,
+                    "ors_sachets_assigned": w_alloc * 15,
+                    "assigned_depot": depot_name,
+                    "depot_data_origin": depot_origin,
+                    "depot_distance_m": dist_m,
+                    "est_travel_time_minutes": travel_min,
+                }
+            )
 
         # Sensitivity analysis: vary clinic weight by -50% (1.0) and +50% (3.0) across all ranked zones
         base_top3 = [z["id"] for z in zones_list[:3]]
         low_weight_sorted = sorted(
             zones_list,
-            key=lambda z: z.get("vh", 0) / max(1, z.get("working_taps", 0) + 1.0 * z.get("clinics", 0) + 1),
+            key=lambda z: (
+                z.get("vh", 0)
+                / max(1, z.get("working_taps", 0) + 1.0 * z.get("clinics", 0) + 1)
+            ),
             reverse=True,
         )
         high_weight_sorted = sorted(
             zones_list,
-            key=lambda z: z.get("vh", 0) / max(1, z.get("working_taps", 0) + 3.0 * z.get("clinics", 0) + 1),
+            key=lambda z: (
+                z.get("vh", 0)
+                / max(1, z.get("working_taps", 0) + 3.0 * z.get("clinics", 0) + 1)
+            ),
             reverse=True,
         )
         low_top3 = [z["id"] for z in low_weight_sorted[:3]]
@@ -473,7 +605,9 @@ class ConstrainedLogisticsOptimizer:
         overlap_low = len(set(base_top3) & set(low_top3)) / max(1, len(base_top3))
         overlap_high = len(set(base_top3) & set(high_top3)) / max(1, len(base_top3))
 
-        active_targets_count = sum(1 for a in allocations if a["allocated_water_cans_20l"] > 0)
+        active_targets_count = sum(
+            1 for a in allocations if a["allocated_water_cans_20l"] > 0
+        )
         return {
             "solver": "Discrete_Concave_DP_Resource_Optimizer_v5 (Exact 1-Can & 1-Team Integer DP)",
             "headline_operational_kpi": f"{total_people_3l} individuals receiving Sphere Standard 3L/day emergency survival hydration ({total_liters}L potable water delivered across {active_targets_count} priority wards)",
@@ -486,7 +620,9 @@ class ConstrainedLogisticsOptimizer:
             "total_teams_available": total_teams,
             "total_teams_allocated": sum(a["allocated_teams"] for a in allocations),
             "total_water_cans_available": total_cans,
-            "total_water_cans_allocated": sum(a["allocated_water_cans_20l"] for a in allocations),
+            "total_water_cans_allocated": sum(
+                a["allocated_water_cans_20l"] for a in allocations
+            ),
             "physical_humanitarian_impact": {
                 "headline_people_served_3l_survival": total_people_3l,
                 "total_liters_delivered": total_liters,
@@ -504,14 +640,19 @@ class ConstrainedLogisticsOptimizer:
             "total_rd_deficit_reduced": round(total_pre_rd - total_post_rd, 1),
             "optimality_verification": {
                 "method": "Exact 2D Integer Dynamic Programming over (0..T_avail) x (0..W_avail) with zero leftover dumping",
-                "dp_state_space_evaluated": k_zones * (total_teams + 1) * (total_cans + 1),
+                "dp_state_space_evaluated": k_zones
+                * (total_teams + 1)
+                * (total_cans + 1),
                 "dp_objective_value": round(best_val, 2),
                 "exact_unbundled_brute_force_verified": exact_brute_force_available,
                 "exact_unbundled_brute_force_states_evaluated": exact_states_evaluated,
-                "exact_unbundled_brute_force_best": round(exact_brute_force_best, 2) if exact_brute_force_available else None,
+                "exact_unbundled_brute_force_best": round(exact_brute_force_best, 2)
+                if exact_brute_force_available
+                else None,
                 "coarse_bundle_exhaustive_states_checked": states_enumerated,
                 "coarse_bundle_exhaustive_best": round(brute_force_best, 2),
-                "exact_1can_dp_beats_or_equals_bundle_grid": round(best_val, 2) >= round(brute_force_best, 2) - 1e-6,
+                "exact_1can_dp_beats_or_equals_bundle_grid": round(best_val, 2)
+                >= round(brute_force_best, 2) - 1e-6,
                 "verified_global_optimum": True,
                 "optimality_gap_pct": optimality_gap,
             },
@@ -521,6 +662,8 @@ class ConstrainedLogisticsOptimizer:
                 "baseline_top_3": base_top3,
                 "weight_1_0_top_3": low_top3,
                 "weight_3_0_top_3": high_top3,
-                "top_3_ranking_stability_pct": round(((overlap_low + overlap_high) / 2.0) * 100.0, 1),
+                "top_3_ranking_stability_pct": round(
+                    ((overlap_low + overlap_high) / 2.0) * 100.0, 1
+                ),
             },
         }
