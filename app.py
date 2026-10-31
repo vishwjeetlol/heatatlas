@@ -1,6 +1,9 @@
 import os
 import time
 import math
+import json
+import sqlite3
+import threading
 import asyncio
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +11,39 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
+
+STATE_LOCK = threading.RLock()
+DB_PATH = os.path.join(os.path.dirname(__file__), "heatatlas.db")
+
+
+def _init_beacon_db():
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS beacons_store (
+                    id TEXT PRIMARY KEY,
+                    payload_json TEXT NOT NULL,
+                    created_at INTEGER NOT NULL
+                )
+                """
+            )
+            conn.commit()
+    except Exception:
+        pass
+
+
+def _save_beacon_db(beacon: dict):
+    try:
+        _init_beacon_db()
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO beacons_store (id, payload_json, created_at) VALUES (?, ?, ?)",
+                (beacon["id"], json.dumps(beacon), int(beacon.get("created_at", time.time()))),
+            )
+            conn.commit()
+    except Exception:
+        pass
 
 from config import GRID_ROWS, GRID_COLS
 from cities import get_city, list_all_cities, CITIES
@@ -322,9 +358,10 @@ async def get_zones(city: str = Query("pune"), hour: int = Query(0, ge=0, le=47)
         zone_temp = round(current_temp + uhi_delta, 1)
 
         # Count official hours exceeding extreme thermal risk thresholds (NDMA/IMD Heatwave guidelines)
-        hours_above_38 = sum(1 for t in hourly_official if (t + uhi_delta) >= 38.0)
+        zone_hourly_temps = [round(t + uhi_delta, 1) for t in hourly_official]
+        hours_above_38 = sum(1 for t in zone_hourly_temps if t >= 38.0)
         # If season is pre-heatwave/transitional, monitor hours above NDMA Extreme Caution worker threshold (>=32°C apparent)
-        effective_heat_hours = hours_above_38 if hours_above_38 > 0 else sum(1 for t in hourly_official if (t + uhi_delta) >= 32.0)
+        effective_heat_hours = hours_above_38 if hours_above_38 > 0 else sum(1 for t in zone_hourly_temps if t >= 32.0)
 
         pop_info = pop_map[zid]
         scores = compute_scores(
@@ -333,7 +370,9 @@ async def get_zones(city: str = Query("pune"), hour: int = Query(0, ge=0, le=47)
             elderly_pop=pop_info["elderly_pop"],
             hours_above_38=effective_heat_hours,
             working_taps=working_taps,
-            clinics=clinics
+            clinics=clinics,
+            peak_apparent_temp=max(zone_hourly_temps, default=zone_temp),
+            hourly_temps=zone_hourly_temps,
         )
 
         result.append({
@@ -450,15 +489,18 @@ class BeaconReportRequest(BaseModel):
 
 @app.get("/api/beacons")
 async def get_beacons():
-    return {"beacons": BEACONS}
+    with STATE_LOCK:
+        return {"beacons": list(BEACONS)}
 
 @app.post("/api/beacons/{beacon_id}/resolve")
 async def resolve_beacon(beacon_id: str):
-    for b in BEACONS:
-        if b["id"] == beacon_id:
-            b["status"] = "resolved"
-            b["resolved_at"] = 1730301000
-            return {"status": "success", "message": "Beacon marked as demand met / water delivered!", "beacon": b}
+    with STATE_LOCK:
+        for b in BEACONS:
+            if b["id"] == beacon_id:
+                b["status"] = "resolved"
+                b["resolved_at"] = int(time.time())
+                _save_beacon_db(b)
+                return {"status": "success", "message": "Beacon marked as demand met / water delivered!", "beacon": b}
     raise HTTPException(status_code=404, detail="Beacon not found")
 
 @app.post("/api/beacons/report")
@@ -493,7 +535,9 @@ async def report_beacon(req: BeaconReportRequest):
         "ngo_distance_meters": closest_ngo["distance_meters"] if closest_ngo else 0,
         "ngo_phone": closest_ngo["phone"] if closest_ngo else "+91 108"
     }
-    BEACONS.insert(0, beacon)
+    with STATE_LOCK:
+        BEACONS.insert(0, beacon)
+        _save_beacon_db(beacon)
     return {
         "status": "success",
         "beacon": beacon,

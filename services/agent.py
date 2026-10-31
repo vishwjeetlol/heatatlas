@@ -12,49 +12,73 @@ import json
 import base64
 import re
 import time
-import subprocess
+import io
+from typing import List, Optional
+from pydantic import BaseModel, Field, ValidationError
+from PIL import Image
 from config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_FALLBACK_MODELS
 from services.scoring import compute_scores
 from services.rtk_optimizer import rtk_compress_prompt
 
+
+class VisionAuditSchema(BaseModel):
+    verified: bool = Field(default=False)
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    detected_crowd: int = Field(default=0, ge=0)
+    severity_tier: str = Field(default="REJECTED")
+    condition: str = Field(default="")
+    reasoning: str = Field(default="")
+    actionable_recommendation: str = Field(default="")
+
+
+class IntakeIntentSchema(BaseModel):
+    intent: str = Field(default="dispatch_plan")
+    zone_hint: Optional[str] = Field(default=None)
+    teams_available: int = Field(default=2, ge=1, le=50)
+    water_cans_l: int = Field(default=40, ge=0)
+    ors_packets: int = Field(default=100, ge=0)
+    time_window_hours: int = Field(default=6, ge=1, le=72)
+
+
+class DispatchTargetSchema(BaseModel):
+    zone_id: str
+    zone_name: str
+    tier: str
+    rd: float = Field(ge=0.0)
+    vh: int = Field(ge=0)
+    hours_above_38: int = Field(ge=0)
+    recommended_action: str
+    assets_nearby: str = Field(default="")
+
+
+class DispatchBriefSchema(BaseModel):
+    summary: str
+    window: str
+    targets: List[DispatchTargetSchema]
+    resource_allocation: str
+    safety_note: str
+
+
 def normalize_to_gemini_image(raw_bytes: bytes) -> tuple[bytes, str]:
     """
-    Ensures input image bytes are in a format supported by Gemini Vision API (JPEG or PNG).
-    Converts JPEG-XL, HEIC, TIFF, WebP or corrupt containers using macOS native sips or PIL.
+    Cross-platform in-memory image normalizer using Pillow (PIL).
+    Ensures input image bytes are valid JPEG or PNG for Gemini Vision API
+    without relying on OS-specific shell binaries.
     """
+    if not raw_bytes:
+        return b"", "image/jpeg"
     if len(raw_bytes) > 3 and raw_bytes[0] == 0xFF and raw_bytes[1] == 0xD8 and raw_bytes[2] == 0xFF:
         return raw_bytes, "image/jpeg"
-    if len(raw_bytes) > 8 and raw_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
+    if len(raw_bytes) > 8 and raw_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
         return raw_bytes, "image/png"
 
-    # Convert using macOS native sips utility
-    tmp_in = f"/tmp/norm_in_{os.getpid()}_{int(time.time()*1000)%100000}.bin"
-    tmp_out = f"/tmp/norm_out_{os.getpid()}_{int(time.time()*1000)%100000}.jpg"
     try:
-        with open(tmp_in, "wb") as f:
-            f.write(raw_bytes)
-        res = subprocess.run(["sips", "-s", "format", "jpeg", tmp_in, "--out", tmp_out], capture_output=True, timeout=5)
-        if res.returncode == 0 and os.path.exists(tmp_out):
-            with open(tmp_out, "rb") as f:
-                converted = f.read()
-            if len(converted) > 100:
-                return converted, "image/jpeg"
-    except Exception:
-        pass
-    finally:
-        for p in (tmp_in, tmp_out):
-            if os.path.exists(p):
-                try: os.remove(p)
-                except: pass
-
-    # Pillow fallback
-    try:
-        import io
-        from PIL import Image
         im = Image.open(io.BytesIO(raw_bytes))
         buf = io.BytesIO()
         im.convert("RGB").save(buf, format="JPEG", quality=88)
-        return buf.getvalue(), "image/jpeg"
+        converted = buf.getvalue()
+        if len(converted) > 64:
+            return converted, "image/jpeg"
     except Exception:
         pass
 

@@ -217,6 +217,27 @@ def test_strict_anti_spoofing_vision_guardrail():
     assert data["beacon"]["verified"] is False
 
 
+def test_non_linear_wbgt_and_cross_platform_guards():
+    """
+    Verifies non-linear WBGT J-curve severity multiplier, consecutive-hour thermal clustering,
+    capacity saturation ratio, and defensive clamping against negative inputs.
+    """
+    s = compute_scores(
+        pop=25000,
+        child_pop=3000,
+        elderly_pop=2000,
+        hours_above_38=6,
+        working_taps=2,
+        clinics=1,
+        peak_apparent_temp=43.5,
+        hourly_temps=[36.0, 39.2, 41.0, 42.5, 43.5, 41.8, 39.0, 35.0],
+    )
+    assert s["consecutive_heat_streak"] == 6
+    assert s["wbgt_severity_multiplier"] > 1.5
+    assert s["non_linear_rd"] > s["rd"]
+    assert s["capacity_saturation_ratio"] > 0
+
+
 if __name__ == "__main__":
     test_funcs = [v for k, v in list(globals().items()) if k.startswith("test_") and callable(v)]
     for fn in test_funcs:
