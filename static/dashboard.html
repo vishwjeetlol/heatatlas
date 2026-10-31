@@ -1,277 +1,450 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HeatAtlas — Field Dispatch & Ground Beacon Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: 'DM Sans', sans-serif; background: #0b0f19; color: #f1f5f9; }
-    .font-display { font-family: 'Sora', sans-serif; }
-    .font-mono { font-family: 'JetBrains Mono', monospace; }
-  </style>
-</head>
-<body class="p-4 md:p-8 min-h-screen">
-  <div class="max-w-7xl mx-auto flex flex-col gap-6">
-    
-    <!-- HEADER -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-800 gap-4">
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="text-2xl">🔥</span>
-          <h1 class="font-display font-extrabold text-2xl text-white tracking-tight">HeatAtlas Ground Intelligence Command</h1>
-          <span class="bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-2.5 py-0.5 rounded-full font-mono font-bold animate-pulse">LIVE INCIDENTS</span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HeatAtlas — Field Dispatch & Ground Beacon Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: #0b0f19;
+        color: #f1f5f9;
+      }
+      .font-display {
+        font-family: "Sora", sans-serif;
+      }
+      .font-mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+    </style>
+  </head>
+  <body class="p-4 md:p-8 min-h-screen">
+    <div class="max-w-7xl mx-auto flex flex-col gap-6">
+      <!-- HEADER -->
+      <header
+        class="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-800 gap-4"
+      >
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🔥</span>
+            <h1
+              class="font-display font-extrabold text-2xl text-white tracking-tight"
+            >
+              HeatAtlas Ground Intelligence Command
+            </h1>
+            <span
+              class="bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-2.5 py-0.5 rounded-full font-mono font-bold animate-pulse"
+              >LIVE INCIDENTS</span
+            >
+          </div>
+          <p class="text-sm text-slate-400 mt-1">
+            Ground Worker Photo Submissions, Gemini Vision Audits, and WhatsApp
+            Squad Battle-Orders
+          </p>
         </div>
-        <p class="text-sm text-slate-400 mt-1">Ground Worker Photo Submissions, Gemini Vision Audits, and WhatsApp Squad Battle-Orders</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <a href="/" target="_top" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-lg flex items-center gap-1.5">
-          <span>📱</span> Open Driver Mobile App
-        </a>
-        <button onclick="loadDashboardData()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
-          <span>🔄</span> Refresh Feed
-        </button>
-      </div>
-    </header>
+        <div class="flex items-center gap-3">
+          <a
+            href="/"
+            target="_top"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-lg flex items-center gap-1.5"
+          >
+            <span>📱</span> Open Driver Mobile App
+          </a>
+          <button
+            onclick="loadDashboardData()"
+            class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5"
+          >
+            <span>🔄</span> Refresh Feed
+          </button>
+        </div>
+      </header>
 
-    <!-- LIVE SPATIAL COMMAND HEATMAP -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
-      <div class="flex justify-between items-center">
-        <h2 class="font-display font-bold text-sm text-white flex items-center gap-2">
-          <span>🗺️</span> Live Pune Spatial Deficit & Worker Beacon Map (64 Micro-Zones)
-        </h2>
-        <span class="text-xs font-mono text-emerald-400">Open-Meteo + WorldPop + Overpass Active</span>
-      </div>
-      <div id="command-map" class="w-full h-[320px] rounded-xl overflow-hidden border border-slate-800 z-10"></div>
-    </div>
-
-    <!-- METRICS STRIP -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
-        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold">Active Demand Beacons</span>
-        <div class="flex items-baseline gap-2 mt-2">
-          <span class="font-display font-black text-3xl text-red-500" id="stat-beacons">0</span>
-          <span class="text-xs text-red-400 font-medium">Unmet relief signals</span>
-        </div>
-      </div>
-      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
-        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold">Workers at Risk</span>
-        <div class="flex items-baseline gap-2 mt-2">
-          <span class="font-display font-black text-3xl text-amber-500" id="stat-crowd">0</span>
-          <span class="text-xs text-amber-400 font-medium">Verified by Gemini</span>
-        </div>
-      </div>
-      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
-        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold">Municipal Grid Outages</span>
-        <div class="flex items-baseline gap-2 mt-2">
-          <span class="font-display font-black text-3xl text-orange-500" id="stat-outages">0</span>
-          <span class="text-xs text-orange-400 font-medium">Water cuts & blackouts</span>
-        </div>
-      </div>
-      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
-        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold">Registered NGO Squads</span>
-        <div class="flex items-baseline gap-2 mt-2">
-          <span class="font-display font-black text-3xl text-emerald-500" id="stat-ngos">0</span>
-          <span class="text-xs text-emerald-400 font-medium">Ready for dispatch</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- MAIN TWO-COLUMN DASHBOARD -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <!-- LEFT 2 COLS: DRIVER GROUND BEACONS WITH PHOTOS -->
-      <div class="lg:col-span-2 flex flex-col gap-4">
+      <!-- LIVE SPATIAL COMMAND HEATMAP -->
+      <div
+        class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3"
+      >
         <div class="flex justify-between items-center">
-          <h2 class="font-display font-bold text-lg text-white flex items-center gap-2">
-            <span>📸</span> Live Driver Ground Submissions & Photos
+          <h2
+            class="font-display font-bold text-sm text-white flex items-center gap-2"
+          >
+            <span>🗺️</span> Live Pune Spatial Deficit & Worker Beacon Map (64
+            Micro-Zones)
           </h2>
-          <span class="text-xs text-slate-400">Inspected by Gemini Multimodal Vision</span>
+          <span class="text-xs font-mono text-emerald-400"
+            >Open-Meteo + WorldPop + Overpass Active</span
+          >
         </div>
+        <div
+          id="command-map"
+          class="w-full h-[320px] rounded-xl overflow-hidden border border-slate-800 z-10"
+        ></div>
+      </div>
 
-        <div id="beacons-container" class="flex flex-col gap-4">
-          <!-- Populated by JS -->
-          <div class="text-slate-500 text-sm">Loading beacons feed...</div>
+      <!-- METRICS STRIP -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div
+          class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between"
+        >
+          <span
+            class="text-xs uppercase tracking-wider text-slate-400 font-bold"
+            >Active Demand Beacons</span
+          >
+          <div class="flex items-baseline gap-2 mt-2">
+            <span
+              class="font-display font-black text-3xl text-red-500"
+              id="stat-beacons"
+              >0</span
+            >
+            <span class="text-xs text-red-400 font-medium"
+              >Unmet relief signals</span
+            >
+          </div>
+        </div>
+        <div
+          class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between"
+        >
+          <span
+            class="text-xs uppercase tracking-wider text-slate-400 font-bold"
+            >Workers at Risk</span
+          >
+          <div class="flex items-baseline gap-2 mt-2">
+            <span
+              class="font-display font-black text-3xl text-amber-500"
+              id="stat-crowd"
+              >0</span
+            >
+            <span class="text-xs text-amber-400 font-medium"
+              >Verified by Gemini</span
+            >
+          </div>
+        </div>
+        <div
+          class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between"
+        >
+          <span
+            class="text-xs uppercase tracking-wider text-slate-400 font-bold"
+            >Municipal Grid Outages</span
+          >
+          <div class="flex items-baseline gap-2 mt-2">
+            <span
+              class="font-display font-black text-3xl text-orange-500"
+              id="stat-outages"
+              >0</span
+            >
+            <span class="text-xs text-orange-400 font-medium"
+              >Water cuts & blackouts</span
+            >
+          </div>
+        </div>
+        <div
+          class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between"
+        >
+          <span
+            class="text-xs uppercase tracking-wider text-slate-400 font-bold"
+            >Registered NGO Squads</span
+          >
+          <div class="flex items-baseline gap-2 mt-2">
+            <span
+              class="font-display font-black text-3xl text-emerald-500"
+              id="stat-ngos"
+              >0</span
+            >
+            <span class="text-xs text-emerald-400 font-medium"
+              >Ready for dispatch</span
+            >
+          </div>
         </div>
       </div>
 
-      <!-- RIGHT 1 COL: UTILITY OUTRAGES & NGO BATTLE-ORDERS -->
-      <div class="flex flex-col gap-6">
-        
-        <!-- NGO SQUAD DISPATCH GENERATOR -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4">
-          <div class="flex items-center justify-between">
-            <h3 class="font-display font-bold text-sm text-indigo-400 flex items-center gap-1.5">
-              <span>⚡</span> Generate Squad Battle-Order
-            </h3>
-            <span class="text-[10px] bg-indigo-500/20 text-indigo-300 font-mono px-2 py-0.5 rounded">Gemini Flash</span>
-          </div>
-
-          <div class="flex flex-col gap-2.5">
-            <div>
-              <label class="text-xs text-slate-400 block mb-1">Select Responding NGO</label>
-              <select id="squad-ngo-select" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-indigo-500">
-                <option value="">Loading NGOs...</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-xs text-slate-400 block mb-1">Target Sector / Hotspot</label>
-              <input type="text" id="squad-target-input" value="Swargate Flyover (Z-44)" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-indigo-500" />
-            </div>
-            <button onclick="triggerSquadOrder()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5">
-              <span>🚀</span> Synthesize WhatsApp Battle-Orders
-            </button>
-          </div>
-
-          <!-- Battle-Orders Output -->
-          <div id="battle-order-box" class="hidden flex-col gap-2 mt-2 pt-3 border-t border-slate-800">
-            <div class="flex justify-between items-center text-xs font-bold text-emerald-400">
-              <span>WhatsApp Battle-Order Output:</span>
-              <button onclick="copyBattleOrder()" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded">📋 Copy</button>
-            </div>
-            <pre id="battle-order-text" class="bg-slate-950 border border-emerald-500/30 text-emerald-300 font-mono text-[11px] p-3 rounded-xl whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto"></pre>
-          </div>
-        </div>
-
-        <!-- MUNICIPAL OUTRAGES BREAKDOWN -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3">
+      <!-- MAIN TWO-COLUMN DASHBOARD -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- LEFT 2 COLS: DRIVER GROUND BEACONS WITH PHOTOS -->
+        <div class="lg:col-span-2 flex flex-col gap-4">
           <div class="flex justify-between items-center">
-            <h3 class="font-display font-bold text-sm text-red-400 flex items-center gap-1.5">
-              <span>⚠️</span> Municipal & Grid Breakdowns
-            </h3>
-            <span class="text-[10px] bg-red-500/20 text-red-300 font-mono px-2 py-0.5 rounded" id="outage-count-tag">0 Active</span>
+            <h2
+              class="font-display font-bold text-lg text-white flex items-center gap-2"
+            >
+              <span>📸</span> Live Driver Ground Submissions & Photos
+            </h2>
+            <span class="text-xs text-slate-400"
+              >Inspected by Gemini Multimodal Vision</span
+            >
           </div>
-          <div id="outages-container" class="flex flex-col gap-2 max-h-96 overflow-y-auto pr-1">
+
+          <div id="beacons-container" class="flex flex-col gap-4">
             <!-- Populated by JS -->
+            <div class="text-slate-500 text-sm">Loading beacons feed...</div>
           </div>
         </div>
 
+        <!-- RIGHT 1 COL: UTILITY OUTRAGES & NGO BATTLE-ORDERS -->
+        <div class="flex flex-col gap-6">
+          <!-- NGO SQUAD DISPATCH GENERATOR -->
+          <div
+            class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4"
+          >
+            <div class="flex items-center justify-between">
+              <h3
+                class="font-display font-bold text-sm text-indigo-400 flex items-center gap-1.5"
+              >
+                <span>⚡</span> Generate Squad Battle-Order
+              </h3>
+              <span
+                class="text-[10px] bg-indigo-500/20 text-indigo-300 font-mono px-2 py-0.5 rounded"
+                >Gemini Flash</span
+              >
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+              <div>
+                <label class="text-xs text-slate-400 block mb-1"
+                  >Select Responding NGO</label
+                >
+                <select
+                  id="squad-ngo-select"
+                  class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="">Loading NGOs...</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 block mb-1"
+                  >Target Sector / Hotspot</label
+                >
+                <input
+                  type="text"
+                  id="squad-target-input"
+                  value="Swargate Flyover (Z-44)"
+                  class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+              <button
+                onclick="triggerSquadOrder()"
+                class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+              >
+                <span>🚀</span> Synthesize WhatsApp Battle-Orders
+              </button>
+            </div>
+
+            <!-- Battle-Orders Output -->
+            <div
+              id="battle-order-box"
+              class="hidden flex-col gap-2 mt-2 pt-3 border-t border-slate-800"
+            >
+              <div
+                class="flex justify-between items-center text-xs font-bold text-emerald-400"
+              >
+                <span>WhatsApp Battle-Order Output:</span>
+                <button
+                  onclick="copyBattleOrder()"
+                  class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded"
+                >
+                  📋 Copy
+                </button>
+              </div>
+              <pre
+                id="battle-order-text"
+                class="bg-slate-950 border border-emerald-500/30 text-emerald-300 font-mono text-[11px] p-3 rounded-xl whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto"
+              ></pre>
+            </div>
+          </div>
+
+          <!-- MUNICIPAL OUTRAGES BREAKDOWN -->
+          <div
+            class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3"
+          >
+            <div class="flex justify-between items-center">
+              <h3
+                class="font-display font-bold text-sm text-red-400 flex items-center gap-1.5"
+              >
+                <span>⚠️</span> Municipal & Grid Breakdowns
+              </h3>
+              <span
+                class="text-[10px] bg-red-500/20 text-red-300 font-mono px-2 py-0.5 rounded"
+                id="outage-count-tag"
+                >0 Active</span
+              >
+            </div>
+            <div
+              id="outages-container"
+              class="flex flex-col gap-2 max-h-96 overflow-y-auto pr-1"
+            >
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    let globalBeacons = [];
-    let globalNgos = [];
-    let cmdMap = null;
-    let cmdZoneLayers = [];
-    let cmdMarkers = [];
+    <script>
+      let globalBeacons = [];
+      let globalNgos = [];
+      let cmdMap = null;
+      let cmdZoneLayers = [];
+      let cmdMarkers = [];
 
-    function initCommandMap() {
-      if (cmdMap) return;
-      cmdMap = L.map('command-map').setView([18.515, 73.8567], 12);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        opacity: 0.85
-      }).addTo(cmdMap);
-    }
-
-    async function loadDashboardData() {
-      try {
-        initCommandMap();
-        // 0. Fetch Zones for Spatial Heatmap
-        const zRes = await fetch('/api/zones?city=pune&hour=14');
-        const zData = await zRes.json();
-        const zones = zData.zones || [];
-
-        // 1. Fetch Beacons
-        const bRes = await fetch('/api/beacons');
-        const bData = await bRes.json();
-        globalBeacons = bData.beacons || [];
-        renderBeacons(globalBeacons);
-        renderCommandMapLayers(zones, globalBeacons);
-
-        // 2. Fetch Outages
-        const oRes = await fetch('/api/outages');
-        const oData = await oRes.json();
-        renderOutages(oData.outages || []);
-
-        // 3. Fetch NGOs
-        const nRes = await fetch('/api/ngos');
-        const nData = await nRes.json();
-        globalNgos = nData.ngos || [];
-        renderNgos(globalNgos);
-
-        // Update stats
-        document.getElementById('stat-beacons').innerText = globalBeacons.filter(b => b.status !== 'resolved').length;
-        const totalCrowd = globalBeacons.reduce((sum, b) => sum + (b.detected_crowd || 0), 0);
-        document.getElementById('stat-crowd').innerText = totalCrowd;
-        document.getElementById('stat-outages').innerText = (oData.outages || []).length;
-        document.getElementById('stat-ngos').innerText = globalNgos.length;
-      } catch (e) {
-        console.error('Dashboard load error:', e);
-      }
-    }
-
-    function renderCommandMapLayers(zones, beacons) {
-      if (!cmdMap) return;
-      cmdZoneLayers.forEach(l => cmdMap.removeLayer(l));
-      cmdZoneLayers = [];
-      cmdMarkers.forEach(m => cmdMap.removeLayer(m));
-      cmdMarkers = [];
-
-      zones.forEach(z => {
-        const [s, w, n, e] = z.bbox;
-        let color = '#64748b';
-        let opacity = 0.35;
-        if (z.rd >= 4000 || z.tier === 'Critical') { color = '#dc2626'; opacity = 0.6; }
-        else if (z.rd >= 1500 || z.tier === 'High') { color = '#ea580c'; opacity = 0.5; }
-        else if (z.tier === 'Moderate') { color = '#ca8a04'; opacity = 0.4; }
-        else { color = '#16a34a'; opacity = 0.3; }
-
-        const rect = L.rectangle([[s, w], [n, e]], {
-          color: color,
-          weight: 1.5,
-          fillColor: color,
-          fillOpacity: opacity
+      function initCommandMap() {
+        if (cmdMap) return;
+        cmdMap = L.map("command-map").setView([18.515, 73.8567], 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 18,
+          opacity: 0.85,
         }).addTo(cmdMap);
-        rect.bindTooltip(`<strong>${z.name} (${z.id})</strong><br>Temp: ${z.temperature}°C · Deficit Rd: ${z.rd} · Tier: ${z.tier}`);
-        cmdZoneLayers.push(rect);
-      });
-
-      beacons.forEach(b => {
-        const isResolved = b.status === 'resolved';
-        const isFlagged = b.verified === false;
-        const pinColor = isResolved ? '#10b981' : isFlagged ? '#f59e0b' : '#dc2626';
-        const iconHtml = `<div style="background:${pinColor}; width:26px; height:26px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; font-size:12px; color:white; box-shadow:0 2px 8px rgba(0,0,0,0.5);">${isResolved ? '✓' : isFlagged ? '⚠️' : '🚨'}</div>`;
-        const icon = L.divIcon({ className: 'cmd-pin', html: iconHtml, iconSize: [26, 26], iconAnchor: [13, 13] });
-        const marker = L.marker([b.lat, b.lon], { icon }).addTo(cmdMap);
-        marker.bindPopup(`<strong>${b.location_name}</strong><br>${b.description}<br>Status: ${isFlagged ? 'REJECTED' : isResolved ? 'RESOLVED' : 'ACTIVE'}`);
-        cmdMarkers.push(marker);
-      });
-    }
-
-    function renderBeacons(beacons) {
-      const container = document.getElementById('beacons-container');
-      if (beacons.length === 0) {
-        container.innerHTML = '<div class="text-slate-500 text-sm p-4 bg-slate-900 rounded-2xl border border-slate-800">No ground worker beacons active.</div>';
-        return;
       }
 
-      container.innerHTML = beacons.map(b => {
-        const isResolved = b.status === 'resolved';
-        const photoSrc = b.image_url || b.image_base64;
-        return `
-          <div class="bg-slate-900 border ${isResolved ? 'border-emerald-500/30 opacity-75' : 'border-slate-800'} rounded-2xl p-5 flex flex-col md:flex-row gap-5 transition-all hover:border-slate-700 shadow-md">
+      async function loadDashboardData() {
+        try {
+          initCommandMap();
+          // 0. Fetch Zones for Spatial Heatmap
+          const zRes = await fetch("/api/zones?city=pune&hour=14");
+          const zData = await zRes.json();
+          const zones = zData.zones || [];
+
+          // 1. Fetch Beacons
+          const bRes = await fetch("/api/beacons");
+          const bData = await bRes.json();
+          globalBeacons = bData.beacons || [];
+          renderBeacons(globalBeacons);
+          renderCommandMapLayers(zones, globalBeacons);
+
+          // 2. Fetch Outages
+          const oRes = await fetch("/api/outages");
+          const oData = await oRes.json();
+          renderOutages(oData.outages || []);
+
+          // 3. Fetch NGOs
+          const nRes = await fetch("/api/ngos");
+          const nData = await nRes.json();
+          globalNgos = nData.ngos || [];
+          renderNgos(globalNgos);
+
+          // Update stats
+          document.getElementById("stat-beacons").innerText =
+            globalBeacons.filter((b) => b.status !== "resolved").length;
+          const totalCrowd = globalBeacons.reduce(
+            (sum, b) => sum + (b.detected_crowd || 0),
+            0,
+          );
+          document.getElementById("stat-crowd").innerText = totalCrowd;
+          document.getElementById("stat-outages").innerText = (
+            oData.outages || []
+          ).length;
+          document.getElementById("stat-ngos").innerText = globalNgos.length;
+        } catch (e) {
+          console.error("Dashboard load error:", e);
+        }
+      }
+
+      function renderCommandMapLayers(zones, beacons) {
+        if (!cmdMap) return;
+        cmdZoneLayers.forEach((l) => cmdMap.removeLayer(l));
+        cmdZoneLayers = [];
+        cmdMarkers.forEach((m) => cmdMap.removeLayer(m));
+        cmdMarkers = [];
+
+        zones.forEach((z) => {
+          const [s, w, n, e] = z.bbox;
+          let color = "#64748b";
+          let opacity = 0.35;
+          if (z.rd >= 4000 || z.tier === "Critical") {
+            color = "#dc2626";
+            opacity = 0.6;
+          } else if (z.rd >= 1500 || z.tier === "High") {
+            color = "#ea580c";
+            opacity = 0.5;
+          } else if (z.tier === "Moderate") {
+            color = "#ca8a04";
+            opacity = 0.4;
+          } else {
+            color = "#16a34a";
+            opacity = 0.3;
+          }
+
+          const rect = L.rectangle(
+            [
+              [s, w],
+              [n, e],
+            ],
+            {
+              color: color,
+              weight: 1.5,
+              fillColor: color,
+              fillOpacity: opacity,
+            },
+          ).addTo(cmdMap);
+          rect.bindTooltip(
+            `<strong>${z.name} (${z.id})</strong><br>Temp: ${z.temperature}°C · Deficit Rd: ${z.rd} · Tier: ${z.tier}`,
+          );
+          cmdZoneLayers.push(rect);
+        });
+
+        beacons.forEach((b) => {
+          const isResolved = b.status === "resolved";
+          const isFlagged = b.verified === false;
+          const pinColor = isResolved
+            ? "#10b981"
+            : isFlagged
+              ? "#f59e0b"
+              : "#dc2626";
+          const iconHtml = `<div style="background:${pinColor}; width:26px; height:26px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; font-size:12px; color:white; box-shadow:0 2px 8px rgba(0,0,0,0.5);">${isResolved ? "✓" : isFlagged ? "⚠️" : "🚨"}</div>`;
+          const icon = L.divIcon({
+            className: "cmd-pin",
+            html: iconHtml,
+            iconSize: [26, 26],
+            iconAnchor: [13, 13],
+          });
+          const marker = L.marker([b.lat, b.lon], { icon }).addTo(cmdMap);
+          marker.bindPopup(
+            `<strong>${b.location_name}</strong><br>${b.description}<br>Status: ${isFlagged ? "REJECTED" : isResolved ? "RESOLVED" : "ACTIVE"}`,
+          );
+          cmdMarkers.push(marker);
+        });
+      }
+
+      function renderBeacons(beacons) {
+        const container = document.getElementById("beacons-container");
+        if (beacons.length === 0) {
+          container.innerHTML =
+            '<div class="text-slate-500 text-sm p-4 bg-slate-900 rounded-2xl border border-slate-800">No ground worker beacons active.</div>';
+          return;
+        }
+
+        container.innerHTML = beacons
+          .map((b) => {
+            const isResolved = b.status === "resolved";
+            const photoSrc = b.image_url || b.image_base64;
+            return `
+          <div class="bg-slate-900 border ${isResolved ? "border-emerald-500/30 opacity-75" : "border-slate-800"} rounded-2xl p-5 flex flex-col md:flex-row gap-5 transition-all hover:border-slate-700 shadow-md">
             
-            ${photoSrc ? `
+            ${
+              photoSrc
+                ? `
               <div class="w-full md:w-56 h-40 shrink-0 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 relative group">
                 <img src="${photoSrc}" alt="${b.location_name}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 <span class="absolute bottom-2 left-2 bg-black/80 backdrop-blur-md text-white text-[9px] font-mono px-2 py-0.5 rounded font-bold">
                   📷 Ground Proof
                 </span>
               </div>
-            ` : `
+            `
+                : `
               <div class="w-full md:w-56 h-40 shrink-0 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center text-slate-600 gap-1">
                 <span class="text-2xl">📸</span>
                 <span class="text-[10px] font-mono">No Image Attached</span>
               </div>
-            `}
+            `
+            }
 
             <div class="flex-1 flex flex-col justify-between gap-3">
               <div>
@@ -280,8 +453,8 @@
                     <h3 class="font-display font-bold text-base text-white">${b.location_name}</h3>
                     <div class="text-xs text-slate-400 mt-0.5 font-mono">GPS: ${b.lat.toFixed(4)}, ${b.lon.toFixed(4)} · Sector: ${b.zone_id}</div>
                   </div>
-                  <span class="${isResolved ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'} text-[10px] font-mono font-bold px-2 py-0.5 rounded uppercase">
-                    ${isResolved ? '✓ Fulfilled' : '🚨 Urgent'}
+                  <span class="${isResolved ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-red-500/20 text-red-400 border border-red-500/30"} text-[10px] font-mono font-bold px-2 py-0.5 rounded uppercase">
+                    ${isResolved ? "✓ Fulfilled" : "🚨 Urgent"}
                   </span>
                 </div>
 
@@ -293,54 +466,67 @@
                 <div class="mt-2.5 p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1.5">
                   <div class="flex items-center justify-between text-xs">
                     <span class="font-bold text-slate-300 flex items-center gap-1.5">
-                      <span class="text-amber-400">⚡</span> ${b.model_used || 'Gemini Flash Ground Inspection'}:
+                      <span class="text-amber-400">⚡</span> ${b.model_used || "Gemini Flash Ground Inspection"}:
                     </span>
-                    <span class="font-mono font-bold ${b.verified === false ? 'text-amber-500' : 'text-emerald-400'}">
-                      ${b.verified === false ? 'Filtered / Non-Emergency' : `${(b.confidence * 100).toFixed(0)}% Conf (${b.detected_crowd || 0} Workers)`}
+                    <span class="font-mono font-bold ${b.verified === false ? "text-amber-500" : "text-emerald-400"}">
+                      ${b.verified === false ? "Filtered / Non-Emergency" : `${(b.confidence * 100).toFixed(0)}% Conf (${b.detected_crowd || 0} Workers)`}
                     </span>
                   </div>
                   <p class="text-[11.5px] text-slate-300 italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                    "${b.reasoning || b.condition || 'Hydration deficit verified at outdoor junction.'}"
+                    "${b.reasoning || b.condition || "Hydration deficit verified at outdoor junction."}"
                   </p>
-                  ${b.actionable_recommendation ? `
+                  ${
+                    b.actionable_recommendation
+                      ? `
                     <div class="text-[11px] text-blue-300 bg-blue-950/40 p-2 rounded-lg border border-blue-900/60 flex items-start gap-1.5">
                       <strong class="text-blue-400 shrink-0">🎯 Squad Plan:</strong>
                       <span>${b.actionable_recommendation}</span>
                     </div>
-                  ` : ''}
+                  `
+                      : ""
+                  }
                 </div>
               </div>
 
               <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs text-slate-400">
                 <span class="flex items-center gap-1">
-                  🏢 Dispatched to: <strong class="text-indigo-400">${b.assigned_ngo || 'Central Relief'}</strong>
+                  🏢 Dispatched to: <strong class="text-indigo-400">${b.assigned_ngo || "Central Relief"}</strong>
                 </span>
-                ${!isResolved ? `
+                ${
+                  !isResolved
+                    ? `
                   <button onclick="resolveBeacon('${b.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-all active:scale-95 shadow-sm">
                     ✓ Mark Delivered
                   </button>
-                ` : `
+                `
+                    : `
                   <span class="text-emerald-400 font-bold">Relief Delivered ✓</span>
-                `}
+                `
+                }
               </div>
             </div>
           </div>
         `;
-      }).join('');
-    }
-
-    function renderOutages(outages) {
-      document.getElementById('outage-count-tag').innerText = `${outages.length} Active`;
-      const container = document.getElementById('outages-container');
-      if (outages.length === 0) {
-        container.innerHTML = '<div class="text-slate-500 text-xs">No active municipal outages reported.</div>';
-        return;
+          })
+          .join("");
       }
-      container.innerHTML = outages.map(o => `
+
+      function renderOutages(outages) {
+        document.getElementById("outage-count-tag").innerText =
+          `${outages.length} Active`;
+        const container = document.getElementById("outages-container");
+        if (outages.length === 0) {
+          container.innerHTML =
+            '<div class="text-slate-500 text-xs">No active municipal outages reported.</div>';
+          return;
+        }
+        container.innerHTML = outages
+          .map(
+            (o) => `
         <div class="bg-slate-950 border border-red-500/20 rounded-xl p-3 flex flex-col gap-1">
           <div class="flex justify-between items-start">
             <span class="font-bold text-xs text-amber-300">📍 ${o.ward_name}</span>
-            <span class="text-[9px] font-mono bg-red-500/20 text-red-400 px-1.5 py-0.2 rounded font-bold">${o.outage_type.replace(/_/g, ' ')}</span>
+            <span class="text-[9px] font-mono bg-red-500/20 text-red-400 px-1.5 py-0.2 rounded font-bold">${o.outage_type.replace(/_/g, " ")}</span>
           </div>
           <p class="text-[11px] text-slate-300 leading-snug">${o.description}</p>
           <div class="flex justify-between items-center text-[10px] text-slate-400 font-mono mt-1 pt-1 border-t border-slate-800">
@@ -348,58 +534,68 @@
             <span>Est: ${o.est_restoration}</span>
           </div>
         </div>
-      `).join('');
-    }
+      `,
+          )
+          .join("");
+      }
 
-    function renderNgos(ngos) {
-      const select = document.getElementById('squad-ngo-select');
-      select.innerHTML = ngos.map(n => `
+      function renderNgos(ngos) {
+        const select = document.getElementById("squad-ngo-select");
+        select.innerHTML = ngos
+          .map(
+            (n) => `
         <option value="${n.name}">${n.name} (${n.teams} Teams, ${n.water_cans} Cans)</option>
-      `).join('');
-    }
-
-    async function triggerSquadOrder() {
-      const ngoName = document.getElementById('squad-ngo-select').value;
-      const targetZone = document.getElementById('squad-target-input').value;
-      try {
-        const res = await fetch('/api/ngo/squad-orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ngo_name: ngoName || 'Pune Heat Action Collective',
-            resources: { teams: 3, water_cans: 60 },
-            target_zone: targetZone || 'Swargate (Z-44)'
-          })
-        });
-        const data = await res.json();
-        const text = data.whatsapp_text || data.orders;
-        document.getElementById('battle-order-box').classList.remove('hidden');
-        document.getElementById('battle-order-box').classList.add('flex');
-        document.getElementById('battle-order-text').innerText = text;
-      } catch (e) {
-        alert('Error synthesizing squad orders: ' + e);
+      `,
+          )
+          .join("");
       }
-    }
 
-    function copyBattleOrder() {
-      const text = document.getElementById('battle-order-text').innerText;
-      navigator.clipboard.writeText(text);
-      alert('Copied WhatsApp Battle-Order to clipboard!');
-    }
-
-    async function resolveBeacon(id) {
-      try {
-        const res = await fetch('/api/beacons/' + id + '/resolve', { method: 'POST' });
-        if (res.ok) {
-          loadDashboardData();
+      async function triggerSquadOrder() {
+        const ngoName = document.getElementById("squad-ngo-select").value;
+        const targetZone = document.getElementById("squad-target-input").value;
+        try {
+          const res = await fetch("/api/ngo/squad-orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ngo_name: ngoName || "Pune Heat Action Collective",
+              resources: { teams: 3, water_cans: 60 },
+              target_zone: targetZone || "Swargate (Z-44)",
+            }),
+          });
+          const data = await res.json();
+          const text = data.whatsapp_text || data.orders;
+          document
+            .getElementById("battle-order-box")
+            .classList.remove("hidden");
+          document.getElementById("battle-order-box").classList.add("flex");
+          document.getElementById("battle-order-text").innerText = text;
+        } catch (e) {
+          alert("Error synthesizing squad orders: " + e);
         }
-      } catch (e) {
-        alert('Error: ' + e);
       }
-    }
 
-    // Auto-load on boot
-    loadDashboardData();
-  </script>
-</body>
+      function copyBattleOrder() {
+        const text = document.getElementById("battle-order-text").innerText;
+        navigator.clipboard.writeText(text);
+        alert("Copied WhatsApp Battle-Order to clipboard!");
+      }
+
+      async function resolveBeacon(id) {
+        try {
+          const res = await fetch("/api/beacons/" + id + "/resolve", {
+            method: "POST",
+          });
+          if (res.ok) {
+            loadDashboardData();
+          }
+        } catch (e) {
+          alert("Error: " + e);
+        }
+      }
+
+      // Auto-load on boot
+      loadDashboardData();
+    </script>
+  </body>
 </html>

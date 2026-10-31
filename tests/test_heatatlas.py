@@ -261,6 +261,59 @@ def test_quadtree_spatial_index_refchecker_and_webhooks():
     assert r_int.json()["total_integrated_repositories"] == 12
 
 
+def test_geofence_validation_and_fixture_separation():
+    """
+    Verifies that coordinates outside the Indian operational corridor are rejected with HTTP 422,
+    and that /api/beacons?include_fixtures=false cleanly separates live field reports from demo scenario fixtures.
+    """
+    r_bad = client.post("/api/beacons/report", json={
+        "location_name": "Invalid Ocean Coord",
+        "lat": -45.0,
+        "lon": -120.0,
+        "zone_id": "Z-44",
+        "description": "15 delivery riders waiting under sun",
+        "session_token": "geo_test_tok"
+    })
+    assert r_bad.status_code == 422
+
+    r_all = client.get("/api/beacons?include_fixtures=true").json()
+    r_live = client.get("/api/beacons?include_fixtures=false").json()
+    assert r_all["scenario_fixtures_count"] >= 3
+    assert all(not b.get("is_demo_fixture", False) for b in r_live["beacons"])
+
+
+def test_constrained_vrp_solver_and_dynamic_cool_corridor():
+    """
+    Verifies Constrained Resource Allocation Solver (Knapsack + Haversine VRP + sensitivity check)
+    and dynamic OSM-driven cool corridor route calculation.
+    """
+    res = client.post("/api/dispatch/brief", json={
+        "city": "pune",
+        "request_text": "Allocate 3 teams and 60 water cans across top deficit zones",
+        "start": 2,
+        "end": 6,
+        "resources": {"teams": 3, "water_cans": 60},
+        "language": "en"
+    })
+    assert res.status_code == 200
+    data = res.json()
+    assert "constrained_allocation" in data
+    alloc = data["constrained_allocation"]
+    assert alloc["constraints_satisfied"] is True
+    assert alloc["total_water_cans_allocated"] == 60
+    assert alloc["sensitivity_analysis"]["top_3_ranking_stability_pct"] >= 66.0
+
+    r_corr = client.post("/api/routes/cool-corridor", json={
+        "origin": "Swargate Flyover",
+        "destination": "Deccan Gymkhana",
+        "temp_c": 41.8
+    })
+    assert r_corr.status_code == 200
+    corr = r_corr.json()
+    assert corr["computation_mode"] == "dynamic_osm_canopy_and_svf_routing"
+    assert corr["canopy_cool_route"]["est_temp_c"] < corr["highway_route"]["est_temp_c"]
+
+
 if __name__ == "__main__":
     test_funcs = [v for k, v in list(globals().items()) if k.startswith("test_") and callable(v)]
     for fn in test_funcs:

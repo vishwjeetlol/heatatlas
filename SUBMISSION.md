@@ -1,210 +1,99 @@
 # 🏆 HeatAtlas: Forecast Heat. Prioritise Relief.
 
-> **Autonomous Extreme Heat Relief Engine & Emergency Spatial Intelligence**  
+> **Deterministic Spatial Decision-Support Engine & Multimodal Heatwave Relief Orchestrator**  
 > **Team Name:** `Team Strawhats` | **Team Code:** `627JUH`  
 > **FORGE'26 Track:** `Theme 2 — Climate, Resource Infrastructure & Global Supply Resilience`  
 > **Problem Spectrum:** _Autonomous Emergency Response & Supply Chain Logistics Swarm_ · _Smart Grid & Urban Resource Allocation Controller_  
-> _Official Hackathon Submission | Powered by Google Gemini Flash, Open-Meteo, WorldPop & Overpass_
+> _Official Hackathon Submission | Powered by Google Gemini Flash (`gemini-2.5-flash` failover chain), Open-Meteo, WorldPop v2 & OSM Overpass_
 
 ---
 
 ## 📋 FORGE'26 Official 6-Point Project Submission Checklist
 
-| #     | Submission Field               | Official Link / Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| :---- | :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **1** | **Problem Statement**          | **Target Issue:** City-wide weather alerts (`40°C Pune`) mask lethal `44.2°C` micro-zone heat traps while afternoon heat spikes trigger MSEDCL grid blackouts and municipal water cuts.<br>**Target Audience:** (1) 10M+ Outdoor Gig & Transit Workers & (2) NGO Volunteer Leads & Municipal Disaster Response Teams.                                                                                                                                                                       |
-| **2** | **Solution Description**       | **Overview:** Splits Pune (`18.41,73.70` to `18.65,73.95`) into 64 micro-zones (`Z-00` to `Z-77`) ranked by real-time Relief Deficit ($R_d$). Gemini 2.5 Flash converts English/Hindi/Marathi voice or text into tool-verified WhatsApp dispatch briefs, while Gemini Vision audits broken-tap & crowd distress photos.<br>**Architecture:** FastAPI + React 18 + Leaflet + SQLite. Deterministic Python computes $E_h, V_h, R_d$ from live Open-Meteo, WorldPop v2, and OSM Overpass APIs. |
-| **3** | **Prototype Link**             | **Live Web App:** [https://heatatlas.vercel.app/](https://heatatlas.vercel.app/)<br>**Live Health Check:** [https://heatatlas.vercel.app/api/health](https://heatatlas.vercel.app/api/health)                                                                                                                                                                                                                                                                                               |
-| **4** | **Demo Video**                 | **Official YouTube Demo:** [https://youtu.be/C0-BQNND-b8](https://youtu.be/C0-BQNND-b8)<br>**Direct Hosted MP4:** [https://heatatlas.vercel.app/demo.mp4](https://heatatlas.vercel.app/demo.mp4)                                                                                                                                                                                                                                                                                            |
-| **5** | **GitHub Repository**          | **Public Repo:** [https://github.com/vishwjeetlol/heatatlas](https://github.com/vishwjeetlol/heatatlas)                                                                                                                                                                                                                                                                                                                                                                                     |
-| **6** | **Pitch Deck & Checklist PDF** | **Pitch Deck PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf](https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf)<br>**Submission Checklist PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf](https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf)<br>**GitHub PDF Mirror:** [`HeatAtlas_Pitch_Deck.pdf`](HeatAtlas_Pitch_Deck.pdf)                                                                                       |
+| #     | Submission Field               | Official Link / Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| :---- | :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** | **Problem Statement**          | **Target Issue:** City-wide weather alerts (`40°C Pune`) mask lethal micro-zone heat exposure while afternoon heat spikes trigger MSEDCL grid blackouts and municipal water cuts.<br>**Target Audience:** (1) 10M+ Outdoor Gig & Transit Workers & (2) NGO Volunteer Leads & Municipal Disaster Response Teams.                                                                                                                                                                                                                                                                                     |
+| **2** | **Solution Description**       | **Overview:** Splits Pune (`18.41,73.70` to `18.65,73.95`) into 64 micro-zones (`Z-00` to `Z-77`, ~3.3×3.3 km wards) ranked by deterministic Relief Deficit ($R_d$). Gemini Flash (`gemini-2.5-flash`) converts English/Hindi/Marathi voice or text into RefChecker-verified WhatsApp dispatch briefs backed by a Constrained VRP Resource Allocator, while Gemini Multimodal Vision audits broken-tap & crowd distress photos.<br>**Architecture:** FastAPI + React 18 + Leaflet + SQLite. Deterministic Python computes $E_h, V_h, R_d$ from live Open-Meteo, WorldPop v2, and OSM Overpass APIs. |
+| **3** | **Prototype Link**             | **Live Web App:** [https://heatatlas.vercel.app/](https://heatatlas.vercel.app/)<br>**Live Health Check:** [https://heatatlas.vercel.app/api/health](https://heatatlas.vercel.app/api/health)                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **4** | **Demo Video**                 | **Official YouTube Demo:** [https://youtu.be/C0-BQNND-b8](https://youtu.be/C0-BQNND-b8)<br>**Direct Hosted MP4:** [https://heatatlas.vercel.app/demo.mp4](https://heatatlas.vercel.app/demo.mp4)                                                                                                                                                                                                                                                                                                                                                                                                    |
+| **5** | **GitHub Repository**          | **Public Repo:** [https://github.com/vishwjeetlol/heatatlas](https://github.com/vishwjeetlol/heatatlas)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **6** | **Pitch Deck & Checklist PDF** | **Pitch Deck PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf](https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf)<br>**Submission Checklist PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf](https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf)<br>**GitHub PDF Mirror:** [`HeatAtlas_Pitch_Deck.pdf`](HeatAtlas_Pitch_Deck.pdf)                                                                                                                                                                                               |
 
 ---
 
-## 📌 1. Executive Summary & Problem Statement
+## 📌 1. Executive Summary & Architectural Philosophy
 
-Across the Global South and Indian subcontinent (Pune, Nagpur, Delhi, Ahmedabad), ambient temperatures routinely breach **44°C (111°F)**, turning urban transit corridors into lethal thermal zones.
+Across the Indian subcontinent (Pune, Nagpur, Nanded, Mumbai), ambient temperatures routinely breach **38°C–44°C**, turning urban transit corridors into high-risk thermal zones.
 
-While meteorological agencies issue broad regional heat alerts, the humanitarian crisis occurs at hyper-local street intersections:
+> **Core Engineering Principle:** _"We build a deterministic spatial decision-support engine for heatwave relief, where AI interprets human requests and communicates operational decisions, while 100% of underlying deficit math, resource constraints, and safety-critical validations remain grounded in our Python backend."_
 
-1. **The Gig-Worker Blindspot:** Over 10 million outdoor gig workers (delivery riders, transport drivers, street vendors, construction crews) spend 8–10 continuous hours exposed to radiant asphalt without adequate shade or hydration.
-2. **Cascading Infrastructure Failures:** Severe heat spikes cause electrical grid transformer blowouts (MSEDCL) and commercial RO water filtration compressor failures, simultaneously shutting off cooling and hydration exactly when demand peaks.
-3. **The Fatal Delay in Triage:** Heat exhaustion turns into fatal heat stroke within minutes once **anhidrosis** (the physiological cessation of sweating and dry hot skin) begins. Victims often experience confusion before realizing they require immediate medical attention.
-4. **Asymmetrical Relief Allocation:** Non-profits, municipal water tankers, and volunteer relief squads deploy blindly without synchronized ground intelligence on real-time crowd density and localized hydration deficits.
+### Key Capabilities
 
-**HeatAtlas** solves this with an end-to-end spatial resilience platform:
-
-- **Citizen & Gig-Worker Interface:** Provides 2-tap anhidrosis heat stroke triage (routing to **Call 108**), real-time climate telemetry, shaded cool corridor route planning, and multilingual AI assistance in Marathi and English.
-- **Multimodal Vision Verification:** Incoming crowd water beacon requests are audited on-the-fly by **Google Gemini 3.8 Flash**, validating genuine street distress and filtering non-emergencies with 95% confidence.
-- **Ground Intelligence NGO Command:** Consolidates live telemetry into deterministic relief deficit scores and auto-synthesizes actionable 1-click WhatsApp battle orders for water tanker dispatch.
-- **High-Throughput Backend:** Powered by FastAPI with Open-Meteo, WorldPop, and Overpass API spatial indexing (`O(log N)` 2D Spatial Quadtree Index, WBGT J-Curve & Inverse Sky View Factor Canyon Modeling `1 + 0.15 * (1 - SVF)`, Queuing Capacity Saturation Decay `250/tap, 500/clinic`, RefChecker + CiteFact Claim Triplet Auditor, 12 Integrated Cloned GitHub Repositories, and **11/11 Passing Pytest Acceptance Tests**).
-
----
-
-## 🎥 2. Official Video Demo & Deliverables
-
-- **Final Master Video:** [`HeatAtlas_Official_150s_Submission.mp4`](file:///Users/vishwjeetchavan/Desktop/HeatAtlas_Official_150s_Submission.mp4) (1080p @ 30 FPS, H.264/AAC, Startup-Pitch Narration + Ducked Ambient Bed)
-- **Local Web Stream:** `http://localhost:8000/HeatAtlas_Official_150s_Submission.mp4`
-- **Multimodal AI Judge Rating:** **9.75 / 10.0** (Rated by Gemini Flash for Visual Design, Information Density, Pacing, and Pitch Readiness)
-- **Key On-Screen Stat Callouts:**
-  - **`44°C`** — Extreme ambient heat & grid failure alert
-  - **`CALL 108`** — 2-Tap anhidrosis clinical triage protocol
-  - **`3.8x`** — Heat index anomaly & cool corridor routing
-  - **`70 WORKERS`** — High-density beacon detection at Swargate Flyover
-  - **`95%`** — Gemini Flash multimodal photo audit confidence
-  - **`MARATHI + EN`** — Localized emergency guidance drawer
-  - **`1-CLICK`** — Automated WhatsApp relief fleet battle order
+1. **2-Step Clinical Heatstroke Triage (CNS Confusion + Anhidrosis Screener):**
+   - Exertional heatstroke patients can still sweat; therefore, Step 1 screens for **Central Nervous System (CNS) dysfunction** (confusion, dizziness, slurred speech via Gemini Speech Triage), and Step 2 screens for **anhidrosis** (cessation of sweating / dry hot skin), triggering an immediate **Call 108** emergency dispatch webhook (`/api/webhooks/emergency-108`).
+2. **Spatial Heat-Risk Estimation & Model-Grid Resolution Transparency:**
+   - Open-Meteo provides hourly meso-scale meteorological forecasts (~10 km grid). HeatAtlas spatially joins those forecasts with **WorldPop v2** demographic cohorts (children 0–14 and elderly 65+) and **OSM Overpass** infrastructure across 64 3.3×3.3 km wards, applying documented Local Climate Zone (LCZ) Sky View Factor ($\text{SVF} \in [0.38, 0.82]$) and Urban Heat Island ($\Delta T_{\text{UHI}}$) adjustments.
+3. **Constrained Logistics & Vehicle Routing Optimizer (`ConstrainedLogisticsOptimizer`):**
+   - Solves constrained allocation $\max \sum_i x_i R_{d,i}$ subject to $\sum_i w_i \le W_{\text{avail}}$ and $\sum_i t_i \le T_{\text{avail}}$, assigning teams, 20L water cans, and ORS sachets from the nearest NGO depot via Haversine travel-time ETA, with automated $\pm 50\%$ weight sensitivity stability verification.
+4. **Strict Multimodal Anti-Spoofing & Crowd Quorum (`2-Vote` Consensus + 10-Min Rate Limit):**
+   - Uploaded photos are inspected by Gemini Multimodal Vision (`audit_beacon_photo`, `audit_broken_tap_photo`) where the image is the sole source of truth—non-tap or indoor/screenshot images are strictly rejected (`verified: false`). Tap status transitions require a **2-session quorum** within a 24-hour TTL window, with a 10-minute duplicate guard (`HTTP 429`).
+5. **Explicit Data Provenance (`live_field_report` vs `seed_scenario_fixture`):**
+   - Live meteorological, demographic, and OSM infrastructure feeds are clearly separated from baseline demonstration scenario fixtures (`?include_fixtures=false` toggle in UI and API).
 
 ---
 
-## 💡 3. Key Feature Matrix
+## 🧮 2. Unified Mathematical Relief Scoring Model (`services/scoring.py`)
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                             HEATATLAS ECOSYSTEM                             │
-├───────────────────────────────┬─────────────────────────────────────────────┤
-│ 📱 Citizen & Worker App       │ 🛡️ Ground Command & NGOs                    │
-├───────────────────────────────┼─────────────────────────────────────────────┤
-│ • Dynamic Island Live Alerts  │ • Real-Time Spatial Incident Map            │
-│ • 2-Tap Anhidrosis Triage     │ • Multimodal Gemini Photo Audit             │
-│ • Shaded "Cool Corridor" Nav  │ • 1-Click WhatsApp Battle-Order Generator   │
-│ • Multilingual AI Chatbot     │ • Deterministic Deficit Scoring (Rd)        │
-│ • 24-Hour Thermal Heat Slider │ • Fleet Water Tanker Dispatch Routing       │
-└───────────────────────────────┴─────────────────────────────────────────────┘
-```
-
-### 1. 2-Tap Medical Heat Stroke Triage (Anhidrosis Screener)
-
-- Screens for the deadly shift from heat exhaustion to clinical heat stroke.
-- If a user selects **"NO SWEATING / Dry Skin"**, the screen immediately triggers a flashing red emergency alert modal, prescribes first-response cold water immersion, and activates a single-tap direct dial to the **108 Medical Emergency Helpline**.
-
-### 2. Live Bento Climate Telemetry & Cool Corridors
-
-- Visualizes real-time ambient temperature, UV index, humidity, and heat index anomalies.
-- Calculates shaded walking paths and sheltered rest zones, allowing delivery drivers to bypass sun-exposed flyovers and asphalt heat traps.
-
-### 3. Gemini 3.8 Multimodal Beacon Verification
-
-- Citizens and gig workers broadcast "Need Water / Relief Here" beacons with real-time camera snapshots.
-- HeatAtlas streams the media to **Gemini 3.8 Flash**, executing a structured vision audit:
-  - Verifies presence of outdoor labor crowds, dehydration conditions, and high-risk zones.
-  - Automatically flags and filters accidental or non-emergency uploads (e.g. parked passenger cars).
-  - Assigns a cryptographic-style verification badge with 95% confidence score.
-
-### 4. Ground Intelligence NGO Command & WhatsApp Battle Orders
-
-- HeatAtlas aggregates live beacons into municipal zone deficit indices.
-- Command center leads can view verified crowds (e.g., 70 workers stranded at Swargate Flyover) and click **"Generate WhatsApp Battle Order"** to broadcast coordinates, supply quotas (liters of chilled water, ORS packets, tarpaulin shade), and priority dispatch instructions to volunteer groups.
-
-### 5. Multilingual Relief Agent (English + Marathi)
-
-- Built-in localized floating AI drawer trained on public health heat wave protocols.
-- Delivers rapid answers to questions like _"Kuthe thand paani milel?"_ (Where can I find cold water?) and routes to the nearest municipal hydration center.
-
----
-
-## 🧮 4. Mathematical Relief Scoring Model (`services/scoring.py`)
-
-HeatAtlas does not rely on LLM guesswork for arithmetic. All relief priority metrics are computed deterministically in Python (`compute_scores`) and enforced via a post-LLM validator (`validate_dispatch_brief`):
+All documentation (`README.md`, `specs.md`, `HeatAtlas_Pitch_Deck.pdf`) and `services/scoring.py` implement the exact same deterministic formulation:
 
 ### 1. Heat Exposure Person-Hours ($E_h$)
 
-$$E_h = \text{Population} \times \text{Hours\_above\_38C}$$
+$$E_h = \text{Population} \times H_{38}$$
 
 ### 2. Vulnerable Person-Hours ($V_h$)
 
-$$V_h = (\text{Child\_Pop}_{0\text{--}14} + \text{Elderly\_Pop}_{65+}) \times \text{Hours\_above\_38C}$$
+$$V_h = (\text{Child\_Pop}_{0\text{--}14} + \text{Elderly\_Pop}_{65+}) \times H_{38}$$
 
 ### 3. Relief Deficit Index ($R_d$)
 
 $$R_d = \frac{V_h}{\text{Working\_Water\_Taps} + (2 \times \text{Clinics}) + 1}$$
 
-- **Worked Example (`specs.md` AC3):** Zone `Z-34` with `7` hours above 38°C, Population `48,200`, Child `9,100`, Elderly `3,900`, `6` working taps, `2` clinics:
+- **Worked Example (`specs.md` AC3):** Zone `Z-34` with $H_{38} = 7$ hours, Population `48,200`, Child `9,100`, Elderly `3,900`, `6` working taps, `2` clinics:
   - $E_h = 48,200 \times 7 = 337,400$
   - $V_h = (9,100 + 3,900) \times 7 = 91,000$
   - $R_d = 91,000 / (6 + 4 + 1) = 8,272.7$ (`Critical` tier)
-- **If $\text{Hours\_above\_38C} = 0$:** $E_h = V_h = R_d = 0$ and the tier is `"No heat risk"`.
+- **Non-Linear Biometeorological Extension (`non_linear_rd`):** Incorporates WBGT J-Curve multiplier $1 + 0.08 \cdot \max(0, T_{\text{peak}} - 38)^{1.35}$, Inverse Sky View Factor canyon trapping $1 + 0.15(1 - \text{SVF})$, consecutive-hour streak penalty, and queuing capacity saturation ratio ($250\text{ pop/tap/hr}$, $500\text{ pop/clinic/hr}$).
 
 ---
 
-## 🏗️ 5. System Architecture
+## 📦 3. 12 Integrated Open-Source Repositories (`/api/system/integrations`)
 
-```mermaid
-flowchart TD
-    subgraph Data_Ingestion ["Data Ingestion & Upstream APIs"]
-        OM["Open-Meteo Weather API<br/>(44°C, UV 10, Humidity)"]
-        WP["WorldPop Population Density"]
-        OP["Overpass OpenStreetMap<br/>(Canopy & Shaded Corridors)"]
-        MSEDCL["Municipal Outage Feeds<br/>(Water & Transformer Failure)"]
-    end
-
-    subgraph Backend_Core ["FastAPI Resilient Backend Core"]
-        ENGINE["Spatial Deficit Engine<br/>(E_h, V_h, R_d Scoring)"]
-        GEMINI["Google Gemini 3.8 Flash<br/>(Multimodal Vision Audit)"]
-        TRIAGE["Clinical Triage State Machine<br/>(Call 108 Emergency Trigger)"]
-        SWAGGER["FastAPI Swagger Telemetry<br/>(/docs & /api/v1)"]
-    end
-
-    subgraph Frontend_Portals ["Interactive Multi-Portal Frontend"]
-        MOBILE["📱 Mobile Phone Client<br/>(Dynamic Island, Triage, AI Chat)"]
-        COMMAND["🛡️ Ground Intelligence Command<br/>(Live Incident Map, WhatsApp Dispatch)"]
-        SWITCHER["⚡ Unified Portal Switcher Column<br/>(Instant Tab Switching)"]
-    end
-
-    OM --> ENGINE
-    WP --> ENGINE
-    OP --> ENGINE
-    MSEDCL --> ENGINE
-
-    MOBILE -- "Camera Beacon + GPS" --> GEMINI
-    GEMINI -- "95% Verified Distress" --> ENGINE
-    ENGINE --> TRIAGE
-    ENGINE --> SWAGGER
-
-    ENGINE --> COMMAND
-    COMMAND -- "WhatsApp Battle Order" --> DISPATCH["🚒 Field Water Tankers & Relief Teams"]
-    SWITCHER --> MOBILE
-    SWITCHER --> COMMAND
-    SWITCHER --> SWAGGER
-```
+| #   | Repository                         | Module                        | Engineering Role in HeatAtlas                                                    |
+| :-- | :--------------------------------- | :---------------------------- | :------------------------------------------------------------------------------- |
+| 1   | `tt-a1i/archify`                   | `services/archify_spec.py`    | Formal System Architecture & State Machine Specification (`/api/system/archify`) |
+| 2   | `rtk-ai/rtk`                       | `services/rtk_optimizer.py`   | LLM Token Killer Prompt Compression Proxy (`/api/optimizer/rtk`)                 |
+| 3   | `NirDiamant/Prompt_Engineering`    | `services/agent.py`           | Role Prompting, Multilingual Few-Shot Grounding & Self-Correction                |
+| 4   | `markrussinovich/refchecker`       | `services/spatial_index.py`   | Atomic Claim-Triplet Extraction & Zero-Hallucination Verification                |
+| 5   | `hearthresearch/citefact`          | `services/spatial_index.py`   | Source Provenance Attribution to Open-Meteo, WorldPop & Overpass                 |
+| 6   | `agencyenterprise/draft-detective` | `services/spatial_index.py`   | Cross-Target Resource Allocation Consistency Auditor                             |
+| 7   | `remotion-dev/remotion`            | `services/video_engine.py`    | Programmatic 1080p Emergency Broadcast Video Timeline Manifest                   |
+| 8   | `apple-bento-grid`                 | `frontend/src/App.jsx`        | High-Contrast Thermal Bento Telemetry Cards (WBGT, SVF, Queue Load)              |
+| 9   | `hallmark`                         | `static/dashboard.html`       | Editorial Typography & High-Craft Dark Command UI                                |
+| 10  | `AThevon/genjutsu`                 | `frontend/src/index.css`      | Pulse Beacon Micro-Interactions & Thermal Transitions                            |
+| 11  | `dembrandt/dembrandt`              | `frontend/tailwind.config.js` | Modular Scale & Gestalt Color Contrast Tokens                                    |
+| 12  | `security-audit-skill`             | `app.py`                      | Geofence Bounding Validation, Rate-Limiting (`HTTP 429`) & Vision Anti-Spoofing  |
 
 ---
 
-## 🛠️ 6. Open-Source Ecosystem & Integration
-
-HeatAtlas integrates 9 open-source repositories and packages to deliver a production-grade experience:
-
-1. **FastAPI (`tiangolo/fastapi`):** Asynchronous, high-concurrency spatial backend.
-2. **Uvicorn (`encode/uvicorn`):** Lightning-fast ASGI web server implementation.
-3. **Pydantic v2 (`pydantic/pydantic`):** Strict data validation for emergency payloads.
-4. **React 18 & Vite (`vitejs/vite`):** Zero-latency UI rendering and hot reloading.
-5. **Tailwind CSS (`tailwindlabs/tailwindcss`):** Glassmorphic dark UI with accessibility contrast.
-6. **Lucide Icons (`lucide-react`):** Crisp emergency medical and meteorological iconography.
-7. **Pillow (`python-pillow/Pillow`):** Dynamic 1080p glassmorphic telemetry cards and HUD overlays.
-8. **Edge-TTS (`rany2/edge-tts`):** Neural text-to-speech engine for pitch-ready voiceover synthesis.
-9. **FFmpeg (`FFmpeg/FFmpeg`):** Automated video assembly, J/L cuts, and sidechain-ducked audio mixing.
-
----
-
-## 🚀 7. Quickstart, Environment Setup & Verification Guide
-
-- **Live Production Deployment (Vercel):** [https://heatatlas.vercel.app](https://heatatlas.vercel.app)
-- **GitHub Repository:** [https://github.com/vishwjeetlol/heatatlas](https://github.com/vishwjeetlol/heatatlas)
-- **Specification Document:** [`specs.md`](file:///Users/vishwjeetchavan/Desktop/Hackathon/heatatlas/specs.md)
-- **One-Shot Prompts Directory:** [`prompts/extraction_prompt.txt`](file:///Users/vishwjeetchavan/Desktop/Hackathon/heatatlas/prompts/extraction_prompt.txt) & [`prompts/planner_prompt.txt`](file:///Users/vishwjeetchavan/Desktop/Hackathon/heatatlas/prompts/planner_prompt.txt)
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- Python 3.11+
+## 🚀 4. Quickstart, Environment Setup & Pytest Verification
 
 ### 1. Environment Configuration (`.env`)
 
-Copy `.env.example` to `.env` in the root folder and set your Google Gemini API key:
+Copy `.env.example` to `.env` in the repository root and set your Google Gemini API key:
 
 ```env
 GEMINI_API_KEY=your_google_ai_studio_key
-GEMINI_MODEL=gemini-flash-lite-latest
+GEMINI_MODEL=gemini-2.5-flash
 OPEN_METEO_BASE_URL=https://api.open-meteo.com
 WORLDPOP_BASE_URL=https://api.worldpop.org
 OVERPASS_URL=https://overpass-api.de/api/interpreter
@@ -213,60 +102,29 @@ PORT=8000
 DATABASE_URL=sqlite:///./heatatlas.db
 ```
 
-Optional frontend `.env` (`frontend/.env.example` -> `frontend/.env`):
-
-```env
-VITE_API_URL=http://localhost:8000
-VITE_CURRENCY=INR
-```
-
-### 2. Launch the Backend
+### 2. Launch the Backend & Frontend
 
 ```bash
-cd /Users/vishwjeetchavan/Desktop/Hackathon/heatatlas
+# 1. Start FastAPI Backend
 pip install -r requirements.txt
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-```
 
-- Interactive API Documentation: [`http://localhost:8000/docs`](http://localhost:8000/docs)
-- Health Check: [`http://localhost:8000/api/health`](http://localhost:8000/api/health)
-
-### 3. Launch the Frontend
-
-```bash
-cd /Users/vishwjeetchavan/Desktop/Hackathon/heatatlas/frontend
+# 2. Start React 18 + Vite Frontend (or build static bundle)
+cd frontend
 npm install
 npm run dev
 ```
 
-- Unified Portal Application: [`http://localhost:5173`](http://localhost:5173)
-- Use the right-hand column buttons to switch between **📱 Mobile Phone**, **🛡️ NGO Command**, and **⚡ Backend API**.
-
-### 4. Run Acceptance Criteria Tests (`specs.md` Q10)
+### 3. Run the 13 Automated Pytest Acceptance Tests (`tests/test_heatatlas.py`)
 
 ```bash
-cd /Users/vishwjeetchavan/Desktop/Hackathon/heatatlas
-./venv/bin/python tests/test_heatatlas.py
+pytest tests/test_heatatlas.py -v
 ```
-
-### 5. Play the Master Demo Video
-
-```bash
-open /Users/vishwjeetchavan/Desktop/HeatAtlas_Official_150s_Submission.mp4
-# Or stream directly in your browser:
-open https://heatatlas.vercel.app/HeatAtlas_Official_150s_Submission.mp4
-```
-
-### 6. Known Limitations & Troubleshooting
-
-- **Gemini Free Tier Rate Limits (`429 RESOURCE_EXHAUSTED`):** `services/agent.py` automatically fails over across `gemini-flash-lite-latest`, `gemini-3.5-flash-lite`, and `gemini-3.1-flash-lite`, and falls back to the deterministic Python template brief (`ai_generated: false`) if all model quotas are exhausted.
-- **Strict Visual Anti-Spoofing Guardrail:** Uploaded beacon or tap photos that do not visually depict real outdoor crowds, street junctions, or water infrastructure are strictly rejected (`verified: false`, `severity_tier: "REJECTED"`), overriding any persuasive text description.
-- **Medical Disclaimer:** HeatAtlas provides planning information, not medical advice, and does not replace IMD advisories. For heat stroke symptoms (confusion, fainting, very high body temperature) call **108** immediately.
 
 ---
 
-## 🌟 8. Conclusion & Impact
+## ⚠️ 5. Operational Safeguards & Medical Disclaimer
 
-Heatwaves are the deadliest yet most invisible extreme weather events in the Global South. By combining **hyper-local climate telemetry**, **two-tap clinical anhidrosis triage**, and **Google Gemini 3.8 Flash multimodal photo verification**, HeatAtlas transforms scattered public good efforts into a cohesive, lifesaving civil defense network.
-
-**Forecast Heat. Prioritise Relief. Built to save lives before the heat peaks.**
+- **Multi-Model Failover & Deterministic Fallback:** `services/agent.py` automatically fails over across `gemini-2.5-flash`, `gemini-3.5-flash`, `gemini-3.5-flash-lite`, and `gemini-flash-lite-latest`, and falls back to the deterministic Python template brief (`ai_generated: false`) if all model quotas are exhausted.
+- **Serverless Persistence Note:** On Vercel serverless functions, SQLite state is written to `/tmp/heatatlas.db` for ephemeral prototype execution while deficit math is statelessly recomputed from live APIs; production municipal deployment targets managed PostgreSQL (Neon/Supabase) + Redis.
+- **Medical Disclaimer:** HeatAtlas provides operational planning information, not medical advice, and does not replace IMD advisories. For heatstroke symptoms (confusion, dizziness, fainting, or absence of sweating) call **108** immediately.

@@ -22,9 +22,9 @@ def generate_archify_system_spec():
                 "vulnerability_breakdown": ["total_pop", "child_pop", "elderly_pop"]
             },
             "ground_vision_auditor": {
-                "source": "Google Gemini 3.8 / Flash-Lite Spatial Intelligence",
+                "source": "Google Gemini 2.5 Flash / Flash-Lite Spatial Intelligence",
                 "multimodal": True,
-                "failover": ["gemini-flash-lite-latest", "gemini-3-flash-preview", "gemini-3.8-flash"]
+                "failover": ["gemini-flash-lite-latest", "gemini-3-flash-preview", "gemini-2.5-flash"]
             },
             "dispatch_security": {
                 "layer": "Cloudflare Security Audit Guardrail",
