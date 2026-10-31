@@ -1,8 +1,9 @@
-import os
-import json
-import time
 import asyncio
+import json
+import os
+
 import httpx
+
 from config import WORLDPOP_BASE_URL
 
 CACHE_FILE = os.path.join(os.path.dirname(__file__), "../data/worldpop_cache.json")

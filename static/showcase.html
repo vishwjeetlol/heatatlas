@@ -1,1275 +1,1799 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HeatAtlas — Forecast Heat. Prioritise Relief. | Forge'26 Showcase</title>
-  <meta name="description" content="Autonomous real-time urban heatwave forecasting, biometeorological triage, and provably optimal relief allocation across 64 micro-zones in Pune, India." />
-  <meta property="og:title" content="HeatAtlas — Extreme Heat Intelligence & Relief Engine" />
-  <meta property="og:description" content="Multi-AI evaluated autonomous heatwave platform (Claude: 94/100, GPT-4o: 92/100, Gemini: 95/100). Watch the demo video & pitch deck." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://heatatlas.vercel.app/showcase.html" />
-  <meta property="og:image" content="https://heatatlas.vercel.app/slides/pitch_slide_1.png" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="HeatAtlas — Forecast Heat. Prioritise Relief." />
-  <meta name="twitter:description" content="Autonomous urban heatwave resilience for 10M+ gig workers. Forge'26 Theme 2 Submission." />
-  <meta name="twitter:image" content="https://heatatlas.vercel.app/slides/pitch_slide_1.png" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      HeatAtlas — Forecast Heat. Prioritise Relief. | Forge'26 Showcase
+    </title>
+    <meta
+      name="description"
+      content="Autonomous real-time urban heatwave forecasting, biometeorological triage, and provably optimal relief allocation across 64 micro-zones in Pune, India."
+    />
+    <meta
+      property="og:title"
+      content="HeatAtlas — Extreme Heat Intelligence & Relief Engine"
+    />
+    <meta
+      property="og:description"
+      content="Multi-AI evaluated autonomous heatwave platform (Claude: 94/100, GPT-4o: 92/100, Gemini: 95/100). Watch the demo video & pitch deck."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://heatatlas.vercel.app/showcase.html"
+    />
+    <meta
+      property="og:image"
+      content="https://heatatlas.vercel.app/slides/pitch_slide_1.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="HeatAtlas — Forecast Heat. Prioritise Relief."
+    />
+    <meta
+      name="twitter:description"
+      content="Autonomous urban heatwave resilience for 10M+ gig workers. Forge'26 Theme 2 Submission."
+    />
+    <meta
+      name="twitter:image"
+      content="https://heatatlas.vercel.app/slides/pitch_slide_1.png"
+    />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
-  <style>
-    :root {
-      --bg-canvas: #090d14;
-      --bg-surface: #0f1522;
-      --bg-surface-elevated: #161f30;
-      --bg-glass: rgba(15, 21, 34, 0.75);
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-strong: rgba(255, 255, 255, 0.16);
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --accent-flame-1: #ff453a;
-      --accent-flame-2: #ff9f0a;
-      --accent-amber: #f59e0b;
-      --accent-cyan: #38bdf8;
-      --accent-emerald: #10b981;
-      --accent-purple: #a855f7;
-      --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 22px;
-      --radius-xl: 30px;
-      --shadow-glow-red: 0 0 40px rgba(255, 69, 58, 0.25);
-      --shadow-glow-cyan: 0 0 40px rgba(56, 189, 248, 0.2);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-      overflow-x: clip;
-      background: var(--bg-canvas);
-      color: var(--text-primary);
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    body {
-      overflow-x: clip;
-      min-height: 100vh;
-      background-image: 
-        radial-gradient(circle at 50% -10%, rgba(255, 69, 58, 0.15), transparent 45%),
-        radial-gradient(circle at 10% 30%, rgba(255, 159, 10, 0.08), transparent 35%),
-        radial-gradient(circle at 90% 70%, rgba(56, 189, 248, 0.08), transparent 40%);
-      background-attachment: fixed;
-      line-height: 1.6;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    /* TOP NAVBAR */
-    .navbar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      background: rgba(9, 13, 20, 0.85);
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    .nav-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 70px;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .brand-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent-flame-1), var(--accent-flame-2));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      box-shadow: 0 4px 14px rgba(255, 69, 58, 0.35);
-    }
-    .brand-title {
-      font-weight: 800;
-      font-size: 18px;
-      letter-spacing: -0.02em;
-      background: linear-gradient(to right, #ffffff, #cbd5e1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .brand-badge {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(255, 159, 10, 0.15);
-      color: var(--accent-flame-2);
-      border: 1px solid rgba(255, 159, 10, 0.3);
-    }
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-    }
-    .nav-links a {
-      font-size: 13.5px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      transition: color 0.15s ease;
-    }
-    .nav-links a:hover {
-      color: var(--text-primary);
-    }
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border-radius: 12px;
-      font-size: 13.5px;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-    }
-    .btn:active {
-      transform: scale(0.97);
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent-flame-1), var(--accent-flame-2));
-      color: #ffffff;
-      box-shadow: 0 4px 16px rgba(255, 69, 58, 0.3);
-    }
-    .btn-primary:hover {
-      box-shadow: 0 6px 22px rgba(255, 69, 58, 0.45);
-    }
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-primary);
-      border: 1px solid var(--border-subtle);
-    }
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: var(--border-strong);
-    }
-    .btn-cyan {
-      background: rgba(56, 189, 248, 0.12);
-      color: var(--accent-cyan);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-    }
-    .btn-cyan:hover {
-      background: rgba(56, 189, 248, 0.2);
-    }
-    .btn-emerald {
-      background: rgba(16, 185, 129, 0.12);
-      color: var(--accent-emerald);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    .btn-emerald:hover {
-      background: rgba(16, 185, 129, 0.2);
-    }
-
-    /* HERO SECTION */
-    .hero {
-      padding: 70px 0 50px;
-      text-align: center;
-    }
-    .hero-badge-wrap {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-subtle);
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-secondary);
-      margin-bottom: 24px;
-    }
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent-emerald);
-      box-shadow: 0 0 10px var(--accent-emerald);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.2); }
-    }
-    .hero-title {
-      font-size: clamp(34px, 5.5vw, 62px);
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -0.03em;
-      margin-bottom: 20px;
-      max-width: 960px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .hero-title span {
-      background: linear-gradient(135deg, #ff5722 10%, #ff9800 50%, #ffeb3b 90%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero-desc {
-      font-size: clamp(16px, 2vw, 19px);
-      color: var(--text-secondary);
-      max-width: 780px;
-      margin: 0 auto 32px;
-      line-height: 1.6;
-    }
-    .hero-cta-group {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      margin-bottom: 45px;
-    }
-
-    /* STATS STRIP */
-    .stats-strip {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 14px;
-      margin-top: 10px;
-      margin-bottom: 60px;
-    }
-    .stat-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 18px 20px;
-      text-align: left;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-    .stat-card:hover {
-      transform: translateY(-2px);
-      border-color: var(--border-strong);
-    }
-    .stat-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 4px;
-    }
-    .stat-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      line-height: 1.3;
-    }
-
-    /* SECTION BASICS */
-    .section-wrap {
-      padding: 60px 0;
-      border-top: 1px solid var(--border-subtle);
-    }
-    .section-head {
-      margin-bottom: 36px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .section-tag {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent-flame-2);
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .section-title {
-      font-size: clamp(24px, 3.5vw, 36px);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-    }
-    .section-desc {
-      font-size: 14.5px;
-      color: var(--text-secondary);
-      max-width: 600px;
-      margin-top: 6px;
-    }
-
-    /* VIDEO STUDIO */
-    .video-studio-box {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    }
-    .tab-pills {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 6px;
-      border-radius: 14px;
-      width: fit-content;
-    }
-    .tab-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 13px;
-      font-weight: 700;
-      padding: 8px 18px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .tab-btn.active {
-      background: var(--bg-surface-elevated);
-      color: var(--text-primary);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-    .video-player-container {
-      position: relative;
-      width: 100%;
-      padding-top: 56.25%; /* 16:9 Aspect Ratio */
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      background: #000000;
-      border: 1px solid var(--border-subtle);
-    }
-    .video-player-container iframe,
-    .video-player-container video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-    .video-meta-bar {
-      margin-top: 18px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border-subtle);
-    }
-    .video-meta-info {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-    .video-meta-info strong {
-      color: var(--text-primary);
-    }
-
-    /* PITCH DECK SLIDER */
-    .deck-viewer {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-    }
-    .slide-display-frame {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: #06090e;
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      border: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .slide-display-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      transition: opacity 0.2s ease;
-    }
-    .slide-nav-bar {
-      margin-top: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .slide-indicator {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--accent-cyan);
-      background: rgba(56, 189, 248, 0.1);
-      padding: 4px 12px;
-      border-radius: 8px;
-    }
-    .thumbnails-row {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .thumb-btn {
-      background: var(--bg-surface-elevated);
-      border: 2px solid transparent;
-      border-radius: 8px;
-      padding: 4px;
-      cursor: pointer;
-      overflow: hidden;
-      aspect-ratio: 16 / 9;
-      transition: border-color 0.15s ease, transform 0.15s ease;
-    }
-    .thumb-btn img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 4px;
-    }
-    .thumb-btn.active {
-      border-color: var(--accent-flame-1);
-      transform: scale(1.03);
-    }
-
-    /* 10 UPGRADES GRID */
-    .upgrades-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 18px;
-    }
-    .upgrade-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 22px;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .upgrade-card:hover {
-      transform: translateY(-3px);
-      border-color: var(--border-strong);
-    }
-    .upgrade-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--accent-flame-2);
-      margin-bottom: 6px;
-    }
-    .upgrade-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      letter-spacing: -0.01em;
-    }
-    .upgrade-body {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-    .upgrade-tag {
-      display: inline-block;
-      margin-top: 12px;
-      font-size: 10.5px;
-      font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-muted);
-    }
-
-    /* AI SCORE TABLE */
-    .score-table-wrap {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      overflow-x: auto;
-    }
-    table.score-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 13.5px;
-    }
-    table.score-table th {
-      padding: 14px 18px;
-      background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      font-weight: 700;
-      text-transform: uppercase;
-      font-size: 11px;
-      letter-spacing: 0.05em;
-    }
-    table.score-table td {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-    }
-    table.score-table tr:last-child td {
-      border-bottom: none;
-    }
-    .score-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-    }
-    .score-green {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-    }
-    .score-cyan {
-      background: rgba(56, 189, 248, 0.15);
-      color: #7dd3fc;
-    }
-
-    /* PORTALS SHOWCASE */
-    .portals-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-    }
-    .portal-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .portal-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      margin-bottom: 16px;
-    }
-    .portal-card h3 {
-      font-size: 18px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-    .portal-card p {
-      font-size: 13.5px;
-      color: var(--text-secondary);
-      margin-bottom: 18px;
-    }
-    .portal-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 18px;
-    }
-    .portal-tag {
-      font-size: 11px;
-      font-weight: 600;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 3px 8px;
-      border-radius: 6px;
-      color: var(--text-muted);
-    }
-
-    /* FLOATING SHARE BAR & TOAST */
-    .floating-share-pill {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 999;
-      background: rgba(15, 21, 34, 0.9);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--border-strong);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-      border-radius: 999px;
-      padding: 6px 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .share-btn-circle {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 15px;
-      transition: transform 0.15s ease;
-      border: none;
-    }
-    .share-btn-circle:hover {
-      transform: scale(1.1);
-    }
-    .share-whatsapp {
-      background: #25D366;
-      color: #ffffff;
-    }
-    .share-x {
-      background: #000000;
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .share-copy {
-      background: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
-    }
-
-    .toast-msg {
-      position: fixed;
-      bottom: 84px;
-      right: 24px;
-      z-index: 1000;
-      background: #10b981;
-      color: #ffffff;
-      font-size: 12.5px;
-      font-weight: 700;
-      padding: 10px 18px;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
-      display: none;
-      animation: fadeIn 0.2s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* FOOTER */
-    footer {
-      padding: 60px 0 100px;
-      border-top: 1px solid var(--border-subtle);
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 13px;
-    }
-    .footer-links {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .footer-links a {
-      color: var(--text-secondary);
-      font-weight: 600;
-      transition: color 0.15s ease;
-    }
-    .footer-links a:hover {
-      color: var(--text-primary);
-    }
-
-    @media (max-width: 768px) {
-      .nav-links { display: none; }
-      .thumbnails-row { grid-template-columns: repeat(3, 1fr); }
-      .hero-title { font-size: 34px; }
-      .stats-strip { grid-template-columns: repeat(2, 1fr); }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- TOP NAVBAR -->
-  <header class="navbar">
-    <div class="container nav-inner">
-      <div class="brand">
-        <div class="brand-icon">🔥</div>
-        <div>
-          <span class="brand-title">HeatAtlas</span>
-          <span class="brand-badge">FORGE'26</span>
-        </div>
-      </div>
-
-      <nav class="nav-links">
-        <a href="#videos">Demo Videos</a>
-        <a href="#deck">Pitch Deck</a>
-        <a href="/ui_elements.html" target="_blank" style="color:#a5b4fc; font-weight:bold;">Living UI Kit ↗</a>
-        <a href="#upgrades">10 Upgrades</a>
-        <a href="#scores">Multi-AI Scores</a>
-        <a href="#portals">3 Portals</a>
-        <a href="#api">API Telemetry</a>
-      </nav>
-
-      <div class="nav-actions">
-        <button class="btn btn-secondary" onclick="copyShareLink()" title="Copy shareable link">
-          <span>🔗 Share</span>
-        </button>
-        <a href="https://heatatlas.vercel.app/" target="_blank" class="btn btn-primary">
-          <span>Launch App ↗</span>
-        </a>
-      </div>
-    </div>
-  </header>
-
-  <!-- HERO SECTION -->
-  <main class="container">
-    <section class="hero">
-      <div class="hero-badge-wrap">
-        <span class="pulse-dot"></span>
-        <span>FORGE'26 HACKATHON · THEME 2: RESILIENT CLIMATE INFRASTRUCTURE · TEAM STRAWHATS (627JUH)</span>
-      </div>
-
-      <h1 class="hero-title">
-        Autonomous Heatwave Resilience for <span>10M+ Outdoor Workers</span>
-      </h1>
-
-      <p class="hero-desc">
-        High-precision urban heatwave forecasting downscaled across 64 micro-zones in Pune, India. Powered by Gemini 2.5 Flash, an authoritative Dynamic Programming water relief optimizer (0.0% gap), and Sphere Humanitarian Standards.
-      </p>
-
-      <div class="hero-cta-group">
-        <a href="https://heatatlas.vercel.app/" target="_blank" class="btn btn-primary" style="padding: 13px 24px; font-size: 15px;">
-          <span>🚀 Open Live Prototype</span>
-        </a>
-        <a href="#videos" class="btn btn-secondary" style="padding: 13px 22px; font-size: 15px;">
-          <span>▶️ Watch Demo (150s)</span>
-        </a>
-        <a href="HeatAtlas_Pitch_Deck.pdf" target="_blank" class="btn btn-cyan" style="padding: 13px 22px; font-size: 15px;">
-          <span>📄 View Pitch Deck (PDF)</span>
-        </a>
-        <a href="https://github.com/vishwjeetlol/heatatlas" target="_blank" class="btn btn-secondary" style="padding: 13px 20px; font-size: 15px;">
-          <span>⭐ Star on GitHub</span>
-        </a>
-      </div>
-
-      <!-- STATS STRIP -->
-      <div class="stats-strip">
-        <div class="stat-card">
-          <div class="stat-num" style="color: var(--accent-flame-1);">64 Wards</div>
-          <div class="stat-label">Pune micro-zones (Z-00 to Z-77) ranked by deterministic deficit $</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num" style="color: var(--accent-cyan);">0.0% Gap</div>
-          <div class="stat-label">Combinatorial brute force proven DP global optimum on 190 states</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num" style="color: var(--accent-emerald);">399 Workers</div>
-          <div class="stat-label">Emergency drinking water delivered (Sphere Charter 3 L/person/day)</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num" style="color: var(--accent-purple);">17 / 17 Tests</div>
-          <div class="stat-label">Automated acceptance test suite passing with zero warnings</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num" style="color: var(--accent-flame-2);">95 / 100</div>
-          <div class="stat-label">Multi-AI verified score (Claude 3.5 Sonnet, GPT-4o, Gemini Flash)</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 1: DEMO VIDEOS STUDIO -->
-    <section id="videos" class="section-wrap">
-      <div class="section-head">
-        <div>
-          <div class="section-tag">🎥 Official Video Submissions</div>
-          <h2 class="section-title">Watch the Live Walkthroughs</h2>
-          <p class="section-desc">Choose between the complete ground reality walkthrough or the fast-paced engineering showcase.</p>
-        </div>
-        <div class="tab-pills">
-          <button id="tab-btn-master" class="tab-btn active" onclick="switchVideoTab('master')">Master Walkthrough (150s)</button>
-          <button id="tab-btn-brag" class="tab-btn" onclick="switchVideoTab('brag')">Brag Showcase (120s)</button>
-        </div>
-      </div>
-
-      <div class="video-studio-box">
-        <!-- Video 1: Master Walkthrough (YouTube Embed + MP4 fallback) -->
-        <div id="player-master-wrap">
-          <div class="video-player-container">
-            <iframe id="yt-iframe" src="https://www.youtube-nocookie.com/embed/E7Kn1yrEejY?rel=0" title="HeatAtlas Official Walkthrough" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-          </div>
-          <div class="video-meta-bar">
-            <div class="video-meta-info">
-              <strong>Official Master Walkthrough (150.0s)</strong> — Features live Pune heatwave radar, 2-tap anhidrosis triage, Gemini Flash multimodal vision audit, and DP dispatch battle-orders.
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <a href="https://youtu.be/E7Kn1yrEejY" target="_blank" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Open on YouTube ↗</a>
-              <a href="demo.mp4" download class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Download 150s MP4 (14 MB)</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Video 2: Brag Showcase (HTML5 Native Player) -->
-        <div id="player-brag-wrap" style="display: none;">
-          <div class="video-player-container">
-            <video id="brag-video-el" controls preload="metadata" poster="slides/pitch_slide_4.png">
-              <source src="HeatAtlas_Brag_Showcase_120s.mp4" type="video/mp4">
-              Your browser does not support HTML5 video.
-            </video>
-          </div>
-          <div class="video-meta-bar">
-            <div class="video-meta-info">
-              <strong>Engineering Brag & Optimization Showcase (154.2s)</strong> — Freshly recorded on the updated UI/UX. Highlights 0.0% optimality gap, 17/17 tests passing, PMC disaster HQ 020-25501269, and Stull wet-bulb formula.
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <a href="HeatAtlas_Brag_Showcase_120s.mp4" download class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">Download Brag MP4 (9.6 MB)</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 2: PITCH DECK CAROUSEL -->
-    <section id="deck" class="section-wrap">
-      <div class="section-head">
-        <div>
-          <div class="section-tag">📊 Keynote Pitch Deck</div>
-          <h2 class="section-title">Interactive 6-Slide Executive Deck</h2>
-          <p class="section-desc">Click through the slides or download the high-resolution vector PDF.</p>
-        </div>
-        <div style="display: flex; gap: 10px;">
-          <a href="HeatAtlas_Pitch_Deck.pdf" target="_blank" class="btn btn-primary">
-            <span>Download Deck PDF (1.5 MB)</span>
-          </a>
-          <a href="HeatAtlas_Submission_Checklist.pdf" target="_blank" class="btn btn-secondary">
-            <span>Checklist PDF</span>
-          </a>
-        </div>
-      </div>
-
-      <div class="deck-viewer">
-        <div class="slide-display-frame">
-          <img id="active-slide-img" src="slides/pitch_slide_1.png" alt="HeatAtlas Pitch Slide" />
-        </div>
-
-        <div class="slide-nav-bar">
-          <button class="btn btn-secondary" onclick="prevSlide()">← Previous</button>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="slide-indicator" id="slide-indicator-text">Slide 1 of 6</span>
-            <span id="slide-title-text" style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">Title & Executive Vision</span>
-          </div>
-          <button class="btn btn-secondary" onclick="nextSlide()">Next →</button>
-        </div>
-
-        <div class="thumbnails-row">
-          <button class="thumb-btn active" onclick="setSlide(1)" title="Slide 1: Title"><img src="slides/pitch_slide_1.png" alt="Slide 1"></button>
-          <button class="thumb-btn" onclick="setSlide(2)" title="Slide 2: Problem"><img src="slides/pitch_slide_2.png" alt="Slide 2"></button>
-          <button class="thumb-btn" onclick="setSlide(3)" title="Slide 3: Architecture"><img src="slides/pitch_slide_3.png" alt="Slide 3"></button>
-          <button class="thumb-btn" onclick="setSlide(4)" title="Slide 4: DP Solver"><img src="slides/pitch_slide_4.png" alt="Slide 4"></button>
-          <button class="thumb-btn" onclick="setSlide(5)" title="Slide 5: Multi-AI Scores"><img src="slides/pitch_slide_5.png" alt="Slide 5"></button>
-          <button class="thumb-btn" onclick="setSlide(6)" title="Slide 6: Roadmap"><img src="slides/pitch_slide_6.png" alt="Slide 6"></button>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 3: 10 MAJOR ENGINEERING UPGRADES -->
-    <section id="upgrades" class="section-wrap">
-      <div class="section-head">
-        <div>
-          <div class="section-tag">⚡ Engineering Rigor</div>
-          <h2 class="section-title">The 10 Major Engineering Upgrades</h2>
-          <p class="section-desc">Built through adversarial multi-round scrutiny. Zero fluff, 100% verified mathematics.</p>
-        </div>
-      </div>
-
-      <div class="upgrades-grid">
-        <div class="upgrade-card">
-          <div class="upgrade-num">UPGRADE 01</div>
-          <h3 class="upgrade-title">Authoritative DP Optimizer</h3>
-          <p class="upgrade-body">Re-architected the dispatch API so Gemini Flash strictly executes the Constrained Discrete Concave Dynamic Programming solver. Zero LLM hallucinations on logistics.</p>
-          <span class="upgrade-tag">O(K · W · T) Complexity</span>
-        </div>
-
-        <div class="upgrade-card">
-          <div class="upgrade-num">UPGRADE 02</div>
-          <h3 class="upgrade-title">Sphere Humanitarian Charter</h3>
-          <p class="upgrade-body">Replaced abstract point drops with international humanitarian standards: 1,200L water (60 cans), 399 workers guaranteed 3 L/day emergency survival hydration, and 300 WHO ORS sachets.</p>
-          <span class="upgrade-tag">Sphere Standard 1</span>
-        </div>
-
-        <div class="upgrade-card">
-          <div class="upgrade-num">UPGRADE 03</div>
-          <h3 class="upgrade-title">Authenticated PMC Command Centers</h3>
-          <p class="upgrade-body">Replaced fictional NGO names with 4 real Pune Municipal Corporation bases: Shivajinagar Disaster Cell (020-25501269), Swargate Hub, Hadapsar Fire Station, and Deccan Ward Office.</p>
-          <span class="upgrade-tag">Official Directory Verified</span>
-        </div>
-
-        <div class="upgrade-card">
-          <div class="upgrade-num">UPGRADE 04</div>
-          <h3 class="upgrade-title">Stull Psychrometric Wet-Bulb Model</h3>
-          <p class="upgrade-body">Implemented Stull's (2011) empirical inverse-tangent equation fed strictly by ambient dry-bulb temperature. Formally verified: 42°C @ 38% RH = 29.68°C Tw; 20°C @ 50% RH = 13.70°C Tw.</p>
-          <span class="upgrade-tag">Biometeorology Benchmark</span>
-        </div>
-
-        <div class="upgrade-card">
-          <div class="upgrade-num">UPGRADE 05</div>
-          <h3 class="upgrade-title">Brute-Force Optimality Proof (0.0% Gap)</h3>
-          <p class="upgrade-body">Built an exhaustive combinatorial validator on 190 feasible states (Stars & Bars). Proven identical outcome between DP solver (32368.95) and brute force (32368.95) with a 0.0% optimality gap.</p>
-          <span class="upgrade-tag">Live on /api/system/audit-proof</span>
-        </div>
-
-        <div class="upgrade-card">
-          <div class="upgrade-num">UPGRADE 06</div>
-          <h3 class="upgrade-title">Historical Peak Replay (IMD 44.2°C)</h3>
-          <p class="upgrade-body">Constructed extreme heat replay anchored to IMD Shivajinagar Pune (#43063) from May 19, 2024 with realistic 24-hour diurnal relative humidity curves (18% afternoon to 48% night).</p>
-          <span class="upgrade-tag">Real Pune Climate Data</span>
-        </div>
-
-        <div class="upgrade-card">
-          <div class="upgrade-num">UPGRADE 07</div>
-          <h3 class="upgrade-title">Deterministic SHA-256 Spatial Hashing</h3>
-          <p class="upgrade-body">Eliminated seed drift across serverless cold starts by replacing Python's randomized hash() with stable 64-bit integer masks derived from hashlib.sha256.</p>
-          <span class="upgrade-tag">100% Deterministic Reproducibility</span>
-        </div>
-
-        <div class="upgrade-card">
-          <div class="upgrade-num">UPGRADE 08</div>
-          <h3 class="upgrade-title">Centroid Realignment to Real Landmarks</h3>
-          <p class="upgrade-body">Fixed landmark grid mapping: Kothrud (Z-43, 73.808°E), Deccan Gymkhana (Z-44, 73.841°E), Swargate (Z-45, 73.858°E), and Hadapsar APMC (Z-47, 73.927°E).</p>
-          <span class="upgrade-tag">Pinpoint Geographic Accuracy</span>
-        </div>
-
-        <div class="upgrade-card">
-          <div class="upgrade-num">UPGRADE 09</div>
-          <h3 class="upgrade-title">RESTful GET Handlers & 17 Pytest Suite</h3>
-          <p class="upgrade-body">Added idempotent GET methods for automated crawler verification. 17/17 automated pytest acceptance tests passing with zero failures.</p>
-          <span class="upgrade-tag">tests/test_heatatlas.py</span>
-        </div>
-
-        <div class="upgrade-card">
-          <div class="upgrade-num">UPGRADE 10</div>
-          <h3 class="upgrade-title">Keynote Deck & Checklist Regeneration</h3>
-          <p class="upgrade-body">Rendered 6 keynote-quality 1080p slides and the official 1-page Forge'26 compliance verification form deployed directly as live PDFs.</p>
-          <span class="upgrade-tag">Ready for Finals Presentation</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 4: MULTI-AI EVALUATOR PROGRESSION -->
-    <section id="scores" class="section-wrap">
-      <div class="section-head">
-        <div>
-          <div class="section-tag">🏆 Adversarial AI Judging</div>
-          <h2 class="section-title">Multi-AI Score Progression (Rounds 1–6)</h2>
-          <p class="section-desc">Tested against Claude 3.5 Sonnet, ChatGPT-4o, and Gemini Flash through 6 iterative rounds of ruthless scrutiny.</p>
-        </div>
-      </div>
-
-      <div class="score-table-wrap">
-        <table class="score-table">
-          <thead>
-            <tr>
-              <th>Round</th>
-              <th>ChatGPT-4o (Ruthless / Std)</th>
-              <th>Claude 3.5 Sonnet (Ruthless / Std)</th>
-              <th>Gemini Flash (Ruthless / Std)</th>
-              <th>Key Milestone Verified</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Round 1</strong></td>
-              <td>54 / 69</td>
-              <td>66 / 83</td>
-              <td>72 / 82</td>
-              <td>Initial prototype; flagged greedy solver & placeholder bases</td>
-            </tr>
-            <tr>
-              <td><strong>Round 2</strong></td>
-              <td>58 / 72</td>
-              <td>75 / 88</td>
-              <td>78 / 86</td>
-              <td>Quadtree spatial index, route caching & duplicate guards</td>
-            </tr>
-            <tr>
-              <td><strong>Round 3</strong></td>
-              <td>68 / 81</td>
-              <td>74 / 87</td>
-              <td>80 / 89</td>
-              <td>Stull wet-bulb formula & RefChecker zero-hallucination verification</td>
-            </tr>
-            <tr>
-              <td><strong>Round 4</strong></td>
-              <td>74 / 85</td>
-              <td>78 / 90</td>
-              <td>84 / 91</td>
-              <td>Verified 64 micro-zones, Swargate Z-45, and 1,800 Overpass assets</td>
-            </tr>
-            <tr>
-              <td><strong>Round 5</strong></td>
-              <td>78 / 88</td>
-              <td>80 / 92</td>
-              <td>86 / 93</td>
-              <td>0.0% brute-force optimality proof & Sphere 399 people served metrics</td>
-            </tr>
-            <tr style="background: rgba(255, 69, 58, 0.05);">
-              <td><strong style="color: var(--accent-flame-1);">Round 6 (Final)</strong></td>
-              <td><span class="score-badge score-green">82 / 92</span></td>
-              <td><span class="score-badge score-green">84 / 94</span></td>
-              <td><span class="score-badge score-cyan">88 / 95</span></td>
-              <td><strong>17/17 pytest suite passing, PMC official command centers, production ready</strong></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- SECTION 5: THE 3 INTERACTIVE PORTALS -->
-    <section id="portals" class="section-wrap">
-      <div class="section-head">
-        <div>
-          <div class="section-tag">📱 Full Ecosystem</div>
-          <h2 class="section-title">Three Unified Operational Portals</h2>
-          <p class="section-desc">From outdoor gig workers on the street to municipal disaster commanders at HQ.</p>
-        </div>
-      </div>
-
-      <div class="portals-grid">
-        <div class="portal-card">
-          <div>
-            <div class="portal-icon" style="background: rgba(255, 69, 58, 0.15); color: var(--accent-flame-1);">📱</div>
-            <h3>1. Field Worker Radar</h3>
-            <p>Runs in any mobile browser. Workers can report broken taps, signal distress via 2-tap clinical anhidrosis check, or speak in Hindi/Marathi to find cool corridors.</p>
-            <div class="portal-tags">
-              <span class="portal-tag">Hindi / Marathi Audio</span>
-              <span class="portal-tag">2-Tap Anhidrosis</span>
-              <span class="portal-tag">Photo Tap Audit</span>
-            </div>
-          </div>
-          <a href="https://heatatlas.vercel.app/" target="_blank" class="btn btn-secondary" style="width: 100%;">Open Worker Radar ↗</a>
-        </div>
-
-        <div class="portal-card">
-          <div>
-            <div class="portal-icon" style="background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan);">🛡️</div>
-            <h3>2. NGO Command Portal</h3>
-            <p>Live 64 micro-zones Pune deficit map. Officials select registered PMC bases to execute the DP optimizer and dispatch WhatsApp battle orders with 1 click.</p>
-            <div class="portal-tags">
-              <span class="portal-tag">64 Ward Leaflet Map</span>
-              <span class="portal-tag">DP Optimizer</span>
-              <span class="portal-tag">1-Click WhatsApp</span>
-            </div>
-          </div>
-          <a href="https://heatatlas.vercel.app/" target="_blank" class="btn btn-cyan" style="width: 100%;">Open NGO Command ↗</a>
-        </div>
-
-        <div class="portal-card">
-          <div>
-            <div class="portal-icon" style="background: rgba(168, 85, 247, 0.15); color: var(--accent-purple);">⚡</div>
-            <h3>3. FastAPI Backend</h3>
-            <p>Production REST backend with OpenAPI/Swagger specifications, health probes, readiness checks, and mathematical audit verification endpoints.</p>
-            <div class="portal-tags">
-              <span class="portal-tag">FastAPI 0.162</span>
-              <span class="portal-tag">OpenAPI 3.1</span>
-              <span class="portal-tag">/api/system/audit-proof</span>
-            </div>
-          </div>
-          <a href="https://heatatlas.vercel.app/docs" target="_blank" class="btn btn-secondary" style="width: 100%;">Open Swagger Docs ↗</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 6: LIVE API STATUS -->
-    <section id="api" class="section-wrap">
-      <div class="section-head">
-        <div>
-          <div class="section-tag">🔌 Real-Time Upstream Telemetry</div>
-          <h2 class="section-title">Live Production Endpoints</h2>
-          <p class="section-desc">Test live endpoints directly on Vercel production with instant response checking.</p>
-        </div>
-      </div>
-
-      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px;">
-        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="pulse-dot"></span>
-            <span style="font-weight: 700; font-size: 14px;">Production Status: <strong style="color: var(--accent-emerald);">HEALTHY (200 OK)</strong></span>
-          </div>
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted);" id="api-ping-status">
-            Last Checked: Just now (Live)
-          </div>
-        </div>
-
-        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-          <a href="https://heatatlas.vercel.app/api/health" target="_blank" class="btn btn-secondary" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">GET /api/health</a>
-          <a href="https://heatatlas.vercel.app/api/ready" target="_blank" class="btn btn-secondary" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">GET /api/ready</a>
-          <a href="https://heatatlas.vercel.app/api/system/build-info" target="_blank" class="btn btn-secondary" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">GET /api/system/build-info</a>
-          <a href="https://heatatlas.vercel.app/api/system/audit-proof" target="_blank" class="btn btn-cyan" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">GET /api/system/audit-proof (0.0% Proof)</a>
-          <a href="https://heatatlas.vercel.app/api/zones" target="_blank" class="btn btn-secondary" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">GET /api/zones (64 Wards)</a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- FLOATING SHARE PILL -->
-  <div class="floating-share-pill">
-    <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Share:</span>
-    <button class="share-btn-circle share-whatsapp" onclick="shareWhatsApp()" title="Share on WhatsApp">💬</button>
-    <button class="share-btn-circle share-x" onclick="shareTwitter()" title="Share on X (Twitter)">𝕏</button>
-    <button class="share-btn-circle share-copy" onclick="copyShareLink()" title="Copy link to clipboard">🔗</button>
-  </div>
-
-  <!-- TOAST NOTIFICATION -->
-  <div id="toast" class="toast-msg">✓ Link copied to clipboard! Share it with your friends!</div>
-
-  <!-- FOOTER -->
-  <footer>
-    <div class="container">
-      <div class="footer-links">
-        <a href="https://heatatlas.vercel.app/">Live App</a>
-        <a href="https://github.com/vishwjeetlol/heatatlas">GitHub Repo</a>
-        <a href="https://youtu.be/E7Kn1yrEejY">YouTube Demo</a>
-        <a href="HeatAtlas_Pitch_Deck.pdf">Pitch Deck PDF</a>
-        <a href="HeatAtlas_Submission_Checklist.pdf">Submission Checklist</a>
-        <a href="https://heatatlas.vercel.app/docs">API Docs</a>
-      </div>
-      <p>Built with ❤️ by <strong>Team Strawhats</strong> (Team Code: <code>627JUH</code>) for FORGE'26 Hackathon (Theme 2).</p>
-      <p style="margin-top: 8px; font-size: 11.5px;">Pune Municipal Corporation Emergency Disaster Command Telemetry & AI Biometeorology Relief Engine.</p>
-    </div>
-  </footer>
-
-  <script>
-    // VIDEO TAB SWITCHER
-    function switchVideoTab(tab) {
-      const btnMaster = document.getElementById('tab-btn-master');
-      const btnBrag = document.getElementById('tab-btn-brag');
-      const wrapMaster = document.getElementById('player-master-wrap');
-      const wrapBrag = document.getElementById('player-brag-wrap');
-      const bragVideo = document.getElementById('brag-video-el');
-
-      if (tab === 'master') {
-        btnMaster.classList.add('active');
-        btnBrag.classList.remove('active');
-        wrapMaster.style.display = 'block';
-        wrapBrag.style.display = 'none';
-        if (bragVideo) bragVideo.pause();
-      } else {
-        btnBrag.classList.add('active');
-        btnMaster.classList.remove('active');
-        wrapMaster.style.display = 'none';
-        wrapBrag.style.display = 'block';
+    <style>
+      :root {
+        --bg-canvas: #090d14;
+        --bg-surface: #0f1522;
+        --bg-surface-elevated: #161f30;
+        --bg-glass: rgba(15, 21, 34, 0.75);
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --border-strong: rgba(255, 255, 255, 0.16);
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-flame-1: #ff453a;
+        --accent-flame-2: #ff9f0a;
+        --accent-amber: #f59e0b;
+        --accent-cyan: #38bdf8;
+        --accent-emerald: #10b981;
+        --accent-purple: #a855f7;
+        --radius-sm: 8px;
+        --radius-md: 14px;
+        --radius-lg: 22px;
+        --radius-xl: 30px;
+        --shadow-glow-red: 0 0 40px rgba(255, 69, 58, 0.25);
+        --shadow-glow-cyan: 0 0 40px rgba(56, 189, 248, 0.2);
       }
-    }
 
-    // SLIDE CAROUSEL
-    let currentSlide = 1;
-    const totalSlides = 6;
-    const slideTitles = [
-      'Title & Executive Vision',
-      'Ground Reality & Heat Micro-Canyons',
-      'Full-Stack Architecture & Telemetry',
-      'Authoritative DP Logistics Optimizer',
-      'Multi-AI Adversarial Evaluation Matrix',
-      'Future Roadmap & Submission Links'
-    ];
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-    function setSlide(n) {
-      if (n < 1) n = totalSlides;
-      if (n > totalSlides) n = 1;
-      currentSlide = n;
+      html {
+        scroll-behavior: smooth;
+        overflow-x: clip;
+        background: var(--bg-canvas);
+        color: var(--text-primary);
+        font-family:
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
 
-      const img = document.getElementById('active-slide-img');
-      img.style.opacity = '0.4';
-      setTimeout(() => {
-        img.src = 'slides/pitch_slide_' + n + '.png';
-        img.style.opacity = '1';
-      }, 150);
+      body {
+        overflow-x: clip;
+        min-height: 100vh;
+        background-image:
+          radial-gradient(
+            circle at 50% -10%,
+            rgba(255, 69, 58, 0.15),
+            transparent 45%
+          ),
+          radial-gradient(
+            circle at 10% 30%,
+            rgba(255, 159, 10, 0.08),
+            transparent 35%
+          ),
+          radial-gradient(
+            circle at 90% 70%,
+            rgba(56, 189, 248, 0.08),
+            transparent 40%
+          );
+        background-attachment: fixed;
+        line-height: 1.6;
+      }
 
-      document.getElementById('slide-indicator-text').innerText = 'Slide ' + n + ' of ' + totalSlides;
-      document.getElementById('slide-title-text').innerText = slideTitles[n - 1];
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
 
-      const thumbs = document.querySelectorAll('.thumb-btn');
-      thumbs.forEach((th, idx) => {
-        if (idx === n - 1) th.classList.add('active');
-        else th.classList.remove('active');
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* TOP NAVBAR */
+      .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        background: rgba(9, 13, 20, 0.85);
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .nav-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 70px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .brand-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: linear-gradient(
+          135deg,
+          var(--accent-flame-1),
+          var(--accent-flame-2)
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        box-shadow: 0 4px 14px rgba(255, 69, 58, 0.35);
+      }
+      .brand-title {
+        font-weight: 800;
+        font-size: 18px;
+        letter-spacing: -0.02em;
+        background: linear-gradient(to right, #ffffff, #cbd5e1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .brand-badge {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: rgba(255, 159, 10, 0.15);
+        color: var(--accent-flame-2);
+        border: 1px solid rgba(255, 159, 10, 0.3);
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .nav-links a {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        transition: color 0.15s ease;
+      }
+      .nav-links a:hover {
+        color: var(--text-primary);
+      }
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-size: 13.5px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease,
+          background-color 0.15s ease;
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn-primary {
+        background: linear-gradient(
+          135deg,
+          var(--accent-flame-1),
+          var(--accent-flame-2)
+        );
+        color: #ffffff;
+        box-shadow: 0 4px 16px rgba(255, 69, 58, 0.3);
+      }
+      .btn-primary:hover {
+        box-shadow: 0 6px 22px rgba(255, 69, 58, 0.45);
+      }
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+      }
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--border-strong);
+      }
+      .btn-cyan {
+        background: rgba(56, 189, 248, 0.12);
+        color: var(--accent-cyan);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+      }
+      .btn-cyan:hover {
+        background: rgba(56, 189, 248, 0.2);
+      }
+      .btn-emerald {
+        background: rgba(16, 185, 129, 0.12);
+        color: var(--accent-emerald);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+      .btn-emerald:hover {
+        background: rgba(16, 185, 129, 0.2);
+      }
+
+      /* HERO SECTION */
+      .hero {
+        padding: 70px 0 50px;
+        text-align: center;
+      }
+      .hero-badge-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle);
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+      }
+      .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-emerald);
+        box-shadow: 0 0 10px var(--accent-emerald);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(1.2);
+        }
+      }
+      .hero-title {
+        font-size: clamp(34px, 5.5vw, 62px);
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        margin-bottom: 20px;
+        max-width: 960px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero-title span {
+        background: linear-gradient(
+          135deg,
+          #ff5722 10%,
+          #ff9800 50%,
+          #ffeb3b 90%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero-desc {
+        font-size: clamp(16px, 2vw, 19px);
+        color: var(--text-secondary);
+        max-width: 780px;
+        margin: 0 auto 32px;
+        line-height: 1.6;
+      }
+      .hero-cta-group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        margin-bottom: 45px;
+      }
+
+      /* STATS STRIP */
+      .stats-strip {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 14px;
+        margin-top: 10px;
+        margin-bottom: 60px;
+      }
+      .stat-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 18px 20px;
+        text-align: left;
+        transition:
+          transform 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .stat-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--border-strong);
+      }
+      .stat-num {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-bottom: 4px;
+      }
+      .stat-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        line-height: 1.3;
+      }
+
+      /* SECTION BASICS */
+      .section-wrap {
+        padding: 60px 0;
+        border-top: 1px solid var(--border-subtle);
+      }
+      .section-head {
+        margin-bottom: 36px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .section-tag {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--accent-flame-2);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .section-title {
+        font-size: clamp(24px, 3.5vw, 36px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+      .section-desc {
+        font-size: 14.5px;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin-top: 6px;
+      }
+
+      /* VIDEO STUDIO */
+      .video-studio-box {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      }
+      .tab-pills {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 6px;
+        border-radius: 14px;
+        width: fit-content;
+      }
+      .tab-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 700;
+        padding: 8px 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .tab-btn.active {
+        background: var(--bg-surface-elevated);
+        color: var(--text-primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+      .video-player-container {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        background: #000000;
+        border: 1px solid var(--border-subtle);
+      }
+      .video-player-container iframe,
+      .video-player-container video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+      .video-meta-bar {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-subtle);
+      }
+      .video-meta-info {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+      .video-meta-info strong {
+        color: var(--text-primary);
+      }
+
+      /* PITCH DECK SLIDER */
+      .deck-viewer {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+      }
+      .slide-display-frame {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        background: #06090e;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .slide-display-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: opacity 0.2s ease;
+      }
+      .slide-nav-bar {
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .slide-indicator {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--accent-cyan);
+        background: rgba(56, 189, 248, 0.1);
+        padding: 4px 12px;
+        border-radius: 8px;
+      }
+      .thumbnails-row {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .thumb-btn {
+        background: var(--bg-surface-elevated);
+        border: 2px solid transparent;
+        border-radius: 8px;
+        padding: 4px;
+        cursor: pointer;
+        overflow: hidden;
+        aspect-ratio: 16 / 9;
+        transition:
+          border-color 0.15s ease,
+          transform 0.15s ease;
+      }
+      .thumb-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 4px;
+      }
+      .thumb-btn.active {
+        border-color: var(--accent-flame-1);
+        transform: scale(1.03);
+      }
+
+      /* 10 UPGRADES GRID */
+      .upgrades-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 18px;
+      }
+      .upgrade-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 22px;
+        transition:
+          transform 0.2s ease,
+          border-color 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .upgrade-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--border-strong);
+      }
+      .upgrade-num {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--accent-flame-2);
+        margin-bottom: 6px;
+      }
+      .upgrade-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        letter-spacing: -0.01em;
+      }
+      .upgrade-body {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+      .upgrade-tag {
+        display: inline-block;
+        margin-top: 12px;
+        font-size: 10.5px;
+        font-weight: 700;
+        font-family: "JetBrains Mono", monospace;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-muted);
+      }
+
+      /* AI SCORE TABLE */
+      .score-table-wrap {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        overflow-x: auto;
+      }
+      table.score-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 13.5px;
+      }
+      table.score-table th {
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid var(--border-subtle);
+        color: var(--text-muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+      }
+      table.score-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border-subtle);
+        color: var(--text-secondary);
+      }
+      table.score-table tr:last-child td {
+        border-bottom: none;
+      }
+      .score-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+      .score-green {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+      }
+      .score-cyan {
+        background: rgba(56, 189, 248, 0.15);
+        color: #7dd3fc;
+      }
+
+      /* PORTALS SHOWCASE */
+      .portals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+      }
+      .portal-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .portal-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        margin-bottom: 16px;
+      }
+      .portal-card h3 {
+        font-size: 18px;
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+      .portal-card p {
+        font-size: 13.5px;
+        color: var(--text-secondary);
+        margin-bottom: 18px;
+      }
+      .portal-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 18px;
+      }
+      .portal-tag {
+        font-size: 11px;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 3px 8px;
+        border-radius: 6px;
+        color: var(--text-muted);
+      }
+
+      /* FLOATING SHARE BAR & TOAST */
+      .floating-share-pill {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 999;
+        background: rgba(15, 21, 34, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--border-strong);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        border-radius: 999px;
+        padding: 6px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .share-btn-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 15px;
+        transition: transform 0.15s ease;
+        border: none;
+      }
+      .share-btn-circle:hover {
+        transform: scale(1.1);
+      }
+      .share-whatsapp {
+        background: #25d366;
+        color: #ffffff;
+      }
+      .share-x {
+        background: #000000;
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .share-copy {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+      }
+
+      .toast-msg {
+        position: fixed;
+        bottom: 84px;
+        right: 24px;
+        z-index: 1000;
+        background: #10b981;
+        color: #ffffff;
+        font-size: 12.5px;
+        font-weight: 700;
+        padding: 10px 18px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+        display: none;
+        animation: fadeIn 0.2s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* FOOTER */
+      footer {
+        padding: 60px 0 100px;
+        border-top: 1px solid var(--border-subtle);
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+      .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      .footer-links a {
+        color: var(--text-secondary);
+        font-weight: 600;
+        transition: color 0.15s ease;
+      }
+      .footer-links a:hover {
+        color: var(--text-primary);
+      }
+
+      @media (max-width: 768px) {
+        .nav-links {
+          display: none;
+        }
+        .thumbnails-row {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .hero-title {
+          font-size: 34px;
+        }
+        .stats-strip {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOP NAVBAR -->
+    <header class="navbar">
+      <div class="container nav-inner">
+        <div class="brand">
+          <div class="brand-icon">🔥</div>
+          <div>
+            <span class="brand-title">HeatAtlas</span>
+            <span class="brand-badge">FORGE'26</span>
+          </div>
+        </div>
+
+        <nav class="nav-links">
+          <a href="#videos">Demo Videos</a>
+          <a href="#deck">Pitch Deck</a>
+          <a
+            href="/ui_elements.html"
+            target="_blank"
+            style="color: #a5b4fc; font-weight: bold"
+            >Living UI Kit ↗</a
+          >
+          <a href="#upgrades">10 Upgrades</a>
+          <a href="#scores">Multi-AI Scores</a>
+          <a href="#portals">3 Portals</a>
+          <a href="#api">API Telemetry</a>
+        </nav>
+
+        <div class="nav-actions">
+          <button
+            class="btn btn-secondary"
+            onclick="copyShareLink()"
+            title="Copy shareable link"
+          >
+            <span>🔗 Share</span>
+          </button>
+          <a
+            href="https://heatatlas.vercel.app/"
+            target="_blank"
+            class="btn btn-primary"
+          >
+            <span>Launch App ↗</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <main class="container">
+      <section class="hero">
+        <div class="hero-badge-wrap">
+          <span class="pulse-dot"></span>
+          <span
+            >FORGE'26 HACKATHON · THEME 2: RESILIENT CLIMATE INFRASTRUCTURE ·
+            TEAM STRAWHATS (627JUH)</span
+          >
+        </div>
+
+        <h1 class="hero-title">
+          Autonomous Heatwave Resilience for <span>10M+ Outdoor Workers</span>
+        </h1>
+
+        <p class="hero-desc">
+          High-precision urban heatwave forecasting downscaled across 64
+          micro-zones in Pune, India. Powered by Gemini 2.5 Flash, an
+          authoritative Dynamic Programming water relief optimizer (0.0% gap),
+          and Sphere Humanitarian Standards.
+        </p>
+
+        <div class="hero-cta-group">
+          <a
+            href="https://heatatlas.vercel.app/"
+            target="_blank"
+            class="btn btn-primary"
+            style="padding: 13px 24px; font-size: 15px"
+          >
+            <span>🚀 Open Live Prototype</span>
+          </a>
+          <a
+            href="#videos"
+            class="btn btn-secondary"
+            style="padding: 13px 22px; font-size: 15px"
+          >
+            <span>▶️ Watch Demo (150s)</span>
+          </a>
+          <a
+            href="HeatAtlas_Pitch_Deck.pdf"
+            target="_blank"
+            class="btn btn-cyan"
+            style="padding: 13px 22px; font-size: 15px"
+          >
+            <span>📄 View Pitch Deck (PDF)</span>
+          </a>
+          <a
+            href="https://github.com/vishwjeetlol/heatatlas"
+            target="_blank"
+            class="btn btn-secondary"
+            style="padding: 13px 20px; font-size: 15px"
+          >
+            <span>⭐ Star on GitHub</span>
+          </a>
+        </div>
+
+        <!-- STATS STRIP -->
+        <div class="stats-strip">
+          <div class="stat-card">
+            <div class="stat-num" style="color: var(--accent-flame-1)">
+              64 Wards
+            </div>
+            <div class="stat-label">
+              Pune micro-zones (Z-00 to Z-77) ranked by deterministic deficit $
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color: var(--accent-cyan)">
+              0.0% Gap
+            </div>
+            <div class="stat-label">
+              Combinatorial brute force proven DP global optimum on 190 states
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color: var(--accent-emerald)">
+              399 Workers
+            </div>
+            <div class="stat-label">
+              Emergency drinking water delivered (Sphere Charter 3 L/person/day)
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color: var(--accent-purple)">
+              17 / 17 Tests
+            </div>
+            <div class="stat-label">
+              Automated acceptance test suite passing with zero warnings
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color: var(--accent-flame-2)">
+              95 / 100
+            </div>
+            <div class="stat-label">
+              Multi-AI verified score (Claude 3.5 Sonnet, GPT-4o, Gemini Flash)
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 1: DEMO VIDEOS STUDIO -->
+      <section id="videos" class="section-wrap">
+        <div class="section-head">
+          <div>
+            <div class="section-tag">🎥 Official Video Submissions</div>
+            <h2 class="section-title">Watch the Live Walkthroughs</h2>
+            <p class="section-desc">
+              Choose between the complete ground reality walkthrough or the
+              fast-paced engineering showcase.
+            </p>
+          </div>
+          <div class="tab-pills">
+            <button
+              id="tab-btn-master"
+              class="tab-btn active"
+              onclick="switchVideoTab('master')"
+            >
+              Master Walkthrough (150s)
+            </button>
+            <button
+              id="tab-btn-brag"
+              class="tab-btn"
+              onclick="switchVideoTab('brag')"
+            >
+              Brag Showcase (120s)
+            </button>
+          </div>
+        </div>
+
+        <div class="video-studio-box">
+          <!-- Video 1: Master Walkthrough (YouTube Embed + MP4 fallback) -->
+          <div id="player-master-wrap">
+            <div class="video-player-container">
+              <iframe
+                id="yt-iframe"
+                src="https://www.youtube-nocookie.com/embed/E7Kn1yrEejY?rel=0"
+                title="HeatAtlas Official Walkthrough"
+                allow="
+                  accelerometer;
+                  autoplay;
+                  clipboard-write;
+                  encrypted-media;
+                  gyroscope;
+                  picture-in-picture;
+                "
+                allowfullscreen
+              ></iframe>
+            </div>
+            <div class="video-meta-bar">
+              <div class="video-meta-info">
+                <strong>Official Master Walkthrough (150.0s)</strong> — Features
+                live Pune heatwave radar, 2-tap anhidrosis triage, Gemini Flash
+                multimodal vision audit, and DP dispatch battle-orders.
+              </div>
+              <div style="display: flex; gap: 8px">
+                <a
+                  href="https://youtu.be/E7Kn1yrEejY"
+                  target="_blank"
+                  class="btn btn-secondary"
+                  style="padding: 6px 12px; font-size: 12px"
+                  >Open on YouTube ↗</a
+                >
+                <a
+                  href="demo.mp4"
+                  download
+                  class="btn btn-secondary"
+                  style="padding: 6px 12px; font-size: 12px"
+                  >Download 150s MP4 (14 MB)</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Video 2: Brag Showcase (HTML5 Native Player) -->
+          <div id="player-brag-wrap" style="display: none">
+            <div class="video-player-container">
+              <video
+                id="brag-video-el"
+                controls
+                preload="metadata"
+                poster="slides/pitch_slide_4.png"
+              >
+                <source
+                  src="HeatAtlas_Brag_Showcase_120s.mp4"
+                  type="video/mp4"
+                />
+                Your browser does not support HTML5 video.
+              </video>
+            </div>
+            <div class="video-meta-bar">
+              <div class="video-meta-info">
+                <strong
+                  >Engineering Brag & Optimization Showcase (154.2s)</strong
+                >
+                — Freshly recorded on the updated UI/UX. Highlights 0.0%
+                optimality gap, 17/17 tests passing, PMC disaster HQ
+                020-25501269, and Stull wet-bulb formula.
+              </div>
+              <div style="display: flex; gap: 8px">
+                <a
+                  href="HeatAtlas_Brag_Showcase_120s.mp4"
+                  download
+                  class="btn btn-primary"
+                  style="padding: 6px 12px; font-size: 12px"
+                  >Download Brag MP4 (9.6 MB)</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: PITCH DECK CAROUSEL -->
+      <section id="deck" class="section-wrap">
+        <div class="section-head">
+          <div>
+            <div class="section-tag">📊 Keynote Pitch Deck</div>
+            <h2 class="section-title">Interactive 6-Slide Executive Deck</h2>
+            <p class="section-desc">
+              Click through the slides or download the high-resolution vector
+              PDF.
+            </p>
+          </div>
+          <div style="display: flex; gap: 10px">
+            <a
+              href="HeatAtlas_Pitch_Deck.pdf"
+              target="_blank"
+              class="btn btn-primary"
+            >
+              <span>Download Deck PDF (1.5 MB)</span>
+            </a>
+            <a
+              href="HeatAtlas_Submission_Checklist.pdf"
+              target="_blank"
+              class="btn btn-secondary"
+            >
+              <span>Checklist PDF</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="deck-viewer">
+          <div class="slide-display-frame">
+            <img
+              id="active-slide-img"
+              src="slides/pitch_slide_1.png"
+              alt="HeatAtlas Pitch Slide"
+            />
+          </div>
+
+          <div class="slide-nav-bar">
+            <button class="btn btn-secondary" onclick="prevSlide()">
+              ← Previous
+            </button>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span class="slide-indicator" id="slide-indicator-text"
+                >Slide 1 of 6</span
+              >
+              <span
+                id="slide-title-text"
+                style="
+                  font-size: 13.5px;
+                  font-weight: 700;
+                  color: var(--text-primary);
+                "
+                >Title & Executive Vision</span
+              >
+            </div>
+            <button class="btn btn-secondary" onclick="nextSlide()">
+              Next →
+            </button>
+          </div>
+
+          <div class="thumbnails-row">
+            <button
+              class="thumb-btn active"
+              onclick="setSlide(1)"
+              title="Slide 1: Title"
+            >
+              <img src="slides/pitch_slide_1.png" alt="Slide 1" />
+            </button>
+            <button
+              class="thumb-btn"
+              onclick="setSlide(2)"
+              title="Slide 2: Problem"
+            >
+              <img src="slides/pitch_slide_2.png" alt="Slide 2" />
+            </button>
+            <button
+              class="thumb-btn"
+              onclick="setSlide(3)"
+              title="Slide 3: Architecture"
+            >
+              <img src="slides/pitch_slide_3.png" alt="Slide 3" />
+            </button>
+            <button
+              class="thumb-btn"
+              onclick="setSlide(4)"
+              title="Slide 4: DP Solver"
+            >
+              <img src="slides/pitch_slide_4.png" alt="Slide 4" />
+            </button>
+            <button
+              class="thumb-btn"
+              onclick="setSlide(5)"
+              title="Slide 5: Multi-AI Scores"
+            >
+              <img src="slides/pitch_slide_5.png" alt="Slide 5" />
+            </button>
+            <button
+              class="thumb-btn"
+              onclick="setSlide(6)"
+              title="Slide 6: Roadmap"
+            >
+              <img src="slides/pitch_slide_6.png" alt="Slide 6" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: 10 MAJOR ENGINEERING UPGRADES -->
+      <section id="upgrades" class="section-wrap">
+        <div class="section-head">
+          <div>
+            <div class="section-tag">⚡ Engineering Rigor</div>
+            <h2 class="section-title">The 10 Major Engineering Upgrades</h2>
+            <p class="section-desc">
+              Built through adversarial multi-round scrutiny. Zero fluff, 100%
+              verified mathematics.
+            </p>
+          </div>
+        </div>
+
+        <div class="upgrades-grid">
+          <div class="upgrade-card">
+            <div class="upgrade-num">UPGRADE 01</div>
+            <h3 class="upgrade-title">Authoritative DP Optimizer</h3>
+            <p class="upgrade-body">
+              Re-architected the dispatch API so Gemini Flash strictly executes
+              the Constrained Discrete Concave Dynamic Programming solver. Zero
+              LLM hallucinations on logistics.
+            </p>
+            <span class="upgrade-tag">O(K · W · T) Complexity</span>
+          </div>
+
+          <div class="upgrade-card">
+            <div class="upgrade-num">UPGRADE 02</div>
+            <h3 class="upgrade-title">Sphere Humanitarian Charter</h3>
+            <p class="upgrade-body">
+              Replaced abstract point drops with international humanitarian
+              standards: 1,200L water (60 cans), 399 workers guaranteed 3 L/day
+              emergency survival hydration, and 300 WHO ORS sachets.
+            </p>
+            <span class="upgrade-tag">Sphere Standard 1</span>
+          </div>
+
+          <div class="upgrade-card">
+            <div class="upgrade-num">UPGRADE 03</div>
+            <h3 class="upgrade-title">Authenticated PMC Command Centers</h3>
+            <p class="upgrade-body">
+              Replaced fictional NGO names with 4 real Pune Municipal
+              Corporation bases: Shivajinagar Disaster Cell (020-25501269),
+              Swargate Hub, Hadapsar Fire Station, and Deccan Ward Office.
+            </p>
+            <span class="upgrade-tag">Official Directory Verified</span>
+          </div>
+
+          <div class="upgrade-card">
+            <div class="upgrade-num">UPGRADE 04</div>
+            <h3 class="upgrade-title">Stull Psychrometric Wet-Bulb Model</h3>
+            <p class="upgrade-body">
+              Implemented Stull's (2011) empirical inverse-tangent equation fed
+              strictly by ambient dry-bulb temperature. Formally verified: 42°C
+              @ 38% RH = 29.68°C Tw; 20°C @ 50% RH = 13.70°C Tw.
+            </p>
+            <span class="upgrade-tag">Biometeorology Benchmark</span>
+          </div>
+
+          <div class="upgrade-card">
+            <div class="upgrade-num">UPGRADE 05</div>
+            <h3 class="upgrade-title">
+              Brute-Force Optimality Proof (0.0% Gap)
+            </h3>
+            <p class="upgrade-body">
+              Built an exhaustive combinatorial validator on 190 feasible states
+              (Stars & Bars). Proven identical outcome between DP solver
+              (32368.95) and brute force (32368.95) with a 0.0% optimality gap.
+            </p>
+            <span class="upgrade-tag">Live on /api/system/audit-proof</span>
+          </div>
+
+          <div class="upgrade-card">
+            <div class="upgrade-num">UPGRADE 06</div>
+            <h3 class="upgrade-title">Historical Peak Replay (IMD 44.2°C)</h3>
+            <p class="upgrade-body">
+              Constructed extreme heat replay anchored to IMD Shivajinagar Pune
+              (#43063) from May 19, 2024 with realistic 24-hour diurnal relative
+              humidity curves (18% afternoon to 48% night).
+            </p>
+            <span class="upgrade-tag">Real Pune Climate Data</span>
+          </div>
+
+          <div class="upgrade-card">
+            <div class="upgrade-num">UPGRADE 07</div>
+            <h3 class="upgrade-title">Deterministic SHA-256 Spatial Hashing</h3>
+            <p class="upgrade-body">
+              Eliminated seed drift across serverless cold starts by replacing
+              Python's randomized hash() with stable 64-bit integer masks
+              derived from hashlib.sha256.
+            </p>
+            <span class="upgrade-tag">100% Deterministic Reproducibility</span>
+          </div>
+
+          <div class="upgrade-card">
+            <div class="upgrade-num">UPGRADE 08</div>
+            <h3 class="upgrade-title">
+              Centroid Realignment to Real Landmarks
+            </h3>
+            <p class="upgrade-body">
+              Fixed landmark grid mapping: Kothrud (Z-43, 73.808°E), Deccan
+              Gymkhana (Z-44, 73.841°E), Swargate (Z-45, 73.858°E), and Hadapsar
+              APMC (Z-47, 73.927°E).
+            </p>
+            <span class="upgrade-tag">Pinpoint Geographic Accuracy</span>
+          </div>
+
+          <div class="upgrade-card">
+            <div class="upgrade-num">UPGRADE 09</div>
+            <h3 class="upgrade-title">
+              RESTful GET Handlers & 17 Pytest Suite
+            </h3>
+            <p class="upgrade-body">
+              Added idempotent GET methods for automated crawler verification.
+              17/17 automated pytest acceptance tests passing with zero
+              failures.
+            </p>
+            <span class="upgrade-tag">tests/test_heatatlas.py</span>
+          </div>
+
+          <div class="upgrade-card">
+            <div class="upgrade-num">UPGRADE 10</div>
+            <h3 class="upgrade-title">Keynote Deck & Checklist Regeneration</h3>
+            <p class="upgrade-body">
+              Rendered 6 keynote-quality 1080p slides and the official 1-page
+              Forge'26 compliance verification form deployed directly as live
+              PDFs.
+            </p>
+            <span class="upgrade-tag">Ready for Finals Presentation</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: MULTI-AI EVALUATOR PROGRESSION -->
+      <section id="scores" class="section-wrap">
+        <div class="section-head">
+          <div>
+            <div class="section-tag">🏆 Adversarial AI Judging</div>
+            <h2 class="section-title">
+              Multi-AI Score Progression (Rounds 1–6)
+            </h2>
+            <p class="section-desc">
+              Tested against Claude 3.5 Sonnet, ChatGPT-4o, and Gemini Flash
+              through 6 iterative rounds of ruthless scrutiny.
+            </p>
+          </div>
+        </div>
+
+        <div class="score-table-wrap">
+          <table class="score-table">
+            <thead>
+              <tr>
+                <th>Round</th>
+                <th>ChatGPT-4o (Ruthless / Std)</th>
+                <th>Claude 3.5 Sonnet (Ruthless / Std)</th>
+                <th>Gemini Flash (Ruthless / Std)</th>
+                <th>Key Milestone Verified</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Round 1</strong></td>
+                <td>54 / 69</td>
+                <td>66 / 83</td>
+                <td>72 / 82</td>
+                <td>
+                  Initial prototype; flagged greedy solver & placeholder bases
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Round 2</strong></td>
+                <td>58 / 72</td>
+                <td>75 / 88</td>
+                <td>78 / 86</td>
+                <td>
+                  Quadtree spatial index, route caching & duplicate guards
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Round 3</strong></td>
+                <td>68 / 81</td>
+                <td>74 / 87</td>
+                <td>80 / 89</td>
+                <td>
+                  Stull wet-bulb formula & RefChecker zero-hallucination
+                  verification
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Round 4</strong></td>
+                <td>74 / 85</td>
+                <td>78 / 90</td>
+                <td>84 / 91</td>
+                <td>
+                  Verified 64 micro-zones, Swargate Z-45, and 1,800 Overpass
+                  assets
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Round 5</strong></td>
+                <td>78 / 88</td>
+                <td>80 / 92</td>
+                <td>86 / 93</td>
+                <td>
+                  0.0% brute-force optimality proof & Sphere 399 people served
+                  metrics
+                </td>
+              </tr>
+              <tr style="background: rgba(255, 69, 58, 0.05)">
+                <td>
+                  <strong style="color: var(--accent-flame-1)"
+                    >Round 6 (Final)</strong
+                  >
+                </td>
+                <td><span class="score-badge score-green">82 / 92</span></td>
+                <td><span class="score-badge score-green">84 / 94</span></td>
+                <td><span class="score-badge score-cyan">88 / 95</span></td>
+                <td>
+                  <strong
+                    >17/17 pytest suite passing, PMC official command centers,
+                    production ready</strong
+                  >
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION 5: THE 3 INTERACTIVE PORTALS -->
+      <section id="portals" class="section-wrap">
+        <div class="section-head">
+          <div>
+            <div class="section-tag">📱 Full Ecosystem</div>
+            <h2 class="section-title">Three Unified Operational Portals</h2>
+            <p class="section-desc">
+              From outdoor gig workers on the street to municipal disaster
+              commanders at HQ.
+            </p>
+          </div>
+        </div>
+
+        <div class="portals-grid">
+          <div class="portal-card">
+            <div>
+              <div
+                class="portal-icon"
+                style="
+                  background: rgba(255, 69, 58, 0.15);
+                  color: var(--accent-flame-1);
+                "
+              >
+                📱
+              </div>
+              <h3>1. Field Worker Radar</h3>
+              <p>
+                Runs in any mobile browser. Workers can report broken taps,
+                signal distress via 2-tap clinical anhidrosis check, or speak in
+                Hindi/Marathi to find cool corridors.
+              </p>
+              <div class="portal-tags">
+                <span class="portal-tag">Hindi / Marathi Audio</span>
+                <span class="portal-tag">2-Tap Anhidrosis</span>
+                <span class="portal-tag">Photo Tap Audit</span>
+              </div>
+            </div>
+            <a
+              href="https://heatatlas.vercel.app/"
+              target="_blank"
+              class="btn btn-secondary"
+              style="width: 100%"
+              >Open Worker Radar ↗</a
+            >
+          </div>
+
+          <div class="portal-card">
+            <div>
+              <div
+                class="portal-icon"
+                style="
+                  background: rgba(56, 189, 248, 0.15);
+                  color: var(--accent-cyan);
+                "
+              >
+                🛡️
+              </div>
+              <h3>2. NGO Command Portal</h3>
+              <p>
+                Live 64 micro-zones Pune deficit map. Officials select
+                registered PMC bases to execute the DP optimizer and dispatch
+                WhatsApp battle orders with 1 click.
+              </p>
+              <div class="portal-tags">
+                <span class="portal-tag">64 Ward Leaflet Map</span>
+                <span class="portal-tag">DP Optimizer</span>
+                <span class="portal-tag">1-Click WhatsApp</span>
+              </div>
+            </div>
+            <a
+              href="https://heatatlas.vercel.app/"
+              target="_blank"
+              class="btn btn-cyan"
+              style="width: 100%"
+              >Open NGO Command ↗</a
+            >
+          </div>
+
+          <div class="portal-card">
+            <div>
+              <div
+                class="portal-icon"
+                style="
+                  background: rgba(168, 85, 247, 0.15);
+                  color: var(--accent-purple);
+                "
+              >
+                ⚡
+              </div>
+              <h3>3. FastAPI Backend</h3>
+              <p>
+                Production REST backend with OpenAPI/Swagger specifications,
+                health probes, readiness checks, and mathematical audit
+                verification endpoints.
+              </p>
+              <div class="portal-tags">
+                <span class="portal-tag">FastAPI 0.162</span>
+                <span class="portal-tag">OpenAPI 3.1</span>
+                <span class="portal-tag">/api/system/audit-proof</span>
+              </div>
+            </div>
+            <a
+              href="https://heatatlas.vercel.app/docs"
+              target="_blank"
+              class="btn btn-secondary"
+              style="width: 100%"
+              >Open Swagger Docs ↗</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: LIVE API STATUS -->
+      <section id="api" class="section-wrap">
+        <div class="section-head">
+          <div>
+            <div class="section-tag">🔌 Real-Time Upstream Telemetry</div>
+            <h2 class="section-title">Live Production Endpoints</h2>
+            <p class="section-desc">
+              Test live endpoints directly on Vercel production with instant
+              response checking.
+            </p>
+          </div>
+        </div>
+
+        <div
+          style="
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 20px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              justify-content: space-between;
+              gap: 14px;
+              margin-bottom: 16px;
+            "
+          >
+            <div style="display: flex; align-items: center; gap: 10px">
+              <span class="pulse-dot"></span>
+              <span style="font-weight: 700; font-size: 14px"
+                >Production Status:
+                <strong style="color: var(--accent-emerald)"
+                  >HEALTHY (200 OK)</strong
+                ></span
+              >
+            </div>
+            <div
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 12px;
+                color: var(--text-muted);
+              "
+              id="api-ping-status"
+            >
+              Last Checked: Just now (Live)
+            </div>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 10px">
+            <a
+              href="https://heatatlas.vercel.app/api/health"
+              target="_blank"
+              class="btn btn-secondary"
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 12px;
+              "
+              >GET /api/health</a
+            >
+            <a
+              href="https://heatatlas.vercel.app/api/ready"
+              target="_blank"
+              class="btn btn-secondary"
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 12px;
+              "
+              >GET /api/ready</a
+            >
+            <a
+              href="https://heatatlas.vercel.app/api/system/build-info"
+              target="_blank"
+              class="btn btn-secondary"
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 12px;
+              "
+              >GET /api/system/build-info</a
+            >
+            <a
+              href="https://heatatlas.vercel.app/api/system/audit-proof"
+              target="_blank"
+              class="btn btn-cyan"
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 12px;
+              "
+              >GET /api/system/audit-proof (0.0% Proof)</a
+            >
+            <a
+              href="https://heatatlas.vercel.app/api/zones"
+              target="_blank"
+              class="btn btn-secondary"
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 12px;
+              "
+              >GET /api/zones (64 Wards)</a
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- FLOATING SHARE PILL -->
+    <div class="floating-share-pill">
+      <span
+        style="font-size: 12px; font-weight: 700; color: var(--text-secondary)"
+        >Share:</span
+      >
+      <button
+        class="share-btn-circle share-whatsapp"
+        onclick="shareWhatsApp()"
+        title="Share on WhatsApp"
+      >
+        💬
+      </button>
+      <button
+        class="share-btn-circle share-x"
+        onclick="shareTwitter()"
+        title="Share on X (Twitter)"
+      >
+        𝕏
+      </button>
+      <button
+        class="share-btn-circle share-copy"
+        onclick="copyShareLink()"
+        title="Copy link to clipboard"
+      >
+        🔗
+      </button>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast-msg">
+      ✓ Link copied to clipboard! Share it with your friends!
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="footer-links">
+          <a href="https://heatatlas.vercel.app/">Live App</a>
+          <a href="https://github.com/vishwjeetlol/heatatlas">GitHub Repo</a>
+          <a href="https://youtu.be/E7Kn1yrEejY">YouTube Demo</a>
+          <a href="HeatAtlas_Pitch_Deck.pdf">Pitch Deck PDF</a>
+          <a href="HeatAtlas_Submission_Checklist.pdf">Submission Checklist</a>
+          <a href="https://heatatlas.vercel.app/docs">API Docs</a>
+        </div>
+        <p>
+          Built with ❤️ by <strong>Team Strawhats</strong> (Team Code:
+          <code>627JUH</code>) for FORGE'26 Hackathon (Theme 2).
+        </p>
+        <p style="margin-top: 8px; font-size: 11.5px">
+          Pune Municipal Corporation Emergency Disaster Command Telemetry & AI
+          Biometeorology Relief Engine.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      // VIDEO TAB SWITCHER
+      function switchVideoTab(tab) {
+        const btnMaster = document.getElementById("tab-btn-master");
+        const btnBrag = document.getElementById("tab-btn-brag");
+        const wrapMaster = document.getElementById("player-master-wrap");
+        const wrapBrag = document.getElementById("player-brag-wrap");
+        const bragVideo = document.getElementById("brag-video-el");
+
+        if (tab === "master") {
+          btnMaster.classList.add("active");
+          btnBrag.classList.remove("active");
+          wrapMaster.style.display = "block";
+          wrapBrag.style.display = "none";
+          if (bragVideo) bragVideo.pause();
+        } else {
+          btnBrag.classList.add("active");
+          btnMaster.classList.remove("active");
+          wrapMaster.style.display = "none";
+          wrapBrag.style.display = "block";
+        }
+      }
+
+      // SLIDE CAROUSEL
+      let currentSlide = 1;
+      const totalSlides = 6;
+      const slideTitles = [
+        "Title & Executive Vision",
+        "Ground Reality & Heat Micro-Canyons",
+        "Full-Stack Architecture & Telemetry",
+        "Authoritative DP Logistics Optimizer",
+        "Multi-AI Adversarial Evaluation Matrix",
+        "Future Roadmap & Submission Links",
+      ];
+
+      function setSlide(n) {
+        if (n < 1) n = totalSlides;
+        if (n > totalSlides) n = 1;
+        currentSlide = n;
+
+        const img = document.getElementById("active-slide-img");
+        img.style.opacity = "0.4";
+        setTimeout(() => {
+          img.src = "slides/pitch_slide_" + n + ".png";
+          img.style.opacity = "1";
+        }, 150);
+
+        document.getElementById("slide-indicator-text").innerText =
+          "Slide " + n + " of " + totalSlides;
+        document.getElementById("slide-title-text").innerText =
+          slideTitles[n - 1];
+
+        const thumbs = document.querySelectorAll(".thumb-btn");
+        thumbs.forEach((th, idx) => {
+          if (idx === n - 1) th.classList.add("active");
+          else th.classList.remove("active");
+        });
+      }
+
+      function prevSlide() {
+        setSlide(currentSlide - 1);
+      }
+      function nextSlide() {
+        setSlide(currentSlide + 1);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft") prevSlide();
+        if (e.key === "ArrowRight") nextSlide();
       });
-    }
 
-    function prevSlide() {
-      setSlide(currentSlide - 1);
-    }
-    function nextSlide() {
-      setSlide(currentSlide + 1);
-    }
+      // SHARE FUNCTIONS
+      function getShareURL() {
+        return "https://heatatlas.vercel.app/showcase.html";
+      }
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') prevSlide();
-      if (e.key === 'ArrowRight') nextSlide();
-    });
+      function copyShareLink() {
+        const url = getShareURL();
+        navigator.clipboard
+          .writeText(url)
+          .then(() => {
+            showToast(
+              "✓ Link copied to clipboard! Share it with your friends!",
+            );
+          })
+          .catch(() => {
+            showToast("Showcase: " + url);
+          });
+      }
 
-    // SHARE FUNCTIONS
-    function getShareURL() {
-      return 'https://heatatlas.vercel.app/showcase.html';
-    }
+      function shareWhatsApp() {
+        const text = encodeURIComponent(
+          "Check out HeatAtlas — our Forge'26 hackathon project! Autonomous heatwave resilience for 10M+ gig workers with Gemini 2.5 Flash & provably optimal water relief. Watch the demo video and deck: " +
+            getShareURL(),
+        );
+        window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
+      }
 
-    function copyShareLink() {
-      const url = getShareURL();
-      navigator.clipboard.writeText(url).then(() => {
-        showToast('✓ Link copied to clipboard! Share it with your friends!');
-      }).catch(() => {
-        showToast('Showcase: ' + url);
-      });
-    }
+      function shareTwitter() {
+        const text = encodeURIComponent(
+          "Just built HeatAtlas for Forge'26: Autonomous real-time urban heatwave forecasting & relief allocation in Pune with Gemini 2.5 Flash and DP optimizer. Check out the demo & pitch deck: " +
+            getShareURL(),
+        );
+        window.open("https://twitter.com/intent/tweet?text=" + text, "_blank");
+      }
 
-    function shareWhatsApp() {
-      const text = encodeURIComponent("Check out HeatAtlas — our Forge'26 hackathon project! Autonomous heatwave resilience for 10M+ gig workers with Gemini 2.5 Flash & provably optimal water relief. Watch the demo video and deck: " + getShareURL());
-      window.open('https://api.whatsapp.com/send?text=' + text, '_blank');
-    }
-
-    function shareTwitter() {
-      const text = encodeURIComponent("Just built HeatAtlas for Forge'26: Autonomous real-time urban heatwave forecasting & relief allocation in Pune with Gemini 2.5 Flash and DP optimizer. Check out the demo & pitch deck: " + getShareURL());
-      window.open('https://twitter.com/intent/tweet?text=' + text, '_blank');
-    }
-
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.innerText = msg;
-      t.style.display = 'block';
-      setTimeout(() => {
-        t.style.display = 'none';
-      }, 3500);
-    }
-  </script>
-</body>
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.innerText = msg;
+        t.style.display = "block";
+        setTimeout(() => {
+          t.style.display = "none";
+        }, 3500);
+      }
+    </script>
+  </body>
 </html>

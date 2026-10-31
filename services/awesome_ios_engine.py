@@ -7,10 +7,10 @@ Integrates patterns and specifications curated from vsouza/awesome-ios:
 - DeviceKit / Luminous: Native device environment telemetry
 """
 
-from typing import Dict, Any, List
+from typing import Any
 
 
-def get_ios_haptic_profile(action_type: str) -> Dict[str, Any]:
+def get_ios_haptic_profile(action_type: str) -> dict[str, Any]:
     """
     Returns Haptica / UIImpactFeedbackGenerator pattern mappings
     from vsouza/awesome-ios for mobile feedback.
@@ -44,7 +44,7 @@ def get_ios_haptic_profile(action_type: str) -> Dict[str, Any]:
     return profiles.get(action_type, profiles["button_tap"])
 
 
-def get_ibeacon_mesh_spec(zone_id: str, city_name: str = "pune") -> Dict[str, Any]:
+def get_ibeacon_mesh_spec(zone_id: str, city_name: str = "pune") -> dict[str, Any]:
     """
     Returns JMCBeaconManager / CoreLocation iBeacon proximity broadcast spec
     curated from vsouza/awesome-ios/iBeacon.
@@ -66,7 +66,7 @@ def get_ibeacon_mesh_spec(zone_id: str, city_name: str = "pune") -> Dict[str, An
     }
 
 
-def get_awesome_ios_catalog() -> Dict[str, Any]:
+def get_awesome_ios_catalog() -> dict[str, Any]:
     """Returns curated architectural components integrated from vsouza/awesome-ios."""
     return {
         "source": "https://github.com/vsouza/awesome-ios",

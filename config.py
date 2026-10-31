@@ -1,14 +1,10 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
-PUNE_BBOX = {
-    "south": 18.41,
-    "west": 73.70,
-    "north": 18.65,
-    "east": 73.95
-}
+PUNE_BBOX = {"south": 18.41, "west": 73.70, "north": 18.65, "east": 73.95}
 
 GRID_ROWS = 8
 GRID_COLS = 8
@@ -31,5 +27,5 @@ GEMINI_FALLBACK_MODELS = [
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
     "gemini-3.1-flash-lite",
-    "gemini-flash-lite-latest"
+    "gemini-flash-lite-latest",
 ]

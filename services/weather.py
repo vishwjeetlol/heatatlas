@@ -1,8 +1,10 @@
 import time
+
 import httpx
 from cachetools import TTLCache
-from config import OPEN_METEO_BASE_URL, CACHE_TTL_FORECAST_MIN
+
 from cities import get_city
+from config import CACHE_TTL_FORECAST_MIN, OPEN_METEO_BASE_URL
 
 # Multi-city cache for 60 minutes
 _forecast_cache = TTLCache(maxsize=50, ttl=CACHE_TTL_FORECAST_MIN * 60)

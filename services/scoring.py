@@ -1,5 +1,5 @@
 import math
-from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -46,7 +46,7 @@ def compute_stull_wet_bulb(temp_c: float, rh_pct: float) -> float:
 
 
 def _longest_streak_above_38(
-    hourly_temps: Optional[List[float]], fallback_hours: int
+    hourly_temps: list[float] | None, fallback_hours: int
 ) -> int:
     if not hourly_temps:
         return max(0, int(fallback_hours))
@@ -55,8 +55,7 @@ def _longest_streak_above_38(
     for t in hourly_temps:
         if t >= 38.0:
             curr += 1
-            if curr > best:
-                best = curr
+            best = max(best, curr)
         else:
             curr = 0
     return best
@@ -70,11 +69,11 @@ def compute_scores(
     working_taps: int,
     clinics: int,
     peak_apparent_temp: float = 38.0,
-    hourly_temps: Optional[List[float]] = None,
+    hourly_temps: list[float] | None = None,
     sky_view_factor: float = 0.65,
     transient_worker_flux: float = 1.0,
     relative_humidity_pct: float = 38.0,
-    dry_bulb_temp_c: Optional[float] = None,
+    dry_bulb_temp_c: float | None = None,
 ) -> dict:
     """
     Deterministic Spatial Relief Deficit Engine:
@@ -219,7 +218,7 @@ def compute_scores(
     }
 
 
-def _kendall_tau(order_a: List[str], order_b: List[str]) -> float:
+def _kendall_tau(order_a: list[str], order_b: list[str]) -> float:
     """Computes exact Kendall-tau rank correlation coefficient between two zone rankings."""
     n = len(order_a)
     if n <= 1:
@@ -241,7 +240,7 @@ def _kendall_tau(order_a: List[str], order_b: List[str]) -> float:
     return round((concordant - discordant) / max(1, total_pairs), 4)
 
 
-def compute_ablation_study(zones: List[dict]) -> dict:
+def compute_ablation_study(zones: list[dict]) -> dict:
     """
     Runs a formal 4-stage ablation study across all 64 zones comparing:
       - M0 (Population-Only Naive Baseline): Vh = (Child + Elderly) * H38 (ignoring taps & clinics)

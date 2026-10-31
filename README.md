@@ -10,14 +10,14 @@
 
 ## 📋 FORGE'26 Official 6-Point Project Submission Checklist
 
-| #     | Submission Field               | Official Link / Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| :---- | :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1** | **Problem Statement**          | **Target Issue:** City-wide weather alerts (`40°C Pune`) mask lethal micro-zone heat exposure while afternoon heat spikes trigger MSEDCL grid blackouts and municipal water cuts.<br>**Target Audience:** (1) 10M+ Outdoor Gig & Transit Workers & (2) NGO Volunteer Leads & Municipal Disaster Response Teams.                                                                                                                                                                                                                                                                                     |
-| **2** | **Solution Description**       | **Overview:** Splits Pune (`18.41,73.70` to `18.65,73.95`) into 64 micro-zones (`Z-00` to `Z-77`, ~3.3×3.3 km wards) ranked by deterministic Relief Deficit ($R_d$). Gemini Flash (`gemini-2.5-flash`) converts English/Hindi/Marathi voice or text into RefChecker-verified WhatsApp dispatch briefs backed by an authoritative Discrete Concave Dynamic-Programming Resource Optimizer, while Gemini Multimodal Vision audits broken-tap & crowd distress photos.<br>**Architecture:** FastAPI + React 18 + Leaflet + SQLite. Deterministic Python computes $E_h, V_h, R_d$ from live Open-Meteo, WorldPop v2, and 1,800-node OSM Overpass relief assets. |
+| #     | Submission Field               | Official Link / Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| :---- | :----------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** | **Problem Statement**          | **Target Issue:** City-wide weather alerts (`40°C Pune`) mask lethal micro-zone heat exposure while afternoon heat spikes trigger MSEDCL grid blackouts and municipal water cuts.<br>**Target Audience:** (1) 10M+ Outdoor Gig & Transit Workers & (2) NGO Volunteer Leads & Municipal Disaster Response Teams.                                                                                                                                                                                                                                                                                                                                                   |
+| **2** | **Solution Description**       | **Overview:** Splits Pune (`18.41,73.70` to `18.65,73.95`) into 64 micro-zones (`Z-00` to `Z-77`, ~3.3×3.3 km wards) ranked by deterministic Relief Deficit ($R_d$). Gemini Flash (`gemini-2.5-flash`) converts English/Hindi/Marathi voice or text into RefChecker-verified WhatsApp dispatch briefs backed by an authoritative Discrete Concave Dynamic-Programming Resource Optimizer, while Gemini Multimodal Vision audits broken-tap & crowd distress photos.<br>**Architecture:** FastAPI + React 18 + Leaflet + SQLite. Deterministic Python computes $E_h, V_h, R_d$ from live Open-Meteo, WorldPop v2, and 1,800-node OSM Overpass relief assets.       |
 | **3** | **Prototype Link**             | **Live Web App:** [https://heatatlas.vercel.app/](https://heatatlas.vercel.app/)<br>**🌟 Showcase Website (Share with Friends):** [https://heatatlas.vercel.app/showcase.html](https://heatatlas.vercel.app/showcase.html) · [GitHub Pages Mirror](https://vishwjeetlol.github.io/heatatlas/)<br>**Live Health Check:** [https://heatatlas.vercel.app/api/health](https://heatatlas.vercel.app/api/health)<br>**Deep Readiness Probe:** [https://heatatlas.vercel.app/api/ready](https://heatatlas.vercel.app/api/ready)<br>**Live Audit & Build Info:** [https://heatatlas.vercel.app/api/system/build-info](https://heatatlas.vercel.app/api/system/build-info) |
-| **4** | **Demo Videos**                | • **Ground Reality & UI Walkthrough (150s Master):** [https://youtu.be/E7Kn1yrEejY](https://youtu.be/E7Kn1yrEejY) · [Live MP4](https://heatatlas.vercel.app/demo.mp4)<br>• **Engineering Brag & Optimization Showcase (120s):** [Live MP4](https://heatatlas.vercel.app/HeatAtlas_Brag_Showcase_120s.mp4) |
-| **5** | **GitHub Repository**          | **Public Repo:** [https://github.com/vishwjeetlol/heatatlas](https://github.com/vishwjeetlol/heatatlas)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **6** | **Pitch Deck & Checklist PDF** | **Pitch Deck PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf](https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf)<br>**Submission Checklist PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf](https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf)<br>**GitHub PDF Mirror:** [`HeatAtlas_Pitch_Deck.pdf`](HeatAtlas_Pitch_Deck.pdf)                                                                                                                                                                                               |
+| **4** | **Demo Videos**                | • **Ground Reality & UI Walkthrough (150s Master):** [https://youtu.be/E7Kn1yrEejY](https://youtu.be/E7Kn1yrEejY) · [Live MP4](https://heatatlas.vercel.app/demo.mp4)<br>• **Engineering Brag & Optimization Showcase (120s):** [Live MP4](https://heatatlas.vercel.app/HeatAtlas_Brag_Showcase_120s.mp4)                                                                                                                                                                                                                                                                                                                                                         |
+| **5** | **GitHub Repository**          | **Public Repo:** [https://github.com/vishwjeetlol/heatatlas](https://github.com/vishwjeetlol/heatatlas)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **6** | **Pitch Deck & Checklist PDF** | **Pitch Deck PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf](https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf)<br>**Submission Checklist PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf](https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf)<br>**GitHub PDF Mirror:** [`HeatAtlas_Pitch_Deck.pdf`](HeatAtlas_Pitch_Deck.pdf)                                                                                                                                                                                                                                                             |
 
 ---
 
@@ -25,14 +25,14 @@
 
 HeatAtlas was subjected to rigorous, adversarial multi-agent judging across 6 rounds with **Claude 3.5 Sonnet** (`claude.ai`), **ChatGPT-4o** (`chatgpt.com`), and an **Internal Gemini Audit**:
 
-| Round | ChatGPT-4o (Ruthless / Standard) | Claude 3.5 Sonnet (Ruthless / Standard) | Antigravity / Gemini Audit (Ruthless / Standard) | Key Engineering Milestone Verified |
-| :---: | :---: | :---: | :---: | :--- |
-| **Round 1** | 54 / 69 | 66 / 83 | 72 / 82 | Baseline submission; flagged disconnected solver & unverified claims |
-| **Round 2** | 58 / 72 | 75 / 88 | 78 / 86 | Reconnected Quadtree spatial index, fixed route caching & duplicate guards |
-| **Round 3** | 64 / 76 | 74 / 88 | 84 / 90 | Implemented Discrete Concave DP solver; integrated Stull (2011) wet-bulb model |
-| **Round 4** | 72 / 82 | **78 / 90** ⭐ *(Passed 90!)* | 88 / 92 | Wired DP optimizer directly to `/api/dispatch/brief`; added Sphere Standards impact |
-| **Round 5** | 68 / 79 | **78 / 90** *(Tw vs WBGT verified)* | 88 / 94 | Replaced mock NGOs with 4 official PMC Command Depots; added IMD Shivajinagar 44.2°C replay |
-| **Round 6** | **80+ / 89+** *(Verified)* | **82+ / 92+** *(Verified)* | **88 / 94** *(Commit `09edb6a`)* | Fixed Stull dry-bulb input; SHA-256 stability; added `GET /api/dispatch` endpoints; **17/17 pytest tests green** |
+|    Round    | ChatGPT-4o (Ruthless / Standard) | Claude 3.5 Sonnet (Ruthless / Standard) | Antigravity / Gemini Audit (Ruthless / Standard) | Key Engineering Milestone Verified                                                                               |
+| :---------: | :------------------------------: | :-------------------------------------: | :----------------------------------------------: | :--------------------------------------------------------------------------------------------------------------- |
+| **Round 1** |             54 / 69              |                 66 / 83                 |                     72 / 82                      | Baseline submission; flagged disconnected solver & unverified claims                                             |
+| **Round 2** |             58 / 72              |                 75 / 88                 |                     78 / 86                      | Reconnected Quadtree spatial index, fixed route caching & duplicate guards                                       |
+| **Round 3** |             64 / 76              |                 74 / 88                 |                     84 / 90                      | Implemented Discrete Concave DP solver; integrated Stull (2011) wet-bulb model                                   |
+| **Round 4** |             72 / 82              |      **78 / 90** ⭐ _(Passed 90!)_      |                     88 / 92                      | Wired DP optimizer directly to `/api/dispatch/brief`; added Sphere Standards impact                              |
+| **Round 5** |             68 / 79              |   **78 / 90** _(Tw vs WBGT verified)_   |                     88 / 94                      | Replaced mock NGOs with 4 official PMC Command Depots; added IMD Shivajinagar 44.2°C replay                      |
+| **Round 6** |    **80+ / 89+** _(Verified)_    |       **82+ / 92+** _(Verified)_        |         **88 / 94** _(Commit `09edb6a`)_         | Fixed Stull dry-bulb input; SHA-256 stability; added `GET /api/dispatch` endpoints; **17/17 pytest tests green** |
 
 ---
 
@@ -41,40 +41,45 @@ HeatAtlas was subjected to rigorous, adversarial multi-agent judging across 6 ro
 Here is every architectural upgrade, mathematical fix, and operational feature engineered into HeatAtlas:
 
 ### Upgrade 1: Authoritative Dynamic Programming Optimizer
+
 - **The Problem:** In earlier rounds, when an NGO or official clicked "Generate Dispatch", the AI agent picked targets using a greedy list, ignoring the dynamic programming solver.
 - **What We Did:** We re-architected [`app.py`](app.py) so that `/api/dispatch/brief` directly executes the `ConstrainedLogisticsOptimizer`. The AI narrative is strictly forced to consume the exact integer allocations computed by the solver.
 - **Why It Matters:** **Zero hallucination on logistics.** Cans, squads, and routes shown to relief workers derive directly from mathematical optimization, not an LLM guessing.
 
 ### Upgrade 2: Sphere Humanitarian Impact Metrics (Real Human Numbers)
-- **The Problem:** The app originally outputted numbers like "Deficit reduced by 217,218.5 points". Judges asked: *"What does 217,218 points mean in the real world?"*
+
+- **The Problem:** The app originally outputted numbers like "Deficit reduced by 217,218.5 points". Judges asked: _"What does 217,218 points mean in the real world?"_
 - **What We Did:** Integrated the international **Sphere Humanitarian Charter (Water Supply Standard 1)** into the solver output:
   - **1,200 Litres** of drinking water delivered (60 cans $\times$ 20L).
   - **399 individuals guaranteed emergency survival hydration** (at Sphere standard of 3 Litres/person/day).
   - **78 individuals provided full daily domestic water** (at 15 Litres/person/day).
   - **300 WHO standard ORS sachets** co-allocated for clinical heat syncope triage.
-- **Why It Matters:** Humanitarian agencies immediately understand: *"We delivered survival water to 399 workers."*
+- **Why It Matters:** Humanitarian agencies immediately understand: _"We delivered survival water to 399 workers."_
 
 ### Upgrade 3: Authenticated PMC Municipal Emergency Command Bases
+
 - **The Problem:** The app previously referenced generic NGO names ("Pune Seva Squad"). ChatGPT called them "unauthenticated fixtures".
 - **What We Did:** Replaced all fictional bases with the **4 Official Pune Municipal Corporation (PMC) Command Centers**:
-  1. **PMC Central Disaster Management Cell (Shivajinagar HQ)** — Official Control Room: `020-25501269` *(ChatGPT cross-checked and verified this number against the official Pune District Disaster Directory)*.
+  1. **PMC Central Disaster Management Cell (Shivajinagar HQ)** — Official Control Room: `020-25501269` _(ChatGPT cross-checked and verified this number against the official Pune District Disaster Directory)_.
   2. **Swargate Civil Defense & Water Dispatch Hub (Jedhe Chowk)** — Ward Office 4: `020-24440417`.
   3. **Hadapsar Fire Brigade & Emergency Response Station (Gadital)** — Fire Station #7: `020-26990101`.
   4. **Deccan Gymkhana Municipal Ward Office & First Aid Center** — FC Road: `020-25535455`.
 - **Why It Matters:** Grounded in real municipal disaster infrastructure that Pune emergency authorities actually operate.
 
 ### Upgrade 4: Scientific Stull (2011) Psychrometric Wet-Bulb Model
+
 - **The Problem:** We were calling our temperature factor "WBGT". Claude pointed out that ISO 7243 WBGT requires black globe radiation and anemometer measurements. ChatGPT also caught that apparent heat index was being passed into Stull instead of ambient dry-bulb temperature.
 - **What We Did:**
   - Renamed the parameter to `psychrometric_tw_strain_factor`.
   - Fed ambient dry-bulb temperature strictly into Stull's empirical inverse-tangent equation.
   - Formally verified it against international climatological benchmarks:
-    - $20.0^\circ\text{C}$ @ $50\%\text{ RH} \to 13.70^\circ\text{C}$ *(Exact match)*.
-    - $42.0^\circ\text{C}$ @ $38\%\text{ RH} \to 29.68^\circ\text{C}$ *(Exact match)*.
+    - $20.0^\circ\text{C}$ @ $50\%\text{ RH} \to 13.70^\circ\text{C}$ _(Exact match)_.
+    - $42.0^\circ\text{C}$ @ $38\%\text{ RH} \to 29.68^\circ\text{C}$ _(Exact match)_.
 - **Why It Matters:** Climatologists and technical judges cannot poke holes in our thermal biometeorology.
 
 ### Upgrade 5: Combinatorial Brute-Force Optimality Proof (0.0% Gap)
-- **The Problem:** We claimed our dynamic programming algorithm found the "global optimum", but judges asked: *"How do you prove it's the global optimum and didn't get stuck in a local minimum?"*
+
+- **The Problem:** We claimed our dynamic programming algorithm found the "global optimum", but judges asked: _"How do you prove it's the global optimum and didn't get stuck in a local minimum?"_
 - **What We Did:** Built an independent combinatorial brute-force validator in `ConstrainedLogisticsOptimizer.solve_exact_brute_force()`.
   - On a 3-zone, 8-can, 2-team instance, exhaustively evaluated all **190 feasible integer states**:
     $$\text{Stars \& Bars: } \binom{8+3-1}{3-1} = \binom{10}{2} = 45 \text{ can splits} \times \text{feasible team configurations} \implies 190 \text{ states}$$
@@ -82,6 +87,7 @@ Here is every architectural upgrade, mathematical fix, and operational feature e
 - **Why It Matters:** Formal proof that our $O(K \cdot W \cdot T)$ DP solver produces the exact same perfect result as evaluating every possible combination. Live proof exposed on `/api/system/audit-proof`.
 
 ### Upgrade 6: Historical Peak Replay Telemetry (IMD Shivajinagar 44.2°C)
+
 - **The Problem:** Judges wanted to test municipal response under extreme historical conditions.
 - **What We Did:** Built the **Historical Peak Replay Mode** anchored to:
   - **Station:** IMD Shivajinagar Pune (`#43063`), Elevation 559m.
@@ -91,11 +97,13 @@ Here is every architectural upgrade, mathematical fix, and operational feature e
 - **Why It Matters:** Officials can scrub through a real 44.2°C heat emergency and watch the triage engine trigger Critical alerts in real-time.
 
 ### Upgrade 7: Deterministic SHA-256 Spatial Hashing
+
 - **The Problem:** Python's default `hash()` randomizes its seed per process session (`PYTHONHASHSEED`), causing ward asset counts to drift across serverless cold starts.
 - **What We Did:** Replaced Python's `hash()` with stable 64-bit integer masks derived from `hashlib.sha256(zone_id.encode('utf-8'))`.
 - **Why It Matters:** 100% deterministic, reproducible counts across every server, platform, and cold start.
 
 ### Upgrade 8: Geographic Grid Centroid Realignment
+
 - **The Problem:** Prominent Pune landmarks were shifted by 1 grid cell in early prototypes.
 - **What We Did:** Realigned all 64 grid cells to their true GPS centroids:
   - **Kothrud Central:** `Z-43` (73.808°E)
@@ -107,11 +115,13 @@ Here is every architectural upgrade, mathematical fix, and operational feature e
 - **Why It Matters:** Pune residents and municipal officials immediately see the map is pinpoint accurate.
 
 ### Upgrade 9: Restful GET Endpoints & 17 Automated Tests
+
 - **The Problem:** Automated crawlers and browser visits to `/api/dispatch` and `/api/dispatch/brief` returned 404/405 because they were POST-only.
 - **What We Did:** Added full `GET` handlers returning the authoritative dispatch brief and depot inventory. Added comprehensive acceptance test coverage in [`tests/test_heatatlas.py`](tests/test_heatatlas.py), bringing the test suite to **17/17 passing automated pytest acceptance tests**.
 - **Why It Matters:** Anyone testing the API via browser or curl gets an instant, valid 200 OK response.
 
 ### Upgrade 10: Complete Pitch Deck & Checklist Regeneration
+
 - **What We Did:** Regenerated all 6 keynote-quality 1920x1080 slides and the official 1-page Submission Checklist PDF. Both are permanently compiled and deployed directly on production:
   - Pitch Deck: [`https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf`](https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf)
   - Checklist: [`https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf`](https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf)
@@ -162,7 +172,7 @@ $$R_d = \frac{V_h}{\text{Working\_Water\_Taps} + (2 \times \text{Clinics}) + 1}$
   - $V_h = (9,100 + 3,900) \times 7 = 91,000$
   - $R_d = 91,000 / (6 + 4 + 1) = 8,272.7$ (`Critical` tier)
 - **Psychrometric Wet-Bulb ($T_w$) & Sphere Humanitarian Standard:**
-  - Computes **Stull (2011) Psychrometric Wet-Bulb Temperature ($T_w$)** (*J. Appl. Meteor. Climatol.*, 50, 2267–2269) from dry-bulb temperature and relative humidity. Tested against published verification points:
+  - Computes **Stull (2011) Psychrometric Wet-Bulb Temperature ($T_w$)** (_J. Appl. Meteor. Climatol._, 50, 2267–2269) from dry-bulb temperature and relative humidity. Tested against published verification points:
     - $T = 20.0^\circ\text{C}, \text{RH} = 50.0\% \implies T_w = 13.70^\circ\text{C}$
     - $T = 42.0^\circ\text{C}, \text{RH} = 38.0\% \implies T_w = 29.68^\circ\text{C}$
   - Evaluates water infrastructure saturation against the **Sphere Minimum Humanitarian Standard (Water Supply Standard 1: maximum 250 persons per working tap headcount capacity)**.

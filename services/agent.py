@@ -7,20 +7,20 @@ Engineered with techniques from Prompt_Engineering repository:
 - Self-Correction Guardrail (Python Deterministic Validator)
 """
 
-import os
-import json
 import base64
+import hashlib
+import io
+import json
+import os
 import re
 import time
-import io
-import hashlib
-from typing import List, Optional
-from pydantic import BaseModel, Field, ValidationError
+
 from PIL import Image
-from config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_FALLBACK_MODELS
-from services.scoring import compute_scores
+from pydantic import BaseModel, Field
+
+from config import GEMINI_API_KEY, GEMINI_FALLBACK_MODELS, GEMINI_MODEL
 from services.rtk_optimizer import rtk_compress_prompt
-from services.spatial_index import RefCheckerAuditEngine, ConstrainedLogisticsOptimizer
+from services.spatial_index import ConstrainedLogisticsOptimizer, RefCheckerAuditEngine
 
 
 class VisionAuditSchema(BaseModel):
@@ -35,7 +35,7 @@ class VisionAuditSchema(BaseModel):
 
 class IntakeIntentSchema(BaseModel):
     intent: str = Field(default="dispatch_plan")
-    zone_hint: Optional[str] = Field(default=None)
+    zone_hint: str | None = Field(default=None)
     teams_available: int = Field(default=2, ge=1, le=50)
     water_cans_l: int = Field(default=40, ge=0)
     ors_packets: int = Field(default=100, ge=0)
@@ -56,7 +56,7 @@ class DispatchTargetSchema(BaseModel):
 class DispatchBriefSchema(BaseModel):
     summary: str
     window: str
-    targets: List[DispatchTargetSchema]
+    targets: list[DispatchTargetSchema]
     resource_allocation: str
     safety_note: str
 
@@ -720,18 +720,18 @@ async def transcribe_audio_to_text(
                 audio_base64 = audio_base64.split(",")[1]
             audio_bytes = base64.b64decode(audio_base64)
 
-            prompt = f"""You are an expert transcriber and dispatcher for municipal Pune emergency heat response.
+            prompt = """You are an expert transcriber and dispatcher for municipal Pune emergency heat response.
 Listen to this audio recorded by a gig worker or volunteer in Pune.
 The speaker may speak Marathi, Hindi, or Indian English.
 Transcribe accurately and extract key relief needs (location, workers count, water urgency).
 Return JSON:
-{{
+{
   "language_detected": "Marathi",
   "transcription": "स्वारगेट उड्डाणपुलाखाली २५ डिलिव्हरी कामगार थांबले आहेत, पिण्याचे पाणी संपले आहे.",
   "translation_en": "25 delivery riders waiting under Swargate flyover, drinking water is completely exhausted.",
   "extracted_location": "Swargate Flyover",
   "estimated_urgency": "High"
-}}
+}
 """
             response, _ = call_gemini_with_fallback(
                 client,

@@ -1,18 +1,18 @@
-import os
-import time
-import math
+import asyncio
 import json
+import math
+import os
 import sqlite3
 import threading
-import asyncio
+import time
+
+from cachetools import TTLCache
 from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from cachetools import TTLCache
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import Optional, List
 
 STATE_LOCK = threading.RLock()
 _LOCAL_DB = os.path.join(os.path.dirname(__file__), "heatatlas.db")
@@ -57,41 +57,40 @@ def _save_beacon_db(beacon: dict):
         pass
 
 
-from config import GRID_ROWS, GRID_COLS
-from cities import get_city, list_all_cities, CITIES
-from services.weather import get_city_forecast, get_pune_forecast
-from services.worldpop import get_zone_population
-from services.assets import get_live_assets, add_asset_report, get_asset_reports
+from cities import CITIES, get_city, list_all_cities
+from config import GRID_COLS, GRID_ROWS
+from services.agent import (
+    audit_beacon_photo,
+    audit_broken_tap_photo,
+    generate_cool_corridor_analysis,
+    generate_dispatch_brief,
+    generate_ngo_squad_orders,
+    generate_voice_dispatch_script,
+    handle_chatbot_message,
+    parse_intake_request,
+    screen_heat_stroke_speech,
+    transcribe_audio_to_text,
+)
+from services.archify_spec import generate_archify_system_spec
+from services.assets import add_asset_report, get_asset_reports, get_live_assets
+from services.awesome_ios_engine import (
+    get_awesome_ios_catalog,
+    get_ibeacon_mesh_spec,
+    get_ios_haptic_profile,
+)
+from services.rtk_optimizer import rtk_compress_prompt
 from services.scoring import (
-    compute_scores,
     compute_ablation_study,
+    compute_scores,
     compute_stull_wet_bulb,
 )
 from services.spatial_index import (
-    SpatialQuadtreeIndex,
-    RefCheckerAuditEngine,
     ConstrainedLogisticsOptimizer,
+    SpatialQuadtreeIndex,
 )
 from services.video_engine import generate_heatatlas_remotion_manifest
-from services.rtk_optimizer import rtk_compress_prompt
-from services.archify_spec import generate_archify_system_spec
-from services.awesome_ios_engine import (
-    get_ios_haptic_profile,
-    get_ibeacon_mesh_spec,
-    get_awesome_ios_catalog,
-)
-from services.agent import (
-    generate_dispatch_brief,
-    parse_intake_request,
-    audit_beacon_photo,
-    audit_broken_tap_photo,
-    transcribe_audio_to_text,
-    generate_voice_dispatch_script,
-    screen_heat_stroke_speech,
-    generate_cool_corridor_analysis,
-    generate_ngo_squad_orders,
-    handle_chatbot_message,
-)
+from services.weather import get_city_forecast
+from services.worldpop import get_zone_population
 
 # In-memory and SQLite store for Worker Water Beacons.
 # Baseline scenario fixtures are explicitly tagged with data_origin="seed_scenario_fixture"
@@ -328,7 +327,7 @@ SEEN_IMAGE_HASHES = set()
 SEEN_IMAGE_AHASH_INTS = set()
 
 
-def _compute_image_perceptual_hash(b64_str: Optional[str]) -> tuple:
+def _compute_image_perceptual_hash(b64_str: str | None) -> tuple:
     """
     Computes an 8x8 luminance average hash (aHash) for image deduplication.
     Uses bitwise Hamming distance <= 4 to flag duplicate/visually-identical images across uploads.
@@ -338,6 +337,7 @@ def _compute_image_perceptual_hash(b64_str: Optional[str]) -> tuple:
     try:
         import base64
         import io
+
         from PIL import Image
 
         raw = b64_str.split(",", 1)[1] if "," in b64_str else b64_str
@@ -844,8 +844,8 @@ async def priority(
 async def assets(
     response: Response = Response(),
     city: str = Query("pune"),
-    type: Optional[str] = None,
-    bbox: Optional[str] = None,
+    type: str | None = None,
+    bbox: str | None = None,
 ):
     all_assets = await get_live_assets(city)
     if type:
@@ -890,7 +890,7 @@ async def read_asset_reports(osm_id: str):
 
 
 @app.get("/api/nearest")
-async def nearest_relief(lat: float, lon: float, type: Optional[str] = None):
+async def nearest_relief(lat: float, lon: float, type: str | None = None):
     all_assets = await get_live_assets()
     quadtree = SpatialQuadtreeIndex()
     quadtree.bulk_load(all_assets)
@@ -902,15 +902,15 @@ class BeaconReportRequest(BaseModel):
     location_name: str
     lat: float
     lon: float
-    zone_id: Optional[str] = "Z-44"
+    zone_id: str | None = "Z-44"
     description: str
-    image_base64: Optional[str] = None
+    image_base64: str | None = None
     session_token: str
 
 
 @app.get("/api/beacons")
 async def get_beacons(
-    city: Optional[str] = Query(
+    city: str | None = Query(
         None, description="Filter beacons by city id (e.g. pune, nagpur, mumbai)"
     ),
     include_fixtures: bool = Query(
@@ -1223,7 +1223,7 @@ DEFAULT_OUTAGES = [
 
 
 @app.get("/api/outages")
-async def get_outages(response: Response = Response(), city: Optional[str] = None):
+async def get_outages(response: Response = Response(), city: str | None = None):
     """
     Municipal Water Cuts, Grid Transformer Outages, and Chiller Failures Database.
     Gives field teams real-time awareness of utility breakdowns exacerbating heatwaves.
@@ -1287,7 +1287,7 @@ async def get_outages(response: Response = Response(), city: Optional[str] = Non
 
 @app.get("/api/ngos")
 async def get_ngos(
-    city: Optional[str] = None, lat: Optional[float] = None, lon: Optional[float] = None
+    city: str | None = None, lat: float | None = None, lon: float | None = None
 ):
     all_ngos = []
     if city:
@@ -1329,8 +1329,8 @@ async def audit_tap(req: TapAuditRequest):
 
 
 class AudioTranscribeRequest(BaseModel):
-    audio_base64: Optional[str] = None
-    language: Optional[str] = "mr"
+    audio_base64: str | None = None
+    language: str | None = "mr"
 
 
 @app.post("/api/audio/transcribe")
@@ -1398,7 +1398,7 @@ class ChatRequest(BaseModel):
     message: str
     city: str = "pune"
     temp_c: float = 41.8
-    selected_zone: Optional[dict] = None
+    selected_zone: dict | None = None
     chat_history: list = []
     language: str = "en"
 
@@ -1447,9 +1447,9 @@ DISPATCH_BRIEFS = {}
 
 
 class IntakeRequest(BaseModel):
-    text: Optional[str] = None
-    request_text: Optional[str] = None
-    audio_base64: Optional[str] = None
+    text: str | None = None
+    request_text: str | None = None
+    audio_base64: str | None = None
     language: str = "en"
 
 
@@ -1811,7 +1811,7 @@ async def rtk_compress(payload: dict):
 class WhatsAppWebhookPayload(BaseModel):
     recipient_phone: str = "+91 98230 11223"
     ngo_name: str = "Pune Heat Action Collective"
-    brief_id: Optional[str] = None
+    brief_id: str | None = None
     message_body: str = "URGENT: Deploy 20L water cans to Swargate Z-44"
 
 

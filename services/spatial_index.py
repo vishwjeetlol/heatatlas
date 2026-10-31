@@ -8,7 +8,7 @@ Integrates architectural patterns from:
 """
 
 import math
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any
 
 
 def haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -39,12 +39,12 @@ class QuadtreeNode:
         self.capacity = capacity
         self.depth = depth
         self.max_depth = 8
-        self.points: List[Dict[str, Any]] = []
+        self.points: list[dict[str, Any]] = []
         self.divided = False
-        self.nw: Optional["QuadtreeNode"] = None
-        self.ne: Optional["QuadtreeNode"] = None
-        self.sw: Optional["QuadtreeNode"] = None
-        self.se: Optional["QuadtreeNode"] = None
+        self.nw: QuadtreeNode | None = None
+        self.ne: QuadtreeNode | None = None
+        self.sw: QuadtreeNode | None = None
+        self.se: QuadtreeNode | None = None
 
     def contains(self, lat: float, lon: float) -> bool:
         return self.south <= lat <= self.north and self.west <= lon <= self.east
@@ -67,7 +67,7 @@ class QuadtreeNode:
         )
         self.divided = True
 
-    def insert(self, asset: Dict[str, Any]) -> bool:
+    def insert(self, asset: dict[str, Any]) -> bool:
         lat, lon = float(asset["lat"]), float(asset["lon"])
         if not self.contains(lat, lon):
             return False
@@ -84,7 +84,7 @@ class QuadtreeNode:
         )
 
     def query_range(
-        self, s: float, w: float, n: float, e: float, found: List[Dict[str, Any]]
+        self, s: float, w: float, n: float, e: float, found: list[dict[str, Any]]
     ):
         if self.north < s or self.south > n or self.east < w or self.west > e:
             return
@@ -102,26 +102,26 @@ class SpatialQuadtreeIndex:
     """Wraps QuadtreeNode to provide O(log N) radius/k-NN relief asset search."""
 
     def __init__(
-        self, bbox: Tuple[float, float, float, float] = (17.0, 72.0, 29.5, 80.0)
+        self, bbox: tuple[float, float, float, float] = (17.0, 72.0, 29.5, 80.0)
     ):
         self.root = QuadtreeNode(*bbox)
         self.total_indexed = 0
 
-    def bulk_load(self, assets: List[Dict[str, Any]]):
+    def bulk_load(self, assets: list[dict[str, Any]]):
         for a in assets:
             if self.root.insert(a):
                 self.total_indexed += 1
 
     def query_range(
         self, s: float, w: float, n: float, e: float
-    ) -> List[Dict[str, Any]]:
-        found: List[Dict[str, Any]] = []
+    ) -> list[dict[str, Any]]:
+        found: list[dict[str, Any]] = []
         self.root.query_range(s, w, n, e, found)
         return found
 
     def find_k_nearest(
         self, lat: float, lon: float, k: int = 3, only_working: bool = True
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         for delta in (0.03, 0.08, 0.25, 2.0):
             candidates = self.query_range(
                 lat - delta, lon - delta, lat + delta, lon + delta
@@ -147,9 +147,9 @@ class SpatialQuadtreeIndex:
         lat: float,
         lon: float,
         k: int = 3,
-        asset_type: Optional[str] = None,
+        asset_type: str | None = None,
         only_working: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         multiplier = 10 if asset_type else 1
         res = self.find_k_nearest(lat, lon, k=k * multiplier, only_working=only_working)
         if asset_type:
@@ -169,8 +169,8 @@ class RefCheckerAuditEngine:
 
     @staticmethod
     def audit_dispatch_brief(
-        brief: Dict[str, Any], ground_truth_zones: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        brief: dict[str, Any], ground_truth_zones: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         zone_map = {z["id"]: z for z in ground_truth_zones}
         for z in ground_truth_zones:
             short_id = z["id"].split("-", 1)[-1] if "-" in z["id"] else z["id"]
@@ -266,7 +266,7 @@ class ConstrainedLogisticsOptimizer:
         w_cans: int,
         teams_assigned: int,
         travel_min: float,
-    ) -> Tuple[float, float, float]:
+    ) -> tuple[float, float, float]:
         """
         Returns (utility_gain, pre_rd, post_rd) for assigning `w_cans` (20L cans) and `teams_assigned` to a zone.
         No artificial positive floor: if travel cost exceeds deficit reduction, utility can be <= 0.
@@ -289,12 +289,12 @@ class ConstrainedLogisticsOptimizer:
 
     @staticmethod
     def solve_exact_brute_force(
-        candidates: List[Dict[str, Any]],
+        candidates: list[dict[str, Any]],
         total_teams: int,
         total_cans: int,
-        travel_times: List[int],
+        travel_times: list[int],
         max_cans_per_team: int = 35,
-    ) -> Tuple[float, List[Tuple[int, int]], int]:
+    ) -> tuple[float, list[tuple[int, int]], int]:
         """
         Independent exact unbundled combinatorial brute-force search over all integer partitions:
         sum(teams_i) <= total_teams, sum(cans_i) <= total_cans, cans_i <= teams_i * max_cans_per_team.
@@ -310,7 +310,7 @@ class ConstrainedLogisticsOptimizer:
             rem_t: int,
             rem_w: int,
             current_obj: float,
-            current_path: List[Tuple[int, int]],
+            current_path: list[tuple[int, int]],
         ):
             nonlocal best_obj, best_allocs, states_count
             if idx == k:
@@ -351,13 +351,13 @@ class ConstrainedLogisticsOptimizer:
 
     @staticmethod
     def solve_resource_allocation(
-        ranked_zones: Optional[List[Dict[str, Any]]] = None,
-        depots: Optional[List[Dict[str, Any]]] = None,
+        ranked_zones: list[dict[str, Any]] | None = None,
+        depots: list[dict[str, Any]] | None = None,
         teams_available: int = 2,
         water_cans_available: int = 40,
         max_targets: int = 5,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         zones_list = ranked_zones or kwargs.get("priority_zones") or []
         depot_list = depots or kwargs.get("ngos") or []
         candidates = [z for z in zones_list if z.get("rd", 0) > 0][:max_targets]
@@ -416,7 +416,7 @@ class ConstrainedLogisticsOptimizer:
         # at 1-can (20L) granularity — zero bundle quantization and zero leftover dumping!
         dp = [[-1e18] * (total_cans + 1) for _ in range(total_teams + 1)]
         dp[0][0] = 0.0
-        parent: List[List[List[Optional[Tuple[int, int, int, int]]]]] = [
+        parent: list[list[list[tuple[int, int, int, int] | None]]] = [
             [[None] * (total_cans + 1) for _ in range(total_teams + 1)]
             for _ in range(k_zones)
         ]
@@ -509,8 +509,7 @@ class ConstrainedLogisticsOptimizer:
                 nonlocal brute_force_best, states_enumerated
                 if z_idx == k_zones:
                     states_enumerated += 1
-                    if acc_u > brute_force_best:
-                        brute_force_best = acc_u
+                    brute_force_best = max(brute_force_best, acc_u)
                     return
                 z = candidates[z_idx]
                 vh = float(z.get("vh", 0.0))

@@ -1,8 +1,9 @@
-import sqlite3
-import os
-import time
-import shutil
 import hashlib
+import os
+import shutil
+import sqlite3
+import time
+
 from cities import get_city
 from services.worldpop import EMBEDDED_WORLDPOP_V2_SNAPSHOT
 

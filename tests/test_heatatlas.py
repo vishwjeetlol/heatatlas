@@ -3,14 +3,15 @@ import io
 import os
 import sys
 import time
+
 from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi.testclient import TestClient
 
 from app import app
-from services.scoring import compute_scores
 from services.agent import validate_dispatch_brief
+from services.scoring import compute_scores
 
 client = TestClient(app)
 
@@ -349,7 +350,7 @@ def test_round3_scoring_monotonicity_and_invariants():
     2. Monotonicity in vulnerable population: adding children/elderly never decreases Rd (when hours > 0).
     3. Stull (2011) Wet-Bulb temperature bounded in (-10, 55) C and increases monotonically with RH.
     """
-    for taps in range(0, 12):
+    for taps in range(12):
         r_curr = compute_scores(
             35000,
             5000,
@@ -566,8 +567,9 @@ def test_dispatch_get_endpoints_and_deterministic_assets():
     assert b_data["optimality_verified"] is True
 
     # 2. Deterministic asset derivation
-    from services.assets import get_live_assets
     import anyio
+
+    from services.assets import get_live_assets
 
     assets_run1 = anyio.run(get_live_assets, "pune")
     assets_run2 = anyio.run(get_live_assets, "pune")

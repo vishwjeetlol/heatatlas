@@ -1,301 +1,599 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HeatAtlas — Master UI Design System & Surfaces Catalog</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: 'DM Sans', sans-serif; background: #0b0f19; color: #f1f5f9; }
-    .font-display { font-family: 'Sora', sans-serif; }
-    .font-mono { font-family: 'JetBrains Mono', monospace; }
-  </style>
-</head>
-<body class="min-h-screen pb-20">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HeatAtlas — Master UI Design System & Surfaces Catalog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: #0b0f19;
+        color: #f1f5f9;
+      }
+      .font-display {
+        font-family: "Sora", sans-serif;
+      }
+      .font-mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen pb-20">
+    <!-- TOP HEADER -->
+    <header
+      class="sticky top-0 z-50 bg-[#0b0f19]/90 backdrop-blur-md border-b border-slate-800 px-6 py-4"
+    >
+      <div
+        class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4"
+      >
+        <div class="flex items-center gap-3">
+          <a
+            href="/showcase.html"
+            class="flex items-center gap-2 text-white font-display font-extrabold text-xl"
+          >
+            <span class="text-2xl">🔥</span> HeatAtlas
+            <span
+              class="bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-2.5 py-0.5 rounded-full font-mono"
+              >UI DESIGN SYSTEM</span
+            >
+          </a>
+        </div>
+        <nav class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+          <a
+            href="#surface-ground-command"
+            class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all"
+            >Ground Command</a
+          >
+          <a
+            href="#surface-alarm"
+            class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all"
+            >Audio Alarm</a
+          >
+          <a
+            href="#surface-citizen"
+            class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all"
+            >Citizen Worker</a
+          >
+          <a
+            href="#surface-realtime"
+            class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all"
+            >Real-Time Sync</a
+          >
+          <a
+            href="#surface-ngo"
+            class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all"
+            >NGO Command</a
+          >
+          <a
+            href="#surface-mobile"
+            class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all"
+            >Mobile Drawer</a
+          >
+          <a
+            href="#surface-pitch-deck"
+            class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all"
+            >Pitch Deck</a
+          >
+        </nav>
+        <div class="flex items-center gap-2">
+          <a
+            href="/dashboard.html"
+            target="_blank"
+            class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all border border-slate-700"
+          >
+            Command Center ↗
+          </a>
+          <a
+            href="/"
+            target="_blank"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-lg"
+          >
+            Live App ↗
+          </a>
+        </div>
+      </div>
+    </header>
 
-  <!-- TOP HEADER -->
-  <header class="sticky top-0 z-50 bg-[#0b0f19]/90 backdrop-blur-md border-b border-slate-800 px-6 py-4">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-      <div class="flex items-center gap-3">
-        <a href="/showcase.html" class="flex items-center gap-2 text-white font-display font-extrabold text-xl">
-          <span class="text-2xl">🔥</span> HeatAtlas <span class="bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-2.5 py-0.5 rounded-full font-mono">UI DESIGN SYSTEM</span>
-        </a>
-      </div>
-      <nav class="flex flex-wrap items-center gap-2 text-xs font-semibold">
-        <a href="#surface-ground-command" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all">Ground Command</a>
-        <a href="#surface-alarm" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all">Audio Alarm</a>
-        <a href="#surface-citizen" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all">Citizen Worker</a>
-        <a href="#surface-realtime" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all">Real-Time Sync</a>
-        <a href="#surface-ngo" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all">NGO Command</a>
-        <a href="#surface-mobile" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all">Mobile Drawer</a>
-        <a href="#surface-pitch-deck" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all">Pitch Deck</a>
-      </nav>
-      <div class="flex items-center gap-2">
-        <a href="/dashboard.html" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all border border-slate-700">
-          Command Center ↗
-        </a>
-        <a href="/" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-lg">
-          Live App ↗
-        </a>
-      </div>
+    <!-- HERO TITLE -->
+    <div class="max-w-7xl mx-auto px-6 pt-10 pb-6 text-center">
+      <span
+        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono font-bold mb-3"
+      >
+        <span>🎨</span> COMPLETE VISUAL DESIGN & INTERACTION CATALOG
+      </span>
+      <h1
+        class="font-display font-extrabold text-3xl md:text-5xl text-white tracking-tight"
+      >
+        Every Single UI Design in HeatAtlas
+      </h1>
+      <p
+        class="text-slate-400 max-w-2xl mx-auto mt-3 text-sm md:text-base leading-relaxed"
+      >
+        Explore high-resolution visual captures, design system tokens, color
+        harmonies, and interaction architectures designed for extreme thermal
+        emergency response.
+      </p>
     </div>
-  </header>
 
-  <!-- HERO TITLE -->
-  <div class="max-w-7xl mx-auto px-6 pt-10 pb-6 text-center">
-    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono font-bold mb-3">
-      <span>🎨</span> COMPLETE VISUAL DESIGN & INTERACTION CATALOG
-    </span>
-    <h1 class="font-display font-extrabold text-3xl md:text-5xl text-white tracking-tight">
-      Every Single UI Design in HeatAtlas
-    </h1>
-    <p class="text-slate-400 max-w-2xl mx-auto mt-3 text-sm md:text-base leading-relaxed">
-      Explore high-resolution visual captures, design system tokens, color harmonies, and interaction architectures designed for extreme thermal emergency response.
-    </p>
-  </div>
+    <div class="max-w-7xl mx-auto px-6 flex flex-col gap-16 mt-6">
+      <!-- SURFACE 1: GROUND COMMAND WITH AUDIO SIREN TRIGGERED -->
+      <section
+        id="surface-alarm"
+        class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl"
+      >
+        <div
+          class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800"
+        >
+          <div>
+            <span
+              class="text-xs font-mono uppercase tracking-wider text-red-400 font-bold"
+              >Surface 01 · Emergency Dispatch</span
+            >
+            <h2 class="font-display font-bold text-2xl text-white mt-1">
+              Ground Intelligence Command & Live Audio Alarm
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Real-time incident alert banner with dual-tone Web Audio chime and
+              district city switcher.
+            </p>
+          </div>
+          <a
+            href="/dashboard.html"
+            target="_blank"
+            class="bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg hover:scale-105 transition-all"
+          >
+            Test Alarm Live ↗
+          </a>
+        </div>
 
-  <div class="max-w-7xl mx-auto px-6 flex flex-col gap-16 mt-6">
+        <div
+          class="rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-black"
+        >
+          <img
+            src="ui/dashboard_alarm_triggered.png"
+            alt="Ground Command Center with Alarm Triggered"
+            class="w-full h-auto object-cover"
+          />
+        </div>
 
-    <!-- SURFACE 1: GROUND COMMAND WITH AUDIO SIREN TRIGGERED -->
-    <section id="surface-alarm" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800">
-        <div>
-          <span class="text-xs font-mono uppercase tracking-wider text-red-400 font-bold">Surface 01 · Emergency Dispatch</span>
-          <h2 class="font-display font-bold text-2xl text-white mt-1">Ground Intelligence Command & Live Audio Alarm</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Real-time incident alert banner with dual-tone Web Audio chime and district city switcher.</p>
-        </div>
-        <a href="/dashboard.html" target="_blank" class="bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg hover:scale-105 transition-all">
-          Test Alarm Live ↗
-        </a>
-      </div>
-
-      <div class="rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-black">
-        <img src="ui/dashboard_alarm_triggered.png" alt="Ground Command Center with Alarm Triggered" class="w-full h-auto object-cover" />
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300">
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🚨 Dual-Tone Alert Chime:</strong>
-          Synthesizes a 880Hz → 1174.66Hz frequency sweep via native Web Audio API with zero audio file dependencies.
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🏢 District City Switcher:</strong>
-          Quick-switch pills for all 8 cities (Pune, Nagpur, Mumbai, etc.) that instantly re-center the map and filter all beacons.
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🎯 Strict City Isolation:</strong>
-          Beacons, workers at risk, municipal outages, and NGO squads are dynamically filtered strictly to the active city.
-        </div>
-      </div>
-    </section>
-
-    <!-- SURFACE 2: GROUND COMMAND CENTER (PUNE DEFAULT) -->
-    <section id="surface-ground-command" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800">
-        <div>
-          <span class="text-xs font-mono uppercase tracking-wider text-indigo-400 font-bold">Surface 02 · Executive Dashboard</span>
-          <h2 class="font-display font-bold text-2xl text-white mt-1">Ground Intelligence Command (Pune District View)</h2>
-          <p class="text-xs text-slate-400 mt-0.5">64-ward spatial deficit heatmap, photo-verified crowd beacons, and WhatsApp battle-order generator.</p>
-        </div>
-      </div>
-
-      <div class="rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-black">
-        <img src="ui/dashboard_city_selector_pune.png" alt="Ground Intelligence Command Pune View" class="w-full h-auto object-cover" />
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300">
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🗺️ 64 Micro-Zones Grid:</strong>
-          3.3km x 3.3km ward bounding boxes with real-time Stull Wet-Bulb calculation and deficit scoring ($R_d$).
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">📸 Gemini Vision Audits:</strong>
-          Every ground submission displays confidence score, verified crowd count, and tactical squad recommendations.
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">⚡ WhatsApp Battle-Orders:</strong>
-          Synthesizes copy-paste formatted squad dispatch orders for field volunteers on WhatsApp.
-        </div>
-      </div>
-    </section>
-
-    <!-- SURFACE 3: CITIZEN EXPLORER (WORKER VIEW) -->
-    <section id="surface-citizen" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800">
-        <div>
-          <span class="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">Surface 03 · Citizen & Worker App</span>
-          <h2 class="font-display font-bold text-2xl text-white mt-1">Field Worker Radar & Thermal Telemetry Bento</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Zero-dummy-data citizen interface with SOS beacon broadcasting and cooling route comparisons.</p>
-        </div>
-        <a href="/" target="_blank" class="bg-indigo-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg hover:scale-105 transition-all">
-          Launch App ↗
-        </a>
-      </div>
-
-      <div class="rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-black">
-        <img src="ui/desktop_no_outages.png" alt="Citizen Explorer Desktop View" class="w-full h-auto object-cover" />
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs text-slate-300">
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🚨 Need Water SOS:</strong>
-          One-tap beacon broadcast with GPS lock, vernacular voice notes, and photo uploads.
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🌡️ Thermal Bento:</strong>
-          Displays felt temp, deficit score, peak hours, sky view factor (SVF), and queue load.
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🌿 Cooling Corridor:</strong>
-          Thermal A* routing comparing shade vs highway routes to reduce cumulative heat exposure by 34%.
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🎙️ Native Voice STT:</strong>
-          Supports Marathi, Hindi, and English voice notes with Gemini speech stroke triage.
-        </div>
-      </div>
-    </section>
-
-    <!-- SURFACE 4: REAL-TIME LOCAL HOUR AUTO-SYNC SCRUBBER -->
-    <section id="surface-realtime" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800">
-        <div>
-          <span class="text-xs font-mono uppercase tracking-wider text-rose-400 font-bold">Surface 04 · Ergonomic Scrubber</span>
-          <h2 class="font-display font-bold text-2xl text-white mt-1">24-Hour Scrubber with Real-Time Local Hour Auto-Sync</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Automatically syncs to the city's current local hour upon load with dynamic 'LIVE' badge.</p>
-        </div>
-      </div>
-
-      <div class="flex justify-center bg-black/40 p-4 rounded-2xl border border-slate-800">
-        <div class="max-w-md w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-800">
-          <img src="ui/mobile_realtime_verified.png" alt="Real-Time Scrubber Verified on Mobile" class="w-full h-auto object-cover" />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300">
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🔴 LIVE Time Badge:</strong>
-          Displays dynamic local time (e.g. LIVE 06:45 PM) with pulsing animation.
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">⏱️ Snap to Live:</strong>
-          Whenever the user scrubs across the 24 hours, an interactive 'Snap to Live' button appears to instantly reset.
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🗺️ Continuous Thermal Morphing:</strong>
-          Smoothly transitions WBGT and hazard tiers across all 64 micro-zones without page reloads.
-        </div>
-      </div>
-    </section>
-
-    <!-- SURFACE 5: NGO LEAD COMMAND (MOBILE PHONE CASE) -->
-    <section id="surface-ngo" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800">
-        <div>
-          <span class="text-xs font-mono uppercase tracking-wider text-sky-400 font-bold">Surface 05 · Mission Control</span>
-          <h2 class="font-display font-bold text-2xl text-white mt-1">NGO Lead Command Center & On-Map City Selector</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Embedded iPhone 14 shell with floating bounded map controls and test alarm action.</p>
-        </div>
-      </div>
-
-      <div class="flex justify-center bg-black/40 p-4 rounded-2xl border border-slate-800">
-        <div class="max-w-xl w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-800">
-          <img src="ui/react_ngo_alarm_verified.png" alt="NGO Lead Command Verified in Phone Case" class="w-full h-auto object-cover" />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300">
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🏢 Command City Pill Bar:</strong>
-          Located directly above the map for rapid switching between active disaster districts.
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🚨 Test Alarm Button:</strong>
-          Triggers immediate dual-tone audio chime and vocal speech alert inside the mobile app.
-        </div>
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <strong class="text-white block mb-1">🛡️ Bounded Overlays:</strong>
-          Isolates GPS and dropdown controls strictly within the map container to prevent pointer event collisions.
-        </div>
-      </div>
-    </section>
-
-    <!-- SURFACE 6: RESPONSIVE MOBILE DRAWER STATES -->
-    <section id="surface-mobile" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800">
-        <div>
-          <span class="text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold">Surface 06 · Responsive Ergonomics</span>
-          <h2 class="font-display font-bold text-2xl text-white mt-1">Mobile Collapsible Telemetry Drawer (Closed vs Open)</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Toggle between full-bleed geospatial navigation and detailed ward telemetry.</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="flex flex-col gap-2">
-          <span class="text-xs font-bold text-slate-400 text-center">Drawer Closed (Full-Bleed Map View)</span>
-          <div class="rounded-2xl overflow-hidden border border-slate-800 shadow-xl bg-black">
-            <img src="ui/mobile_drawer_closed.png" alt="Mobile Drawer Closed" class="w-full h-auto object-cover" />
+        <div
+          class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300"
+        >
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1"
+              >🚨 Dual-Tone Alert Chime:</strong
+            >
+            Synthesizes a 880Hz → 1174.66Hz frequency sweep via native Web Audio
+            API with zero audio file dependencies.
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1"
+              >🏢 District City Switcher:</strong
+            >
+            Quick-switch pills for all 8 cities (Pune, Nagpur, Mumbai, etc.)
+            that instantly re-center the map and filter all beacons.
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1"
+              >🎯 Strict City Isolation:</strong
+            >
+            Beacons, workers at risk, municipal outages, and NGO squads are
+            dynamically filtered strictly to the active city.
           </div>
         </div>
-        <div class="flex flex-col gap-2">
-          <span class="text-xs font-bold text-slate-400 text-center">Drawer Open (Detailed Ward Telemetry)</span>
-          <div class="rounded-2xl overflow-hidden border border-slate-800 shadow-xl bg-black">
-            <img src="ui/mobile_drawer_open.png" alt="Mobile Drawer Open" class="w-full h-auto object-cover" />
+      </section>
+
+      <!-- SURFACE 2: GROUND COMMAND CENTER (PUNE DEFAULT) -->
+      <section
+        id="surface-ground-command"
+        class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl"
+      >
+        <div
+          class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800"
+        >
+          <div>
+            <span
+              class="text-xs font-mono uppercase tracking-wider text-indigo-400 font-bold"
+              >Surface 02 · Executive Dashboard</span
+            >
+            <h2 class="font-display font-bold text-2xl text-white mt-1">
+              Ground Intelligence Command (Pune District View)
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              64-ward spatial deficit heatmap, photo-verified crowd beacons, and
+              WhatsApp battle-order generator.
+            </p>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- SURFACE 7: OFFICIAL PITCH DECK GALLERY -->
-    <section id="surface-pitch-deck" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800">
-        <div>
-          <span class="text-xs font-mono uppercase tracking-wider text-violet-400 font-bold">Surface 07 · Presentation Materials</span>
-          <h2 class="font-display font-bold text-2xl text-white mt-1">Official 6-Slide Pitch Deck Gallery</h2>
-          <p class="text-xs text-slate-400 mt-0.5">High-craft slides covering Problem, Solution, Architecture, Concave DP Solver, Impact, and Team.</p>
+        <div
+          class="rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-black"
+        >
+          <img
+            src="ui/dashboard_city_selector_pune.png"
+            alt="Ground Intelligence Command Pune View"
+            class="w-full h-auto object-cover"
+          />
         </div>
-        <a href="/HeatAtlas_Pitch_Deck.pdf" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-2 rounded-xl border border-slate-700 transition-all">
-          Download PDF ↗
-        </a>
-      </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="rounded-xl overflow-hidden border border-slate-800 shadow-lg">
-          <img src="slides/pitch_slide_1.png" alt="Slide 1: Title & Overview" class="w-full h-auto" />
+        <div
+          class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300"
+        >
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1"
+              >🗺️ 64 Micro-Zones Grid:</strong
+            >
+            3.3km x 3.3km ward bounding boxes with real-time Stull Wet-Bulb
+            calculation and deficit scoring ($R_d$).
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1"
+              >📸 Gemini Vision Audits:</strong
+            >
+            Every ground submission displays confidence score, verified crowd
+            count, and tactical squad recommendations.
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1"
+              >⚡ WhatsApp Battle-Orders:</strong
+            >
+            Synthesizes copy-paste formatted squad dispatch orders for field
+            volunteers on WhatsApp.
+          </div>
         </div>
-        <div class="rounded-xl overflow-hidden border border-slate-800 shadow-lg">
-          <img src="slides/pitch_slide_2.png" alt="Slide 2: Problem" class="w-full h-auto" />
-        </div>
-        <div class="rounded-xl overflow-hidden border border-slate-800 shadow-lg">
-          <img src="slides/pitch_slide_3.png" alt="Slide 3: Architecture" class="w-full h-auto" />
-        </div>
-        <div class="rounded-xl overflow-hidden border border-slate-800 shadow-lg">
-          <img src="slides/pitch_slide_4.png" alt="Slide 4: DP Solver" class="w-full h-auto" />
-        </div>
-        <div class="rounded-xl overflow-hidden border border-slate-800 shadow-lg">
-          <img src="slides/pitch_slide_5.png" alt="Slide 5: Multi-AI Scores" class="w-full h-auto" />
-        </div>
-        <div class="rounded-xl overflow-hidden border border-slate-800 shadow-lg">
-          <img src="slides/pitch_slide_6.png" alt="Slide 6: Roadmap" class="w-full h-auto" />
-        </div>
-      </div>
-    </section>
+      </section>
 
-  </div>
+      <!-- SURFACE 3: CITIZEN EXPLORER (WORKER VIEW) -->
+      <section
+        id="surface-citizen"
+        class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl"
+      >
+        <div
+          class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800"
+        >
+          <div>
+            <span
+              class="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold"
+              >Surface 03 · Citizen & Worker App</span
+            >
+            <h2 class="font-display font-bold text-2xl text-white mt-1">
+              Field Worker Radar & Thermal Telemetry Bento
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Zero-dummy-data citizen interface with SOS beacon broadcasting and
+              cooling route comparisons.
+            </p>
+          </div>
+          <a
+            href="/"
+            target="_blank"
+            class="bg-indigo-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg hover:scale-105 transition-all"
+          >
+            Launch App ↗
+          </a>
+        </div>
 
-  <!-- FOOTER -->
-  <footer class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-slate-800 text-center text-xs text-slate-500">
-    <p>HeatAtlas: Forecast Heat. Prioritise Relief. · Team Strawhats (627JUH) · FORGE'26 Hackathon Theme 2</p>
-    <div class="flex justify-center gap-4 mt-3 font-semibold text-slate-400">
-      <a href="/" class="hover:text-white">Live App</a>
-      <a href="/dashboard.html" class="hover:text-white">Ground Command</a>
-      <a href="/showcase.html" class="hover:text-white">Showcase Hub</a>
-      <a href="/docs" class="hover:text-white">API Swagger</a>
+        <div
+          class="rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-black"
+        >
+          <img
+            src="ui/desktop_no_outages.png"
+            alt="Citizen Explorer Desktop View"
+            class="w-full h-auto object-cover"
+          />
+        </div>
+
+        <div
+          class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs text-slate-300"
+        >
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1">🚨 Need Water SOS:</strong>
+            One-tap beacon broadcast with GPS lock, vernacular voice notes, and
+            photo uploads.
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1">🌡️ Thermal Bento:</strong>
+            Displays felt temp, deficit score, peak hours, sky view factor
+            (SVF), and queue load.
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1">🌿 Cooling Corridor:</strong>
+            Thermal A* routing comparing shade vs highway routes to reduce
+            cumulative heat exposure by 34%.
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1">🎙️ Native Voice STT:</strong>
+            Supports Marathi, Hindi, and English voice notes with Gemini speech
+            stroke triage.
+          </div>
+        </div>
+      </section>
+
+      <!-- SURFACE 4: REAL-TIME LOCAL HOUR AUTO-SYNC SCRUBBER -->
+      <section
+        id="surface-realtime"
+        class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl"
+      >
+        <div
+          class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800"
+        >
+          <div>
+            <span
+              class="text-xs font-mono uppercase tracking-wider text-rose-400 font-bold"
+              >Surface 04 · Ergonomic Scrubber</span
+            >
+            <h2 class="font-display font-bold text-2xl text-white mt-1">
+              24-Hour Scrubber with Real-Time Local Hour Auto-Sync
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Automatically syncs to the city's current local hour upon load
+              with dynamic 'LIVE' badge.
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="flex justify-center bg-black/40 p-4 rounded-2xl border border-slate-800"
+        >
+          <div
+            class="max-w-md w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-800"
+          >
+            <img
+              src="ui/mobile_realtime_verified.png"
+              alt="Real-Time Scrubber Verified on Mobile"
+              class="w-full h-auto object-cover"
+            />
+          </div>
+        </div>
+
+        <div
+          class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300"
+        >
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1">🔴 LIVE Time Badge:</strong>
+            Displays dynamic local time (e.g. LIVE 06:45 PM) with pulsing
+            animation.
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1">⏱️ Snap to Live:</strong>
+            Whenever the user scrubs across the 24 hours, an interactive 'Snap
+            to Live' button appears to instantly reset.
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1"
+              >🗺️ Continuous Thermal Morphing:</strong
+            >
+            Smoothly transitions WBGT and hazard tiers across all 64 micro-zones
+            without page reloads.
+          </div>
+        </div>
+      </section>
+
+      <!-- SURFACE 5: NGO LEAD COMMAND (MOBILE PHONE CASE) -->
+      <section
+        id="surface-ngo"
+        class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl"
+      >
+        <div
+          class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800"
+        >
+          <div>
+            <span
+              class="text-xs font-mono uppercase tracking-wider text-sky-400 font-bold"
+              >Surface 05 · Mission Control</span
+            >
+            <h2 class="font-display font-bold text-2xl text-white mt-1">
+              NGO Lead Command Center & On-Map City Selector
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Embedded iPhone 14 shell with floating bounded map controls and
+              test alarm action.
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="flex justify-center bg-black/40 p-4 rounded-2xl border border-slate-800"
+        >
+          <div
+            class="max-w-xl w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-800"
+          >
+            <img
+              src="ui/react_ngo_alarm_verified.png"
+              alt="NGO Lead Command Verified in Phone Case"
+              class="w-full h-auto object-cover"
+            />
+          </div>
+        </div>
+
+        <div
+          class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300"
+        >
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1"
+              >🏢 Command City Pill Bar:</strong
+            >
+            Located directly above the map for rapid switching between active
+            disaster districts.
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1">🚨 Test Alarm Button:</strong>
+            Triggers immediate dual-tone audio chime and vocal speech alert
+            inside the mobile app.
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <strong class="text-white block mb-1">🛡️ Bounded Overlays:</strong>
+            Isolates GPS and dropdown controls strictly within the map container
+            to prevent pointer event collisions.
+          </div>
+        </div>
+      </section>
+
+      <!-- SURFACE 6: RESPONSIVE MOBILE DRAWER STATES -->
+      <section
+        id="surface-mobile"
+        class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl"
+      >
+        <div
+          class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800"
+        >
+          <div>
+            <span
+              class="text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold"
+              >Surface 06 · Responsive Ergonomics</span
+            >
+            <h2 class="font-display font-bold text-2xl text-white mt-1">
+              Mobile Collapsible Telemetry Drawer (Closed vs Open)
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Toggle between full-bleed geospatial navigation and detailed ward
+              telemetry.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-bold text-slate-400 text-center"
+              >Drawer Closed (Full-Bleed Map View)</span
+            >
+            <div
+              class="rounded-2xl overflow-hidden border border-slate-800 shadow-xl bg-black"
+            >
+              <img
+                src="ui/mobile_drawer_closed.png"
+                alt="Mobile Drawer Closed"
+                class="w-full h-auto object-cover"
+              />
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-bold text-slate-400 text-center"
+              >Drawer Open (Detailed Ward Telemetry)</span
+            >
+            <div
+              class="rounded-2xl overflow-hidden border border-slate-800 shadow-xl bg-black"
+            >
+              <img
+                src="ui/mobile_drawer_open.png"
+                alt="Mobile Drawer Open"
+                class="w-full h-auto object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SURFACE 7: OFFICIAL PITCH DECK GALLERY -->
+      <section
+        id="surface-pitch-deck"
+        class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-2xl"
+      >
+        <div
+          class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-slate-800"
+        >
+          <div>
+            <span
+              class="text-xs font-mono uppercase tracking-wider text-violet-400 font-bold"
+              >Surface 07 · Presentation Materials</span
+            >
+            <h2 class="font-display font-bold text-2xl text-white mt-1">
+              Official 6-Slide Pitch Deck Gallery
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              High-craft slides covering Problem, Solution, Architecture,
+              Concave DP Solver, Impact, and Team.
+            </p>
+          </div>
+          <a
+            href="/HeatAtlas_Pitch_Deck.pdf"
+            target="_blank"
+            class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-2 rounded-xl border border-slate-700 transition-all"
+          >
+            Download PDF ↗
+          </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div
+            class="rounded-xl overflow-hidden border border-slate-800 shadow-lg"
+          >
+            <img
+              src="slides/pitch_slide_1.png"
+              alt="Slide 1: Title & Overview"
+              class="w-full h-auto"
+            />
+          </div>
+          <div
+            class="rounded-xl overflow-hidden border border-slate-800 shadow-lg"
+          >
+            <img
+              src="slides/pitch_slide_2.png"
+              alt="Slide 2: Problem"
+              class="w-full h-auto"
+            />
+          </div>
+          <div
+            class="rounded-xl overflow-hidden border border-slate-800 shadow-lg"
+          >
+            <img
+              src="slides/pitch_slide_3.png"
+              alt="Slide 3: Architecture"
+              class="w-full h-auto"
+            />
+          </div>
+          <div
+            class="rounded-xl overflow-hidden border border-slate-800 shadow-lg"
+          >
+            <img
+              src="slides/pitch_slide_4.png"
+              alt="Slide 4: DP Solver"
+              class="w-full h-auto"
+            />
+          </div>
+          <div
+            class="rounded-xl overflow-hidden border border-slate-800 shadow-lg"
+          >
+            <img
+              src="slides/pitch_slide_5.png"
+              alt="Slide 5: Multi-AI Scores"
+              class="w-full h-auto"
+            />
+          </div>
+          <div
+            class="rounded-xl overflow-hidden border border-slate-800 shadow-lg"
+          >
+            <img
+              src="slides/pitch_slide_6.png"
+              alt="Slide 6: Roadmap"
+              class="w-full h-auto"
+            />
+          </div>
+        </div>
+      </section>
     </div>
-  </footer>
 
-</body>
+    <!-- FOOTER -->
+    <footer
+      class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-slate-800 text-center text-xs text-slate-500"
+    >
+      <p>
+        HeatAtlas: Forecast Heat. Prioritise Relief. · Team Strawhats (627JUH) ·
+        FORGE'26 Hackathon Theme 2
+      </p>
+      <div class="flex justify-center gap-4 mt-3 font-semibold text-slate-400">
+        <a href="/" class="hover:text-white">Live App</a>
+        <a href="/dashboard.html" class="hover:text-white">Ground Command</a>
+        <a href="/showcase.html" class="hover:text-white">Showcase Hub</a>
+        <a href="/docs" class="hover:text-white">API Swagger</a>
+      </div>
+    </footer>
+  </body>
 </html>
