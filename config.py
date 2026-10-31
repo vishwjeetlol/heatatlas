@@ -24,11 +24,12 @@ CACHE_TTL_POP_H = int(os.getenv("CACHE_TTL_POP_H", "24"))
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./heatatlas.db")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-# Prioritize active, responsive, quota-healthy Flash & Flash-Lite models
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
+# Prioritize verified quota-healthy multimodal Flash & Flash-Lite models
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 GEMINI_FALLBACK_MODELS = [
-    "gemini-flash-lite-latest",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
     "gemini-3.1-flash-lite",
-    "gemini-3-flash-preview"
+    "gemini-flash-lite-latest"
 ]

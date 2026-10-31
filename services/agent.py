@@ -19,6 +19,7 @@ from PIL import Image
 from config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_FALLBACK_MODELS
 from services.scoring import compute_scores
 from services.rtk_optimizer import rtk_compress_prompt
+from services.spatial_index import RefCheckerAuditEngine
 
 
 class VisionAuditSchema(BaseModel):
@@ -360,6 +361,7 @@ def validate_dispatch_brief(parsed: dict, ranked_zones: list) -> dict:
             })
 
     parsed["targets"] = valid_targets[:5]
+    parsed["refchecker_audit"] = RefCheckerAuditEngine.audit_dispatch_brief(parsed, ranked_zones)
     return parsed
 
 async def parse_intake_request(request_text: str = "", audio_base64: str = None, language: str = "en") -> dict:
@@ -473,7 +475,11 @@ Generate the verified operational dispatch brief in valid JSON matching the few-
             response, _ = call_gemini_with_fallback(
                 client,
                 contents=prompt,
-                config={"response_mime_type": "application/json"}
+                config={
+                    "response_mime_type": "application/json",
+                    "response_schema": DispatchBriefSchema,
+                    "temperature": 0.1,
+                }
             )
             parsed = extract_json_from_text(response.text)
             parsed = validate_dispatch_brief(parsed, ranked_zones)
@@ -654,7 +660,7 @@ Format as JSON:
             response, _ = call_gemini_with_fallback(
                 client,
                 contents=prompt,
-                config={"response_mime_type": "application/json"}
+                config={"response_mime_type": "application/json", "temperature": 0.1}
             )
             return extract_json_from_text(response.text)
         except Exception as e:
@@ -702,7 +708,7 @@ Return JSON:
             response, _ = call_gemini_with_fallback(
                 client,
                 contents=prompt,
-                config={"response_mime_type": "application/json"}
+                config={"response_mime_type": "application/json", "temperature": 0.1}
             )
             return extract_json_from_text(response.text)
         except Exception as e:

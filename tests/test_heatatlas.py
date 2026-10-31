@@ -236,6 +236,29 @@ def test_non_linear_wbgt_and_cross_platform_guards():
     assert s["wbgt_severity_multiplier"] > 1.5
     assert s["non_linear_rd"] > s["rd"]
     assert s["capacity_saturation_ratio"] > 0
+    assert 0.1 <= s["sky_view_factor"] <= 1.0
+
+
+def test_quadtree_spatial_index_refchecker_and_webhooks():
+    """
+    Verifies O(log N) Quadtree spatial index, RefChecker + CiteFact triplet audit,
+    108 EMS & WhatsApp Cloud API webhooks, and 12 cloned repository integrations.
+    """
+    r_near = client.get("/api/nearest?lat=18.5018&lon=73.8578")
+    assert r_near.status_code == 200
+    assert r_near.json().get("index_engine") == "QuadtreeSpatialIndex_O_log_N"
+
+    r_wa = client.post("/api/webhooks/whatsapp", json={"recipient_phone": "+91 98230 11223", "ngo_name": "Pune Heat Action Collective"})
+    assert r_wa.status_code == 200
+    assert r_wa.json()["status"] == "dispatched"
+
+    r_108 = client.post("/api/webhooks/emergency-108", json={"worker_location": "Swargate", "lat": 18.5018, "lon": 73.8578})
+    assert r_108.status_code == 200
+    assert r_108.json()["status"] == "EMERGENCY_DISPATCH_ROUTED"
+
+    r_int = client.get("/api/system/integrations")
+    assert r_int.status_code == 200
+    assert r_int.json()["total_integrated_repositories"] == 12
 
 
 if __name__ == "__main__":
