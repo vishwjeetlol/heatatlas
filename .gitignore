@@ -28,3 +28,4 @@ Thumbs.db
 # Cache
 data/worldpop_cache.json
 *.log
+.vercel
