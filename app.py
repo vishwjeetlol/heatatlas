@@ -5,8 +5,10 @@ import json
 import sqlite3
 import threading
 import asyncio
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from cachetools import TTLCache
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -238,6 +240,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# High-performance TTL In-Memory Caches for heavy calculations
+_zones_calc_cache = TTLCache(maxsize=120, ttl=60)
+_zones_cache_lock = threading.Lock()
+
+_brief_cache = TTLCache(maxsize=30, ttl=300)
+_brief_cache_lock = threading.Lock()
 
 # Dynamic 64-zone grid generator per district city
 def build_city_grid(city_id: str = "pune") -> dict:
@@ -275,7 +285,8 @@ def build_city_grid(city_id: str = "pune") -> dict:
     return zones
 
 @app.get("/api/cities")
-async def get_cities():
+async def get_cities(response: Response = Response()):
+    response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400"
     return {
         "cities": list_all_cities(),
         "total": len(CITIES)
@@ -382,10 +393,18 @@ async def forecast(city: str = Query("pune")):
 
 @app.get("/api/zones")
 async def get_zones(
+    response: Response = Response(),
     city: str = Query("pune"),
     hour: int = Query(0, ge=0, le=47),
     weather_mode: str = Query("live", description="'live' for real-time Open-Meteo or 'historical_peak_replay' for IMD May 2024 heatwave archive"),
 ):
+    cache_key = f"{city}_{hour}_{weather_mode}"
+    with _zones_cache_lock:
+        cached_result = _zones_calc_cache.get(cache_key)
+    if cached_result is not None:
+        response.headers["Cache-Control"] = "public, max-age=60, s-maxage=120, stale-while-revalidate=300"
+        return cached_result
+
     city_info = get_city(city)
     city_zones = build_city_grid(city)
 
@@ -531,7 +550,7 @@ async def get_zones(
         "total": len(result)
     }
 
-    return {
+    payload = {
         "city": city_info["id"],
         "city_name": city_info["name"],
         "region": city_info["region"],
@@ -545,6 +564,10 @@ async def get_zones(
         "selected_hour": hour,
         "hourly_temperatures": hourly_official
     }
+    with _zones_cache_lock:
+        _zones_calc_cache[cache_key] = payload
+    response.headers["Cache-Control"] = "public, max-age=60, s-maxage=120, stale-while-revalidate=300"
+    return payload
 
 @app.get("/api/zones/{zone_id}")
 async def get_zone_detail(zone_id: str, city: str = Query("pune"), hour: int = Query(0, ge=0, le=47)):
@@ -580,7 +603,12 @@ async def priority(
     }
 
 @app.get("/api/assets")
-async def assets(city: str = Query("pune"), type: Optional[str] = None, bbox: Optional[str] = None):
+async def assets(
+    response: Response = Response(),
+    city: str = Query("pune"),
+    type: Optional[str] = None,
+    bbox: Optional[str] = None,
+):
     all_assets = await get_live_assets(city)
     if type:
         all_assets = [a for a in all_assets if a["type"] == type]
@@ -592,6 +620,7 @@ async def assets(city: str = Query("pune"), type: Optional[str] = None, bbox: Op
                 all_assets = [a for a in all_assets if s <= a["lat"] <= n and w <= a["lon"] <= e]
         except Exception:
             pass
+    response.headers["Cache-Control"] = "public, max-age=300, s-maxage=1800, stale-while-revalidate=3600"
     return {"city": city, "assets": all_assets}
 
 class ReportRequest(BaseModel):
@@ -750,11 +779,12 @@ DEFAULT_OUTAGES = [
 ]
 
 @app.get("/api/outages")
-async def get_outages(city: Optional[str] = None):
+async def get_outages(response: Response = Response(), city: Optional[str] = None):
     """
     Municipal Water Cuts, Grid Transformer Outages, and Chiller Failures Database.
     Gives field teams real-time awareness of utility breakdowns exacerbating heatwaves.
     """
+    response.headers["Cache-Control"] = "public, max-age=60, s-maxage=120, stale-while-revalidate=300"
     import sqlite3
     db_path = os.path.join(os.path.dirname(__file__), "heatatlas.db")
     rows = []

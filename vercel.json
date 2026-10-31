@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "regions": ["bom1"],
   "builds": [
     {
       "src": "app.py",
@@ -7,6 +8,41 @@
     }
   ],
   "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "dest": "/static/assets/$1"
+    },
+    {
+      "src": "/showcase.html",
+      "headers": {
+        "cache-control": "public, max-age=3600, s-maxage=86400"
+      },
+      "dest": "/static/showcase.html"
+    },
+    {
+      "src": "/api/cities",
+      "headers": {
+        "cache-control": "public, max-age=3600, s-maxage=86400"
+      },
+      "dest": "app.py"
+    },
+    {
+      "src": "/api/assets",
+      "headers": {
+        "cache-control": "public, max-age=300, s-maxage=1800, stale-while-revalidate=3600"
+      },
+      "dest": "app.py"
+    },
+    {
+      "src": "/api/zones(.*)",
+      "headers": {
+        "cache-control": "public, max-age=60, s-maxage=120, stale-while-revalidate=300"
+      },
+      "dest": "app.py"
+    },
     {
       "src": "/(.*)",
       "dest": "app.py"
