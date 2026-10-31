@@ -285,16 +285,16 @@
         >
           <span
             class="text-xs uppercase tracking-wider text-slate-400 font-bold"
-            >Municipal Grid Outages</span
+            >Critical Deficit Zones</span
           >
           <div class="flex items-baseline gap-2 mt-2">
             <span
               class="font-display font-black text-3xl text-orange-500"
-              id="stat-outages"
+              id="stat-critical-zones"
               >0</span
             >
             <span class="text-xs text-orange-400 font-medium"
-              >Water cuts & blackouts</span
+              >Urgent relief priority</span
             >
           </div>
         </div>
@@ -729,9 +729,11 @@
             0,
           );
           document.getElementById("stat-crowd").innerText = totalCrowd;
-          document.getElementById("stat-outages").innerText = (
-            oData.outages || []
+          const criticalZones = (zones || []).filter(
+            (z) => (z.tier || "").toLowerCase() === "critical",
           ).length;
+          const critElem = document.getElementById("stat-critical-zones");
+          if (critElem) critElem.innerText = criticalZones;
           document.getElementById("stat-ngos").innerText = globalNgos.length;
         } catch (e) {
           console.error("Dashboard load error:", e);
