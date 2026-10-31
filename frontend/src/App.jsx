@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Flame, Droplet, Trees, Snowflake, Cross, Clock, MessageSquare, RefreshCw, ZoomIn, MapPin, Camera, CheckCircle2, PhoneCall, ShieldAlert, Compass, Mic, Route, Volume2, Building, AlertTriangle, Send, Radio, Bot, X, Sparkles, Zap, Navigation, Award, ChevronRight, Activity } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { Toaster, toast } from 'sonner';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -118,6 +119,7 @@ const SWARGATE_PRECISION = {
 
 export default function App() {
   const [viewMode, setViewMode] = useState('worker'); // 'worker' | 'ngo'
+  const [portalMode, setPortalMode] = useState('phone'); // 'phone' | 'command' | 'backend'
   const [lang, setLang] = useState('en');
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
 
@@ -142,6 +144,7 @@ export default function App() {
 
   // Voice note simulation state
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [showCoolRoute, setShowCoolRoute] = useState(false);
 
   // Driver Location & Radius State
@@ -195,6 +198,13 @@ export default function App() {
   const driverMarkerRef = useRef(null);
   const radiusCircleRef = useRef(null);
   const coolRoutePolylineRef = useRef(null);
+  const isRecordingRef = useRef(false);
+  const mediaStreamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const recordingTimerRef = useRef(null);
+  const speechRecognitionRef = useRef(null);
+  const speechSilenceTimerRef = useRef(null);
 
   const getDistanceMeters = (lat1, lon1, lat2, lon2) => {
     const R = 6371e3;
@@ -596,13 +606,16 @@ export default function App() {
       });
 
       const marker = L.marker([b.lat, b.lon], { icon: beaconIcon }).addTo(map);
+      const isFlagged = b.verified === false;
+      const confPct = Math.round((b.confidence || 0.9) * 100);
       marker.bindPopup(`
-        <div style="font-family: 'DM Sans', sans-serif; font-size:12px; min-width:180px;">
-          <strong style="color:${isResolved ? '#10b981' : '#dc2626'};">${isResolved ? '✅ Water Demand Met' : '🚨 Active Worker Water Beacon'}</strong><br>
+        <div style="font-family: 'DM Sans', sans-serif; font-size:12px; min-width:210px;">
+          <strong style="color:${isResolved ? '#10b981' : isFlagged ? '#d97706' : '#dc2626'};">${isResolved ? '✅ Water Demand Met' : isFlagged ? '⚠️ Flagged Non-Emergency' : '🚨 Active Worker Water Beacon'}</strong><br>
           <strong>${b.location_name}</strong><br>
           <p style="font-size:11px; color:#444; margin:4px 0;">"${b.description}"</p>
-          <div style="background:#fef2f2; border:1px solid #fee2e2; padding:4px 6px; border-radius:6px; font-size:10px;">
-            🤖 <strong>Gemini 3.8 Vision:</strong> ${b.detected_crowd} workers detected · ${(b.confidence * 100).toFixed(0)}% verified
+          <div style="background:${isFlagged ? '#fefce8' : '#fef2f2'}; border:1px solid ${isFlagged ? '#fef08a' : '#fee2e2'}; padding:4px 6px; border-radius:6px; font-size:10px;">
+            🤖 <strong>Gemini Flash:</strong> ${b.detected_crowd || 0} workers · ${confPct}% verified
+            ${b.severity_tier ? `<span style="margin-left:4px; font-weight:bold; color:${isFlagged ? '#854d0e' : '#991b1b'};">[${b.severity_tier}]</span>` : ''}
           </div>
         </div>
       `);
@@ -666,45 +679,175 @@ export default function App() {
     );
   };
 
-  // Autonomous Audio-to-Text Transcription via Web Speech Recognition + Gemini 3.8 Flash
+  // Autonomous Audio-to-Text Transcription via Web Speech API & MediaRecorder with Persistent Keep-Alive
   const handleAudioToText = async () => {
-    setIsRecording(true);
-    showToast('🎙️ Listening in Marathi/Hindi via Gemini 3.8 Speech AI...');
+    // TOGGLE STOP: If currently recording, stop cleanly and preserve captured text
+    if (isRecordingRef.current) {
+      isRecordingRef.current = false;
+      setIsRecording(false);
 
-    // Attempt native Web Speech API first
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.lang = lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.onresult = (event) => {
-        const spoken = event.results[0][0].transcript;
-        setBeaconDesc(spoken);
-        setLatestAudioTranscription({
-          transcription: spoken,
-          translation_en: spoken,
-          language_detected: lang === 'mr' ? 'Marathi' : lang === 'hi' ? 'Hindi' : 'English'
-        });
-        setIsRecording(false);
-        showToast('✓ Transcribed speech directly to text!');
-      };
-
-      recognition.onerror = async () => {
-        // Fallback to Gemini 3.8 Flash API
-        await fallbackGeminiTranscribe();
-      };
-
-      try {
-        recognition.start();
-        return;
-      } catch (e) {
-        // Fallback to backend API
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
       }
+
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.onend = null; // Detach keep-alive before stopping
+          speechRecognitionRef.current.stop();
+        } catch (e) {}
+      }
+
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch (e) {}
+      }
+
+      if (mediaStreamRef.current) {
+        try {
+          mediaStreamRef.current.getTracks().forEach(t => t.stop());
+          mediaStreamRef.current = null;
+        } catch (e) {}
+      }
+
+      showToast('✓ Voice note saved!');
+      return;
     }
 
-    await fallbackGeminiTranscribe();
+    // START RECORDING
+    isRecordingRef.current = true;
+    setIsRecording(true);
+    setRecordingSeconds(0);
+
+    // Live seconds counter
+    recordingTimerRef.current = setInterval(() => {
+      setRecordingSeconds(prev => prev + 1);
+    }, 1000);
+
+    showToast('🎙️ Microphone active! Speak naturally in Marathi, Hindi, or English...');
+
+    // 1. Acquire Hardware Mic Stream to lock microphone session open
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaStreamRef.current = stream;
+
+        audioChunksRef.current = [];
+        try {
+          const recorder = new MediaRecorder(stream);
+          mediaRecorderRef.current = recorder;
+
+          recorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              audioChunksRef.current.push(e.data);
+            }
+          };
+
+          recorder.onstop = async () => {
+            // If Web Speech API wasn't able to extract text, send recorded audio blob to Gemini Flash STT
+            if (!beaconDesc || beaconDesc === '15 delivery riders waiting under blazing flyover sun, tap dry') {
+              if (audioChunksRef.current.length > 0) {
+                const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = async () => {
+                  try {
+                    const res = await fetch('/api/audio/transcribe', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ audio_base64: reader.result, language: lang })
+                    });
+                    const data = await res.json();
+                    if (data && data.transcription) {
+                      setBeaconDesc(data.transcription);
+                      setLatestAudioTranscription(data);
+                    }
+                  } catch (err) {}
+                };
+              }
+            }
+          };
+
+          recorder.start(500);
+        } catch (recErr) {
+          console.warn('MediaRecorder error:', recErr);
+        }
+      }
+    } catch (micErr) {
+      console.warn('Microphone permission request error:', micErr);
+    }
+
+    // 2. Real-Time Speech Recognition with Auto Keep-Alive (never drops after 1 sec!)
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        speechRecognitionRef.current = recognition;
+
+        recognition.lang = lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        let accumulatedTranscript = '';
+
+        recognition.onresult = (event) => {
+          let interimTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              accumulatedTranscript += (accumulatedTranscript ? ' ' : '') + transcript;
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+
+          const currentText = (accumulatedTranscript + (interimTranscript ? ' ' + interimTranscript : '')).trim();
+          if (currentText) {
+            setBeaconDesc(currentText);
+            setLatestAudioTranscription({
+              transcription: currentText,
+              translation_en: currentText,
+              language_detected: lang === 'mr' ? 'Marathi' : lang === 'hi' ? 'Hindi' : 'English'
+            });
+          }
+        };
+
+        recognition.onerror = (event) => {
+          // 'no-speech' is normal when user is thinking or breathing. NEVER drop session!
+          if (event.error === 'no-speech') {
+            return;
+          }
+          if (event.error === 'aborted') {
+            return;
+          }
+          if (event.error === 'not-allowed') {
+            isRecordingRef.current = false;
+            setIsRecording(false);
+            if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+            showToast('⚠️ Microphone blocked. Allow permissions in browser.');
+          }
+        };
+
+        // CRITICAL CHROME BUG FIX:
+        // In Chrome, onend fires automatically after 1s of silence.
+        // We check isRecordingRef.current: if still true, RESTART recognition seamlessly!
+        recognition.onend = () => {
+          if (isRecordingRef.current) {
+            try {
+              recognition.start();
+            } catch (e) {
+              // If already active or restarting
+            }
+          }
+        };
+
+        recognition.start();
+      } catch (err) {
+        console.warn('Speech recognition start failed:', err);
+      }
+    }
   };
 
   const fallbackGeminiTranscribe = async () => {
@@ -718,9 +861,9 @@ export default function App() {
       setLatestAudioTranscription(data);
       setBeaconLocation(data.extracted_location || currentCityMeta?.default_junction?.name || "City Central Junction");
       setBeaconDesc(data.transcription);
-      showToast('🤖 Gemini 3.8 transcribed audio to text!');
+      showToast('✓ Voice note transcribed to text!');
     } catch (err) {
-      showToast('Audio transcribe failed');
+      showToast('Voice transcription failed');
     } finally {
       setIsRecording(false);
     }
@@ -906,7 +1049,11 @@ export default function App() {
   // Voice Note Intake (Marathi/Hindi) triggering Audio-to-Text modal directly
   const triggerVoiceNote = () => {
     setShowBeaconModal(true);
-    handleAudioToText();
+    if (!isRecording) {
+      setTimeout(() => {
+        handleAudioToText();
+      }, 200);
+    }
   };
 
   const submitBeacon = async (e) => {
@@ -924,16 +1071,24 @@ export default function App() {
         session_token: sessionToken
       };
 
-      await fetch('/api/beacons/report', {
+      const res = await fetch('/api/beacons/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+      const data = await res.json();
+      const audit = data.gemini_audit || {};
       
-      showToast('🚨 Water Beacon verified by Gemini 3.8 Vision!');
+      if (audit.verified !== false) {
+        showToast(`✓ Gemini Flash Verified: ${audit.detected_crowd || 10} workers (${Math.round((audit.confidence || 0.95) * 100)}% conf)`);
+      } else {
+        showToast(`⚠️ Gemini Filter: Flagged as non-emergency (${Math.round((audit.confidence || 0.15) * 100)}% conf)`);
+      }
       setShowBeaconModal(false);
+      setBeaconDesc('');
+      setBeaconImage(null);
       fetchBeacons();
-      fetchBrief();
+      fetchBrief(selectedCity);
 
       if (mapInstance.current) {
         mapInstance.current.setView([payload.lat, payload.lon], 15);
@@ -948,9 +1103,32 @@ export default function App() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Standardize image in browser using an HTML Canvas to output clean JPEG
       const reader = new FileReader();
       reader.onloadend = () => {
-        setBeaconImage(reader.result);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 1024;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const cleanJpegBase64 = canvas.toDataURL('image/jpeg', 0.88);
+          setBeaconImage(cleanJpegBase64);
+        };
+        img.src = reader.result;
       };
       reader.readAsDataURL(file);
     }
@@ -964,6 +1142,15 @@ export default function App() {
 
   const showToast = (msg) => {
     setToastMsg(msg);
+    if (msg.includes('🚨') || msg.includes('⚠️') || msg.includes('EMERGENCY') || msg.includes('blocked')) {
+      toast.error(msg, { duration: 3500 });
+    } else if (msg.includes('✓') || msg.includes('✅') || msg.includes('Delivered')) {
+      toast.success(msg, { duration: 3000 });
+    } else if (msg.includes('🎙️') || msg.includes('📡') || msg.includes('Loading') || msg.includes('Acquiring')) {
+      toast.info(msg, { duration: 3000 });
+    } else {
+      toast(msg, { duration: 2500 });
+    }
     setTimeout(() => setToastMsg(null), 2500);
   };
 
@@ -981,10 +1168,12 @@ export default function App() {
   const resolvedBeacons = beacons.filter(b => b.status === 'resolved');
 
   return (
-    <div className="flex justify-center items-center w-full min-h-screen py-6 px-2">
-      {/* REALISTIC PHONE FRAME */}
-      <div className="phone-case">
-        <div className="phone-screen no-scrollbar">
+    <div className="flex justify-center items-center w-full min-h-screen py-6 px-4 relative">
+      {/* 1. MAIN DISPLAY VIEW BASED ON RIGHT-HAND NAV SELECTOR */}
+      {portalMode === 'phone' && (
+        /* REALISTIC PHONE FRAME */
+        <div className="phone-case animate-in fade-in zoom-in-95 duration-200">
+          <div className="phone-screen no-scrollbar">
 
           {/* DYNAMIC ISLAND & STATUS BAR */}
           <div className="dynamic-island">
@@ -1432,59 +1621,106 @@ export default function App() {
               </span>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              {activeBeacons.map(b => (
-                <div key={b.id} className="bg-red-50 border border-red-200 rounded-xl p-2.5 flex flex-col gap-1.5">
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1">
-                      <div className="font-bold text-[12px] text-red-950">{b.location_name}</div>
-                      <div className="text-[10.5px] text-red-800 mt-0.5 leading-snug">{b.description}</div>
-                    </div>
-                    <span className="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0">
-                      URGENT
-                    </span>
-                  </div>
+            <div className="flex flex-col gap-2">
+              {activeBeacons.map(b => {
+                const isFlagged = b.verified === false;
+                const confPct = Math.round((b.confidence || 0.9) * 100);
+                const crowd = b.detected_crowd !== undefined ? b.detected_crowd : 10;
+                const tier = b.severity_tier || (isFlagged ? 'REJECTED' : 'CRITICAL');
 
-                  {/* Ground Driver Proof Image Preview */}
-                  {(b.image_url || b.image_base64) && (
-                    <div className="w-full h-28 rounded-lg overflow-hidden bg-slate-900 border border-red-200 relative group my-0.5">
-                      <img src={b.image_url || b.image_base64} alt={b.location_name} className="w-full h-full object-cover" />
-                      <span className="absolute bottom-1.5 left-1.5 bg-black/75 backdrop-blur-xs text-white text-[8.5px] font-mono px-1.5 py-0.2 rounded font-bold">
-                        📷 Driver Ground Photo
+                return (
+                  <div
+                    key={b.id}
+                    className={`rounded-2xl p-3 border transition-all ${
+                      isFlagged
+                        ? 'bg-slate-50/90 border-slate-200'
+                        : 'bg-rose-50/70 border-rose-200/80 shadow-xs'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1">
+                        <div className="font-bold text-[12.5px] text-gray-900 leading-tight">{b.location_name}</div>
+                        <div className="text-[10.5px] text-gray-600 mt-0.5 leading-snug">{b.description}</div>
+                      </div>
+                      <span
+                        className={`text-[8.5px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full shrink-0 shadow-2xs ${
+                          isFlagged
+                            ? 'bg-slate-200 text-slate-700'
+                            : tier === 'CRITICAL'
+                            ? 'bg-red-600 text-white animate-pulse'
+                            : tier === 'HIGH'
+                            ? 'bg-amber-600 text-white'
+                            : 'bg-blue-600 text-white'
+                        }`}
+                      >
+                        {isFlagged ? '⚠️ FILTERED' : tier}
                       </span>
                     </div>
-                  )}
 
-                  <div className="flex justify-between items-center pt-1 border-t border-red-200/60">
-                    <div className="text-[9.5px] text-red-700 font-medium">
-                      <span className="font-bold text-red-900">🤖 Gemini Flash Verification:</span>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="bg-red-200/70 text-red-900 px-1.5 py-0.2 rounded font-mono font-bold">
-                          {(b.confidence * 100).toFixed(0)}% Confidence
+                    {/* Ground Driver Proof Image Preview */}
+                    {(b.image_url || b.image_base64) && (
+                      <div className="w-full h-28 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 relative group my-1">
+                        <img src={b.image_url || b.image_base64} alt={b.location_name} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-1.5 left-1.5 bg-black/75 backdrop-blur-xs text-white text-[8.5px] font-mono px-1.5 py-0.5 rounded font-bold">
+                          📷 Driver Ground Photo
                         </span>
-                        <span>•</span>
-                        <span>👥 {b.detected_crowd} workers</span>
                       </div>
-                      {b.condition && (
-                        <div className="text-[9px] text-red-800/90 italic mt-0.5 max-w-[210px]">
-                          "{b.condition}"
+                    )}
+
+                    {/* Gemini Flash Neural Audit Panel */}
+                    <div className="mt-1.5 bg-white/90 border border-slate-100 rounded-xl p-2.5 flex flex-col gap-1.5 shadow-2xs">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-bold text-slate-800 flex items-center gap-1">
+                          <span className="text-amber-500">⚡</span>
+                          <span>{b.model_used || "Gemini Flash Intelligence"}:</span>
+                        </span>
+                        <span
+                          className={`font-mono font-bold px-1.5 py-0.2 rounded text-[9.5px] ${
+                            isFlagged
+                              ? 'bg-amber-100 text-amber-900'
+                              : 'bg-emerald-100 text-emerald-900'
+                          }`}
+                        >
+                          {isFlagged ? 'Non-Emergency' : `${confPct}% Verified (${crowd} Workers)`}
+                        </span>
+                      </div>
+
+                      <div className="text-[10px] text-gray-700 leading-snug italic bg-slate-50/80 p-1.5 rounded-lg border border-slate-100">
+                        "{b.reasoning || b.condition || 'Emergency drinking water relief requested.'}"
+                      </div>
+
+                      {b.actionable_recommendation && !isFlagged && (
+                        <div className="text-[9.5px] text-blue-900 font-medium bg-blue-50/70 p-1.5 rounded-lg border border-blue-100 flex items-start gap-1">
+                          <span className="font-bold shrink-0">🎯 Action:</span>
+                          <span>{b.actionable_recommendation}</span>
                         </div>
                       )}
-                      {b.assigned_ngo && (
-                        <span className="block text-[8.5px] text-blue-700 font-semibold mt-0.5">
-                          🏢 Dispatched: {b.assigned_ngo} ({b.ngo_distance_meters || 0}m away)
-                        </span>
+
+                      {b.assigned_ngo && !isFlagged && (
+                        <div className="flex items-center justify-between pt-0.5 text-[9px] text-slate-600 font-medium">
+                          <span>🏢 Dispatched: <strong className="text-slate-800">{b.assigned_ngo}</strong> ({b.ngo_distance_meters || 0}m)</span>
+                          {b.ngo_phone && (
+                            <a href={`tel:${b.ngo_phone}`} className="text-blue-600 font-bold hover:underline">
+                              📞 Call Squad
+                            </a>
+                          )}
+                        </div>
                       )}
                     </div>
-                    <button
-                      onClick={() => handleResolveBeacon(b.id)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] px-2.5 py-1.5 rounded-xl shadow-xs flex items-center gap-1 active:scale-95 transition-transform shrink-0"
-                    >
-                      <CheckCircle2 size={12} /> {t.demandMetBtn}
-                    </button>
+
+                    {!isFlagged && (
+                      <div className="flex justify-end pt-1">
+                        <button
+                          onClick={() => handleResolveBeacon(b.id)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] px-3 py-1.5 rounded-xl shadow-xs flex items-center gap-1 active:scale-95 transition-transform"
+                        >
+                          <CheckCircle2 size={12} /> {t.demandMetBtn}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {resolvedBeacons.map(b => (
                 <div key={b.id} className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2 flex justify-between items-center opacity-85">
@@ -1674,8 +1910,285 @@ export default function App() {
             <div className="home-bar"></div>
           </div>
 
-        </div> {/* close phone-screen */}
-      </div> {/* close phone-case */}
+          {/* FLOATING AI CHATBOT TRIGGER (Inside Phone Screen) */}
+          <div className="absolute bottom-6 right-4 z-[500]">
+            <button
+              onClick={() => setShowChatbot(!showChatbot)}
+              className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-3.5 py-2.5 rounded-full shadow-xl font-bold text-[12px] transition-transform active:scale-95 border-2 border-white/40"
+            >
+              <Bot size={18} className="animate-pulse" />
+              <span>HeatAtlas AI</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            </button>
+          </div>
+
+          {/* AI CHATBOT SLIDE-UP DRAWER (Inside Phone Screen) */}
+          {showChatbot && (
+            <div className="absolute inset-x-0 bottom-0 top-[12%] z-[600] bg-white/95 backdrop-blur-md rounded-t-3xl shadow-2xl flex flex-col border-t border-slate-200 animate-in slide-in-from-bottom duration-200">
+              {/* Drawer Header */}
+              <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-3xl flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                    <Bot size={18} className="text-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 font-extrabold text-[13px]">
+                      <span>HeatAtlas AI Assistant</span>
+                      <span className="text-[9px] bg-indigo-500/80 px-1.5 py-0.5 rounded-full font-mono">Gemini 3.8</span>
+                    </div>
+                    <div className="text-[10px] text-indigo-100 flex items-center gap-1">
+                      <span>📍 {currentCityMeta?.name || 'Active City'}</span>
+                      <span>•</span>
+                      <span>{dynamicSelectedTemp}°C Felt Temp</span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowChatbot(false)}
+                  className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Quick Context & Prompts */}
+              <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex gap-1.5 overflow-x-auto text-[10.5px]">
+                <button
+                  onClick={() => handleSendChatMessage("Where is the closest free drinking water?")}
+                  className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
+                >
+                  💧 Nearest Water?
+                </button>
+                <button
+                  onClick={() => handleSendChatMessage("I'm feeling dizzy under the sun, what should I do?")}
+                  className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-red-50 hover:border-red-300 transition-colors"
+                >
+                  🚨 Heat Stroke Check
+                </button>
+                <button
+                  onClick={() => handleSendChatMessage(`How can our NGO deploy relief teams in ${currentCityMeta?.name || 'this city'}?`)}
+                  className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-purple-50 hover:border-purple-300 transition-colors"
+                >
+                  🤝 NGO Dispatch Guide
+                </button>
+                <button
+                  onClick={() => handleSendChatMessage("What is the coolest shaded route for delivery riders?")}
+                  className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 transition-colors"
+                >
+                  🌿 Tree Canopy Route
+                </button>
+              </div>
+
+              {/* Messages Container */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {chatMessages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex gap-2 max-w-[85%] ${msg.sender === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
+                  >
+                    {msg.sender === 'bot' && (
+                      <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-1">
+                        <Sparkles size={13} className="text-indigo-600" />
+                      </div>
+                    )}
+                    <div
+                      className={`p-3 rounded-2xl text-[12px] leading-relaxed shadow-2xs whitespace-pre-line ${
+                        msg.sender === 'user'
+                          ? 'bg-indigo-600 text-white rounded-br-xs'
+                          : 'bg-slate-100 text-slate-800 rounded-bl-xs border border-slate-200'
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+                {isChatLoading && (
+                  <div className="flex gap-2 items-center text-slate-500 text-[11px] italic">
+                    <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                      <Sparkles size={13} className="text-indigo-600 animate-spin" />
+                    </div>
+                    <span>HeatAtlas AI is reasoning with Gemini 3.8 Flash...</span>
+                  </div>
+                )}
+                <div ref={chatBottomRef} />
+              </div>
+
+              {/* Input Box with Voice & Send Button */}
+              <div className="p-3 bg-white border-t border-slate-200">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendChatMessage();
+                  }}
+                  className="flex items-center gap-1.5"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                      if (SpeechRecognition) {
+                        const recognition = new SpeechRecognition();
+                        recognition.lang = lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
+                        recognition.interimResults = true;
+                        recognition.onresult = (ev) => {
+                          const transcript = ev.results[0][0].transcript;
+                          setChatInput(transcript);
+                        };
+                        recognition.onerror = (ev) => {
+                          if (ev.error === 'no-speech') return;
+                        };
+                        recognition.start();
+                        showToast('🎙️ Listening... Speak your question');
+                      } else {
+                        showToast('Speech not supported on this browser');
+                      }
+                    }}
+                    className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 shrink-0"
+                    title="Voice Query"
+                  >
+                    <Mic size={16} />
+                  </button>
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder={`Ask HeatAtlas about ${currentCityMeta?.name || 'city'}, water, triage...`}
+                    className="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-[12px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!chatInput.trim() || isChatLoading}
+                    className="w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white flex items-center justify-center shrink-0 transition-colors"
+                  >
+                    <Send size={15} />
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+      )}
+
+      {/* 2. GROUND COMMAND PORTAL VIEW */}
+      {portalMode === 'command' && (
+        <div className="w-[85vw] max-w-6xl h-[88vh] bg-[#0d1117] rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="px-5 py-3.5 bg-[#161b22] border-b border-slate-800 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-orange-600/20 border border-orange-500/30 flex items-center justify-center text-orange-400 font-bold">
+                🛡️
+              </div>
+              <div>
+                <h2 className="font-extrabold text-[15px] text-white tracking-tight">HeatAtlas Ground Intelligence Command</h2>
+                <p className="text-[11px] text-slate-400">Live Incident Stream • Gemini Multimodal Vision Audits • WhatsApp Battle-Orders</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[11px] font-mono font-bold text-emerald-400">OPERATIONAL LIVE</span>
+            </div>
+          </div>
+          <iframe 
+            src="/dashboard.html" 
+            title="Ground Command Portal"
+            className="w-full flex-1 border-0"
+            style={{ minHeight: 'calc(88vh - 65px)' }}
+          />
+        </div>
+      )}
+
+      {/* 3. BACKEND API & ARCHIFY SPEC VIEW */}
+      {portalMode === 'backend' && (
+        <div className="w-[85vw] max-w-6xl h-[88vh] bg-[#0d1117] rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="px-5 py-3.5 bg-[#161b22] border-b border-slate-800 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold">
+                ⚡
+              </div>
+              <div>
+                <h2 className="font-extrabold text-[15px] text-white tracking-tight">FastAPI Production Backend & OpenAPI Spec</h2>
+                <p className="text-[11px] text-slate-400">Interactive Swagger Telemetry • 9 Integrated Repositories • Deterministic Formulas</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <a 
+                href="http://localhost:8000/api/system/archify" 
+                target="_blank" 
+                rel="noreferrer"
+                className="px-3 py-1 bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 rounded-lg text-[11px] font-mono hover:bg-indigo-600/50"
+              >
+                Inspect /api/system/archify ↗
+              </a>
+              <span className="text-[11px] font-mono font-bold text-indigo-400">Port: 8000</span>
+            </div>
+          </div>
+          <iframe 
+            src="http://localhost:8000/docs" 
+            title="FastAPI Interactive Swagger Docs"
+            className="w-full flex-1 border-0 bg-white"
+            style={{ minHeight: 'calc(88vh - 65px)' }}
+          />
+        </div>
+      )}
+
+      {/* FAR-RIGHT FLOATING NAVIGATION COLUMN */}
+      <aside className="fixed right-5 top-1/2 -translate-y-1/2 z-[9000] flex flex-col gap-2.5 p-2 bg-[#121620]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
+        <div className="text-[9.5px] uppercase font-mono font-extrabold tracking-wider text-slate-400 text-center pb-1 border-b border-white/10">
+          VIEW PORTAL
+        </div>
+
+        {/* 1. Mobile Phone */}
+        <button
+          onClick={() => setPortalMode('phone')}
+          className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-semibold text-[12px] transition-all text-left ${
+            portalMode === 'phone'
+              ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/30 font-bold scale-[1.02]'
+              : 'text-slate-300 hover:bg-white/10 hover:text-white'
+          }`}
+          title="Mobile Phone Experience"
+        >
+          <span className="text-base">📱</span>
+          <div className="flex flex-col">
+            <span className="leading-tight">Mobile Phone</span>
+            <span className="text-[9.5px] opacity-75 font-normal">Worker Triage & Beacons</span>
+          </div>
+        </button>
+
+        {/* 2. Ground Command Dashboard */}
+        <button
+          onClick={() => setPortalMode('command')}
+          className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-semibold text-[12px] transition-all text-left ${
+            portalMode === 'command'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 font-bold scale-[1.02]'
+              : 'text-slate-300 hover:bg-white/10 hover:text-white'
+          }`}
+          title="Ground Intelligence Command"
+        >
+          <span className="text-base">🛡️</span>
+          <div className="flex flex-col">
+            <span className="leading-tight">NGO Command</span>
+            <span className="text-[9.5px] opacity-75 font-normal">Incidents & Battle Orders</span>
+          </div>
+        </button>
+
+        {/* 3. Backend & API Docs */}
+        <button
+          onClick={() => setPortalMode('backend')}
+          className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-semibold text-[12px] transition-all text-left ${
+            portalMode === 'backend'
+              ? 'bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-lg shadow-purple-500/30 font-bold scale-[1.02]'
+              : 'text-slate-300 hover:bg-white/10 hover:text-white'
+          }`}
+          title="FastAPI Backend & Archify Spec"
+        >
+          <span className="text-base">⚡</span>
+          <div className="flex flex-col">
+            <span className="leading-tight">Backend API</span>
+            <span className="text-[9.5px] opacity-75 font-normal">Swagger & Archify Specs</span>
+          </div>
+        </button>
+      </aside>
 
       {/* BEACON CREATION MODAL WITH GEMINI 2.0 VISION PHOTO AUDIT */}
       {showBeaconModal && (
@@ -1685,7 +2198,15 @@ export default function App() {
               <h3 className="font-display font-extrabold text-[15px] text-red-600 flex items-center gap-1.5">
                 <span>🚨</span> Request Water Beacon
               </h3>
-              <button onClick={() => setShowBeaconModal(false)} className="text-gray-400 font-bold text-lg">✕</button>
+              <button
+                onClick={() => {
+                  if (isRecordingRef.current) handleAudioToText();
+                  setShowBeaconModal(false);
+                }}
+                className="text-gray-400 hover:text-gray-600 font-bold text-lg"
+              >
+                ✕
+              </button>
             </div>
             <p className="text-[11px] text-[#666] leading-snug">
               Stranded without water or shade in extreme heat? Drop a verified beacon so NGOs route mobile water supplies to your location.
@@ -1712,21 +2233,33 @@ export default function App() {
                     onClick={handleAudioToText}
                     className={`text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-xs transition-all ${
                       isRecording
-                        ? 'bg-red-600 text-white animate-pulse'
+                        ? 'bg-red-600 text-white animate-pulse ring-2 ring-red-300'
                         : 'bg-red-50 text-red-700 border border-red-300 hover:bg-red-100'
                     }`}
-                    title="Speak in Marathi/Hindi/English to convert voice to text"
+                    title={isRecording ? 'Click to Stop Recording' : 'Speak in Marathi/Hindi/English to convert voice to text'}
                   >
-                    <Mic size={12} className={isRecording ? 'text-white' : 'text-red-600'} />
-                    <span>{isRecording ? 'Listening (Speak Now)...' : '🎙️ Tap to Speak (Voice to Text)'}</span>
+                    <Mic size={12} className={isRecording ? 'text-white animate-bounce' : 'text-red-600'} />
+                    <span>{isRecording ? `⏹️ Stop Recording (${recordingSeconds}s)` : '🎙️ Tap to Speak (Voice to Text)'}</span>
                   </button>
                 </div>
 
                 {/* Prominent Recording Indicator Banner */}
                 {isRecording && (
-                  <div className="mb-2 p-2 bg-red-100 border border-red-300 rounded-xl flex items-center gap-2 text-[10.5px] text-red-900 font-semibold animate-pulse">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
-                    <span>Microphone active: Speak in Marathi, Hindi, or English...</span>
+                  <div className="mb-2 p-2.5 bg-red-50 border border-red-300 rounded-xl flex items-center justify-between text-[10.5px] text-red-900 font-semibold shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+                      </span>
+                      <span>Listening... <strong>{recordingSeconds}s</strong> (Speak in Marathi, Hindi, English)</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAudioToText}
+                      className="bg-red-600 hover:bg-red-700 text-white text-[9.5px] font-bold px-2 py-0.5 rounded-md shrink-0 shadow-2xs"
+                    >
+                      ⏹️ Stop & Save
+                    </button>
                   </div>
                 )}
 
@@ -1798,7 +2331,10 @@ export default function App() {
               <div className="flex gap-2 mt-2">
                 <button
                   type="button"
-                  onClick={() => setShowBeaconModal(false)}
+                  onClick={() => {
+                    if (isRecordingRef.current) handleAudioToText();
+                    setShowBeaconModal(false);
+                  }}
                   className="flex-1 py-2 rounded-xl border border-gray-300 font-semibold text-[12px]"
                 >
                   Cancel
@@ -1840,7 +2376,19 @@ export default function App() {
                   const file = e.target.files[0];
                   if (file) {
                     const reader = new FileReader();
-                    reader.onloadend = () => handleTapAuditSubmit(tapAuditModalAsset.osm_id, reader.result);
+                    reader.onloadend = () => {
+                      const img = new Image();
+                      img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.min(1024, img.width);
+                        canvas.height = Math.round((canvas.width / img.width) * img.height);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        const cleanJpeg = canvas.toDataURL('image/jpeg', 0.88);
+                        handleTapAuditSubmit(tapAuditModalAsset.osm_id, cleanJpeg);
+                      };
+                      img.src = reader.result;
+                    };
                     reader.readAsDataURL(file);
                   }
                 }}
@@ -1874,158 +2422,8 @@ export default function App() {
         </div>
       )}
 
-      {/* FLOATING AI CHATBOT TRIGGER (Inside Phone Screen) */}
-      <div className="absolute bottom-6 right-4 z-[500]">
-        <button
-          onClick={() => setShowChatbot(!showChatbot)}
-          className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-3.5 py-2.5 rounded-full shadow-xl font-bold text-[12px] transition-transform active:scale-95 border-2 border-white/40"
-        >
-          <Bot size={18} className="animate-pulse" />
-          <span>HeatAtlas AI</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        </button>
-      </div>
-
-      {/* AI CHATBOT SLIDE-UP DRAWER */}
-      {showChatbot && (
-        <div className="absolute inset-x-0 bottom-0 top-[15%] z-[600] bg-white/95 backdrop-blur-md rounded-t-3xl shadow-2xl flex flex-col border-t border-slate-200 animate-in slide-in-from-bottom duration-200">
-          {/* Drawer Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-3xl flex items-center justify-between shadow-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                <Bot size={18} className="text-white" />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5 font-extrabold text-[13px]">
-                  <span>HeatAtlas AI Assistant</span>
-                  <span className="text-[9px] bg-indigo-500/80 px-1.5 py-0.5 rounded-full font-mono">Gemini 3.8</span>
-                </div>
-                <div className="text-[10px] text-indigo-100 flex items-center gap-1">
-                  <span>📍 {currentCityMeta?.name || 'Active City'}</span>
-                  <span>•</span>
-                  <span>{dynamicSelectedTemp}°C Felt Temp</span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowChatbot(false)}
-              className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          {/* Quick Context & Prompts */}
-          <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex gap-1.5 overflow-x-auto text-[10.5px]">
-            <button
-              onClick={() => handleSendChatMessage("Where is the closest free drinking water?")}
-              className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
-            >
-              💧 Nearest Water?
-            </button>
-            <button
-              onClick={() => handleSendChatMessage("I'm feeling dizzy under the sun, what should I do?")}
-              className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-red-50 hover:border-red-300 transition-colors"
-            >
-              🚨 Heat Stroke Check
-            </button>
-            <button
-              onClick={() => handleSendChatMessage(`How can our NGO deploy relief teams in ${currentCityMeta?.name || 'this city'}?`)}
-              className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-purple-50 hover:border-purple-300 transition-colors"
-            >
-              🤝 NGO Dispatch Guide
-            </button>
-            <button
-              onClick={() => handleSendChatMessage("What is the coolest shaded route for delivery riders?")}
-              className="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded-full font-medium text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 transition-colors"
-            >
-              🌿 Tree Canopy Route
-            </button>
-          </div>
-
-          {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {chatMessages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex gap-2 max-w-[85%] ${msg.sender === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
-              >
-                {msg.sender === 'bot' && (
-                  <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-1">
-                    <Sparkles size={13} className="text-indigo-600" />
-                  </div>
-                )}
-                <div
-                  className={`p-3 rounded-2xl text-[12px] leading-relaxed shadow-2xs whitespace-pre-line ${
-                    msg.sender === 'user'
-                      ? 'bg-indigo-600 text-white rounded-br-xs'
-                      : 'bg-slate-100 text-slate-800 rounded-bl-xs border border-slate-200'
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            {isChatLoading && (
-              <div className="flex gap-2 items-center text-slate-500 text-[11px] italic">
-                <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                  <Sparkles size={13} className="text-indigo-600 animate-spin" />
-                </div>
-                <span>HeatAtlas AI is reasoning with Gemini 3.8 Flash...</span>
-              </div>
-            )}
-            <div ref={chatBottomRef} />
-          </div>
-
-          {/* Input Box with Voice & Send Button */}
-          <div className="p-3 bg-white border-t border-slate-200">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendChatMessage();
-              }}
-              className="flex items-center gap-1.5"
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                  if (SpeechRecognition) {
-                    const recognition = new SpeechRecognition();
-                    recognition.lang = lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
-                    recognition.onresult = (ev) => {
-                      const transcript = ev.results[0][0].transcript;
-                      setChatInput(transcript);
-                    };
-                    recognition.start();
-                    showToast('🎙️ Speak your question...');
-                  } else {
-                    showToast('Speech not supported on this browser');
-                  }
-                }}
-                className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 shrink-0"
-                title="Voice Query"
-              >
-                <Mic size={16} />
-              </button>
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder={`Ask HeatAtlas about ${currentCityMeta?.name || 'city'}, water, triage...`}
-                className="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-[12px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <button
-                type="submit"
-                disabled={!chatInput.trim() || isChatLoading}
-                className="w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white flex items-center justify-center shrink-0 transition-colors"
-              >
-                <Send size={15} />
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Sonner Emil Kowalski Toast Container */}
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

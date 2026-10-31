@@ -24,11 +24,14 @@ def _save_disk_cache(cache):
 async def get_zone_population(zone_id: str, polygon_coords: list) -> dict:
     """
     Fetches real population for polygon via WorldPop v2.
-    Uses 24h disk cache of earlier live responses.
+    Uses disk cache of official WorldPop live responses.
     """
     cache = _load_disk_cache()
-    cached_entry = cache.get(zone_id)
-    if cached_entry and (time.time() - cached_entry.get("cached_at", 0) < 86400):
+    # Normalize zone ID (e.g., 'pune-Z-44' -> 'Z-44') to match official WorldPop v2 cached responses
+    short_zid = zone_id.split("-", 1)[-1] if ("-" in zone_id and not zone_id.startswith("Z-")) else zone_id
+    cached_entry = cache.get(zone_id) or cache.get(short_zid)
+    
+    if cached_entry:
         return cached_entry["data"]
 
     payload = {

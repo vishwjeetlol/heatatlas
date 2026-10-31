@@ -220,16 +220,24 @@
                 </p>
 
                 <!-- Gemini Multimodal Verification Box -->
-                <div class="mt-2.5 p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
+                <div class="mt-2.5 p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1.5">
                   <div class="flex items-center justify-between text-xs">
                     <span class="font-bold text-slate-300 flex items-center gap-1.5">
-                      <span>🤖</span> Gemini Flash Ground Inspection:
+                      <span class="text-amber-400">⚡</span> ${b.model_used || 'Gemini Flash Ground Inspection'}:
                     </span>
-                    <span class="font-mono font-bold text-amber-400">${(b.confidence * 100).toFixed(0)}% Confidence (${b.detected_crowd} Workers)</span>
+                    <span class="font-mono font-bold ${b.verified === false ? 'text-amber-500' : 'text-emerald-400'}">
+                      ${b.verified === false ? 'Filtered / Non-Emergency' : `${(b.confidence * 100).toFixed(0)}% Conf (${b.detected_crowd || 0} Workers)`}
+                    </span>
                   </div>
-                  <p class="text-[11px] text-slate-400 italic">
-                    "${b.condition || 'Hydration deficit verified at outdoor junction.'}"
+                  <p class="text-[11.5px] text-slate-300 italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                    "${b.reasoning || b.condition || 'Hydration deficit verified at outdoor junction.'}"
                   </p>
+                  ${b.actionable_recommendation ? `
+                    <div class="text-[11px] text-blue-300 bg-blue-950/40 p-2 rounded-lg border border-blue-900/60 flex items-start gap-1.5">
+                      <strong class="text-blue-400 shrink-0">🎯 Squad Plan:</strong>
+                      <span>${b.actionable_recommendation}</span>
+                    </div>
+                  ` : ''}
                 </div>
               </div>
 

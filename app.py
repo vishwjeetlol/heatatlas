@@ -15,6 +15,10 @@ from services.weather import get_city_forecast, get_pune_forecast
 from services.worldpop import get_zone_population
 from services.assets import get_live_assets, add_asset_report
 from services.scoring import compute_scores
+from services.video_engine import generate_heatatlas_remotion_manifest
+from services.rtk_optimizer import rtk_compress_prompt
+from services.archify_spec import generate_archify_system_spec
+from services.awesome_ios_engine import get_ios_haptic_profile, get_ibeacon_mesh_spec, get_awesome_ios_catalog
 from services.agent import (
     generate_dispatch_brief,
     audit_beacon_photo,
@@ -38,12 +42,18 @@ BEACONS = [
         "description": "15+ delivery riders waiting between food delivery orders under direct sun, municipal tap dry",
         "image_url": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&auto=format&fit=crop&q=80",
         "verified": True,
-        "confidence": 0.94,
+        "confidence": 0.96,
         "detected_crowd": 16,
-        "condition": "Severe solar exposure on asphalt with empty bottles; hydration emergency verified",
+        "severity_tier": "CRITICAL",
+        "condition": "Severe solar radiation on asphalt; 16 gig riders dehydrated with depleted bottles.",
+        "reasoning": "High confidence: Swargate Jedhe Chowk transit hub verified with dense cluster of gig workers enduring 41.8°C radiant heat and dry municipal tap.",
+        "actionable_recommendation": "Dispatch Squad 1 with 20 chilled 20L water cans + 40 ORS sachets to Swargate Jedhe Chowk flyover pillar #12 immediately.",
+        "model_used": "Gemini Flash Intelligence",
         "status": "active",
         "created_at": 1730300000,
-        "assigned_ngo": "Pune Heat Action Collective (Swargate Base)"
+        "assigned_ngo": "Pune Heat Action Collective (Swargate Base)",
+        "ngo_distance_meters": 45,
+        "ngo_phone": "+91 98230 11223"
     },
     {
         "id": "b_02",
@@ -54,12 +64,18 @@ BEACONS = [
         "description": "8 rickshaw drivers sitting under tin roof, no cool drinking water available",
         "image_url": "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=600&auto=format&fit=crop&q=80",
         "verified": True,
-        "confidence": 0.88,
+        "confidence": 0.89,
         "detected_crowd": 8,
-        "condition": "Tin roof thermal trap with ambient felt temperature exceeding 42°C",
+        "severity_tier": "HIGH",
+        "condition": "Tin roof thermal trap with ambient felt temperature exceeding 42°C.",
+        "reasoning": "Corrugated iron canopy trapping excessive radiant heat. Auto rickshaw drivers reporting early signs of heat lethargy.",
+        "actionable_recommendation": "Deploy mobile misting fan and 10 water cans to Platform 1 auto bay; inspect municipal cooler line.",
+        "model_used": "Gemini Flash Intelligence",
         "status": "active",
         "created_at": 1730302000,
-        "assigned_ngo": "Shivajinagar Citizen Brigade (Station Sector)"
+        "assigned_ngo": "Shivajinagar Citizen Brigade (Station Sector)",
+        "ngo_distance_meters": 120,
+        "ngo_phone": "+91 98900 33445"
     },
     {
         "id": "b_03",
@@ -70,12 +86,18 @@ BEACONS = [
         "description": "22 daily wage cart pullers & laborers hauling produce under scorching mid-day heat",
         "image_url": "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&auto=format&fit=crop&q=80",
         "verified": True,
-        "confidence": 0.97,
+        "confidence": 0.95,
         "detected_crowd": 22,
-        "condition": "Heavy physical exertion in extreme wet-bulb conditions; high risk of heat cramps and syncope",
+        "severity_tier": "CRITICAL",
+        "condition": "Heavy physical exertion in extreme wet-bulb conditions; high risk of heat cramps and syncope.",
+        "reasoning": "22 manual cart pullers and agricultural laborers hauling produce under peak solar noon radiation. Direct sunlight, zero natural canopy.",
+        "actionable_recommendation": "Route Hadapsar APMC Labor Aid team with 25 water cans and glucose packets to Gate 2 vegetable staging bay.",
+        "model_used": "Gemini Flash Intelligence",
         "status": "active",
         "created_at": 1730303500,
-        "assigned_ngo": "Hadapsar APMC Labor Aid (Gadital Base)"
+        "assigned_ngo": "Hadapsar APMC Labor Aid (Gadital Base)",
+        "ngo_distance_meters": 240,
+        "ngo_phone": "+91 98810 77889"
     }
 ]
 
@@ -260,31 +282,21 @@ async def get_zones(city: str = Query("pune"), hour: int = Query(0, ge=0, le=47)
 
     el_nino_boost = city_info.get("el_nino_temp_boost", 2.0)
 
-    # Use live Open-Meteo apparent temperature curve with El Nino calibrated thermal boost
+    # Direct, authentic Open-Meteo official hourly forecast feed
     if raw_temps:
-        min_m = min(raw_temps[:24])
-        max_m = max(raw_temps[:24])
-        span = (max_m - min_m) if (max_m - min_m) > 0.1 else 8.0
-        # Diurnal temperature curve driven by live Open-Meteo feed, modeling regional heatwave & El Nino surface/felt conditions
-        # Night base ~31-33°C, peak afternoon ~41-43.5°C
-        hourly_scaled = [
-            round((31.5 + el_nino_boost * 0.6) + ((raw_temps[i] - min_m) / span) * (10.0 + el_nino_boost * 0.5), 1)
-            for i in range(min(24, len(raw_temps)))
-        ]
+        hourly_official = [round(t, 1) for t in raw_temps[:24]]
+    elif raw_dry_temps:
+        hourly_official = [round(t, 1) for t in raw_dry_temps[:24]]
     else:
-        hourly_scaled = [
-            round((33.0 + el_nino_boost) + (math.sin(i / 24 * math.pi) ** 2) * 8.5, 1)
-            for i in range(24)
-        ]
+        hourly_official = [28.0] * 24
 
-    # Map the hour scrubber parameter:
-    # `hour` represents hours offset from current clock time or explicit clock hour (0-23)
-    clamped_hour = min(max(hour, 0), len(hourly_scaled) - 1) if hourly_scaled else 0
-    current_temp = hourly_scaled[clamped_hour] if hourly_scaled else 38.0
+    # Map the hour scrubber parameter (0-23 clock hour or offset)
+    clamped_hour = min(max(hour, 0), len(hourly_official) - 1) if hourly_official else 0
+    current_temp = hourly_official[clamped_hour] if hourly_official else 28.0
 
     assets = await get_live_assets(city)
 
-    # Batch retrieve populations concurrently or with memoized ward estimates
+    # Batch retrieve populations concurrently using official WorldPop v2 geospatial raster data
     tasks = [get_zone_population(zid, meta["polygon"]) for zid, meta in city_zones.items()]
     pop_results = await asyncio.gather(*tasks)
     pop_map = dict(zip(city_zones.keys(), pop_results))
@@ -301,16 +313,21 @@ async def get_zones(city: str = Query("pune"), hour: int = Query(0, ge=0, le=47)
 
         r_dist = abs(meta["row"] - 3.5)
         c_dist = abs(meta["col"] - 3.5)
-        # Urban Heat Island concrete core anomaly
-        zone_temp = round(current_temp + (2.5 - 0.5 * (r_dist + c_dist)), 1)
-        hours_38 = max(1, int(round((zone_temp - 37.0) * 1.5))) if zone_temp >= 38.0 else 0
+        # Microclimate Urban Heat Island (UHI) differential: +0.2°C to +1.5°C in dense commercial cores vs outer hills
+        uhi_delta = max(0.0, round(1.5 - 0.25 * (r_dist + c_dist), 1))
+        zone_temp = round(current_temp + uhi_delta, 1)
+
+        # Count official hours exceeding extreme thermal risk thresholds (NDMA/IMD Heatwave guidelines)
+        hours_above_38 = sum(1 for t in hourly_official if (t + uhi_delta) >= 38.0)
+        # If season is pre-heatwave/transitional, monitor hours above NDMA Extreme Caution worker threshold (>=32°C apparent)
+        effective_heat_hours = hours_above_38 if hours_above_38 > 0 else sum(1 for t in hourly_official if (t + uhi_delta) >= 32.0)
 
         pop_info = pop_map[zid]
         scores = compute_scores(
             pop=pop_info["total_pop"],
             child_pop=pop_info["child_pop"],
             elderly_pop=pop_info["elderly_pop"],
-            hours_above_38=hours_38,
+            hours_above_38=effective_heat_hours,
             working_taps=working_taps,
             clinics=clinics
         )
@@ -341,7 +358,7 @@ async def get_zones(city: str = Query("pune"), hour: int = Query(0, ge=0, le=47)
         "zones": result,
         "cache_age_seconds": age_sec,
         "selected_hour": hour,
-        "hourly_temperatures": hourly_scaled
+        "hourly_temperatures": hourly_official
     }
 
 @app.get("/api/priority")
@@ -418,22 +435,28 @@ async def report_beacon(req: BeaconReportRequest):
 
     # Autonomous Geofenced Dispatch: Route to the closest registered NGO
     closest_ngo = find_closest_ngo(req.lat, req.lon)
+    is_verified = audit_res.get("verified", True)
 
     beacon = {
-        "id": f"b_{len(BEACONS) + 1}",
+        "id": f"b_{int(time.time() * 1000) % 100000}",
         "location_name": req.location_name,
         "lat": req.lat,
         "lon": req.lon,
         "zone_id": req.zone_id,
         "description": req.description,
         "image_base64": req.image_base64 if req.image_base64 else None,
-        "verified": audit_res.get("verified", True),
+        "verified": is_verified,
         "confidence": audit_res.get("confidence", 0.91),
         "detected_crowd": audit_res.get("detected_crowd", 10),
+        "severity_tier": audit_res.get("severity_tier", "CRITICAL" if is_verified else "REJECTED"),
         "condition": audit_res.get("condition", "Water urgently requested by outdoor workers"),
-        "status": "active",
+        "reasoning": audit_res.get("reasoning", "Assessed by Gemini Flash spatial intelligence."),
+        "actionable_recommendation": audit_res.get("actionable_recommendation", "Dispatch mobile relief squad."),
+        "model_used": audit_res.get("model_used", "Gemini Flash Intelligence"),
+        "is_simulated": audit_res.get("is_simulated", False),
+        "status": "active" if is_verified else "flagged",
         "created_at": int(time.time()),
-        "assigned_ngo": closest_ngo["name"] if closest_ngo else "Central Pune Heat Taskforce",
+        "assigned_ngo": (closest_ngo["name"] if closest_ngo else "Central Pune Heat Taskforce") if is_verified else "Safety Filter (Flagged)",
         "ngo_distance_meters": closest_ngo["distance_meters"] if closest_ngo else 0,
         "ngo_phone": closest_ngo["phone"] if closest_ngo else "+91 108"
     }
@@ -442,7 +465,7 @@ async def report_beacon(req: BeaconReportRequest):
         "status": "success",
         "beacon": beacon,
         "gemini_audit": audit_res,
-        "closest_ngo_alerted": closest_ngo
+        "closest_ngo_alerted": closest_ngo if is_verified else None
     }
 
 @app.get("/api/outages")
@@ -635,6 +658,50 @@ async def dispatch_brief(req: DispatchRequest):
 async def serve_dashboard():
     dashboard_file = os.path.join(os.path.dirname(__file__), "static", "dashboard.html")
     return FileResponse(dashboard_file)
+
+# Integration Endpoints for Full Toolchain (Remotion, RTK, Archify, Hallmark, Awesome-iOS)
+@app.get("/api/system/archify")
+async def archify_spec():
+    """Returns Archify formal architecture and state machine specifications."""
+    return generate_archify_system_spec()
+
+@app.get("/api/ios/awesome-catalog")
+async def get_ios_catalog():
+    """Returns curated architectural components integrated from vsouza/awesome-ios."""
+    return get_awesome_ios_catalog()
+
+@app.get("/api/ios/ibeacon-spec")
+async def get_ibeacon_spec(zone_id: str = "Z-44", city: str = "pune"):
+    """Returns JMCBeaconManager CoreLocation iBeacon specification."""
+    return get_ibeacon_mesh_spec(zone_id, city)
+
+@app.get("/api/ios/haptic-profile")
+async def get_haptic_spec(action: str = "button_tap"):
+    """Returns Haptica / UIImpactFeedbackGenerator pattern mappings."""
+    return get_ios_haptic_profile(action)
+
+@app.get("/api/video/manifest")
+async def video_manifest(city: str = Query("pune")):
+    """Returns Remotion programmatic video generation timeline manifest."""
+    city_info = get_city(city)
+    return generate_heatatlas_remotion_manifest(
+        city=city_info["name"],
+        peak_temp=42.4,
+        beacons_count=len(BEACONS),
+        ngos_count=len(REGISTERED_NGOS)
+    )
+
+@app.post("/api/optimizer/rtk")
+async def rtk_compress(payload: dict):
+    """Applies RTK Token Killer agent-agnostic compression to reduce prompt overhead."""
+    text = payload.get("prompt", "")
+    compressed = rtk_compress_prompt(text)
+    return {
+        "original_length": len(text),
+        "compressed_length": len(compressed),
+        "reduction_pct": round((1 - len(compressed)/max(1, len(text))) * 100, 1),
+        "compressed_text": compressed
+    }
 
 # Serve static frontend files
 app.mount("/", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static"), html=True), name="static")
