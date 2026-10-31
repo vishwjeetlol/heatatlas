@@ -13,7 +13,8 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 STATE_LOCK = threading.RLock()
-DB_PATH = os.path.join(os.path.dirname(__file__), "heatatlas.db")
+_LOCAL_DB = os.path.join(os.path.dirname(__file__), "heatatlas.db")
+DB_PATH = "/tmp/heatatlas.db" if (os.getenv("VERCEL") or not os.access(os.path.dirname(__file__), os.W_OK)) else _LOCAL_DB
 
 
 def _init_beacon_db():
