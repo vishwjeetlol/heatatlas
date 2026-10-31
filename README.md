@@ -10,14 +10,163 @@
 
 ## 📋 FORGE'26 Official 6-Point Project Submission Checklist
 
-| #     | Submission Field               | Official Link / Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| :---- | :----------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1** | **Problem Statement**          | **1. The Problem:** Macro weather alerts (`42°C Pune` or `45°C Delhi`) mask lethal micro-zone heat traps where asphalt and concrete cause temperatures to feel 5°C–8°C higher. Afternoon heat spikes trigger municipal water cuts and power failures, while NGOs dispatch water tankers blindly without knowing where water deficits are worst.<br><br>**2. Target Audience:** (1) 15M+ Outdoor Gig & Transit Workers (Zomato/Swiggy/Blinkit riders, drivers, laborers) facing exertional heatstroke, and (2) NGO Volunteer Leads & Municipal Disaster Management Teams (PMC/NMC/BMC) coordinating relief.<br><br>**3. Why Solved Under Theme 2 (Climate, Resource Infrastructure & Global Supply Resilience):**<br>• *Climate Resilience:* Adapts to escalating wet-bulb heatwaves across 8 major Indian cities at a 64-zone micro-resolution.<br>• *Resource Infrastructure:* Dynamically bridges municipal water and grid infrastructure failures during peak heat spikes.<br>• *Supply Resilience:* Protects the 15M+ frontline delivery and transport workers who power urban logistics and essential supply chains. |
-| **2** | **Solution Description**       | **1. Solution Overview:** Real-time predictive heat relief and dispatch platform built for 8 major Indian cities (**Pune, Nagpur, Mumbai, Delhi NCR, Chhatrapati Sambhajinagar, Nashik, Solapur, Nanded**), dividing each city into 64 micro-zones to predict lethal wet-bulb heat and water deficits in real time.<br><br>**2. Target Users:** (1) 15M+ Outdoor Gig & Transit Workers (delivery riders, drivers, laborers) & (2) NGO Relief Leads & Municipal Disaster Management Teams (PMC/NMC/BMC).<br><br>**3. Key Use Cases:** (A) Worker Hydration & Shaded Navigation via 34% cooler routes, (B) Rapid Ground SOS via 1-tap photo/voice beacons in Hindi/Marathi, (C) Constrained Relief Logistics routing water tankers to top deficit wards, and (D) 2-step Clinical Heatstroke Triage with auto-webhook to 108 Emergency Ambulance.<br><br>**4. Core Features:** 64-zone micro-grid thermal maps, 24-hr predictive scrubber with Snap-to-Live, Dynamic Cool Corridors, 1-tap distress beacons, live dual-tone audio sirens, and city-scoped NGO command center.<br><br>**5. How AI / Autonomous Agents Enable It:** (A) *Gemini 2.5 Flash Multimodal Vision* audits distress photos, counts crowds, and detects broken taps; (B) *Multilingual Speech/NLP* parses Hindi/Marathi voice notes for CNS symptoms; (C) *Autonomous Dispatch Agent* synthesizes WhatsApp battle-orders with turn-by-turn routing; and (D) *RefChecker Guardrail* ensures zero AI hallucination by grounding 100% of resource math in deterministic Python algorithms. |
-| **3** | **Prototype Link**             | **Live Web App:** [https://heatatlas.vercel.app/](https://heatatlas.vercel.app/)<br>**🌟 Showcase Website (Share with Friends):** [https://heatatlas.vercel.app/showcase.html](https://heatatlas.vercel.app/showcase.html) · [GitHub Pages Mirror](https://vishwjeetlol.github.io/heatatlas/)<br>**Live Health Check:** [https://heatatlas.vercel.app/api/health](https://heatatlas.vercel.app/api/health)<br>**Deep Readiness Probe:** [https://heatatlas.vercel.app/api/ready](https://heatatlas.vercel.app/api/ready)<br>**Live Audit & Build Info:** [https://heatatlas.vercel.app/api/system/build-info](https://heatatlas.vercel.app/api/system/build-info) |
-| **4** | **Demo Videos**                | • **Ground Reality & UI Walkthrough (150s Master):** [https://youtu.be/E7Kn1yrEejY](https://youtu.be/E7Kn1yrEejY) · [Live MP4](https://heatatlas.vercel.app/demo.mp4)<br>• **Engineering Brag & Optimization Showcase (120s):** [Live MP4](https://heatatlas.vercel.app/HeatAtlas_Brag_Showcase_120s.mp4)                                                                                                                                                                                                                                                                                                                                                         |
-| **5** | **GitHub Repository**          | **Public Repo:** [https://github.com/vishwjeetlol/heatatlas](https://github.com/vishwjeetlol/heatatlas)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **6** | **Pitch Deck & Checklist PDF** | **Pitch Deck PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf](https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf)<br>**Submission Checklist PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf](https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf)<br>**GitHub PDF Mirror:** [`HeatAtlas_Pitch_Deck.pdf`](HeatAtlas_Pitch_Deck.pdf)                                                                                                                                                                                                                                                             |
+| #     | Submission Field               | Official Link / Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| :---- | :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** | **Problem Statement**          | **1. The Problem:** Macro weather alerts (`42°C Pune` or `45°C Delhi`) mask lethal micro-zone heat traps where asphalt and concrete cause temperatures to feel 5°C–8°C higher. Afternoon heat spikes trigger municipal water cuts and power failures, while NGOs dispatch water tankers blindly without knowing where water deficits are worst.<br><br>**2. Target Audience:** (1) 15M+ Outdoor Gig & Transit Workers (Zomato/Swiggy/Blinkit riders, drivers, laborers) facing exertional heatstroke, and (2) NGO Volunteer Leads & Municipal Disaster Management Teams (PMC/NMC/BMC) coordinating relief.<br><br>**3. Why Solved Under Theme 2 (Climate, Resource Infrastructure & Global Supply Resilience):**<br>• _Climate Resilience:_ Adapts to escalating wet-bulb heatwaves across 8 major Indian cities at a 64-zone micro-resolution.<br>• _Resource Infrastructure:_ Dynamically bridges municipal water and grid infrastructure failures during peak heat spikes.<br>• _Supply Resilience:_ Protects the 15M+ frontline delivery and transport workers who power urban logistics and essential supply chains.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **2** | **Solution Description**       | **1. Solution Overview:** Real-time predictive heat relief and dispatch platform built for 8 major Indian cities (**Pune, Nagpur, Mumbai, Delhi NCR, Chhatrapati Sambhajinagar, Nashik, Solapur, Nanded**), dividing each city into 64 micro-zones to predict lethal wet-bulb heat and water deficits in real time.<br><br>**2. Target Users:** (1) 15M+ Outdoor Gig & Transit Workers (delivery riders, drivers, laborers) & (2) NGO Relief Leads & Municipal Disaster Management Teams (PMC/NMC/BMC).<br><br>**3. Key Use Cases:** (A) Worker Hydration & Shaded Navigation via 34% cooler routes, (B) Rapid Ground SOS via 1-tap photo/voice beacons in Hindi/Marathi, (C) Constrained Relief Logistics routing water tankers to top deficit wards, and (D) 2-step Clinical Heatstroke Triage with auto-webhook to 108 Emergency Ambulance.<br><br>**4. Core Features:** 64-zone micro-grid thermal maps, 24-hr predictive scrubber with Snap-to-Live, Dynamic Cool Corridors, 1-tap distress beacons, live dual-tone audio sirens, and city-scoped NGO command center.<br><br>**5. How AI / Autonomous Agents Enable It:** (A) _Gemini 2.5 Flash Multimodal Vision_ audits distress photos, counts crowds, and detects broken taps; (B) _Multilingual Speech/NLP_ parses Hindi/Marathi voice notes for CNS symptoms; (C) _Autonomous Dispatch Agent_ synthesizes WhatsApp battle-orders with turn-by-turn routing; and (D) _RefChecker Guardrail_ ensures zero AI hallucination by grounding 100% of resource math in deterministic Python algorithms. |
+| **3** | **Prototype Link**             | **Live Web App:** [https://heatatlas.vercel.app/](https://heatatlas.vercel.app/)<br>**🌟 Showcase Website (Share with Friends):** [https://heatatlas.vercel.app/showcase.html](https://heatatlas.vercel.app/showcase.html) · [GitHub Pages Mirror](https://vishwjeetlol.github.io/heatatlas/)<br>**Live Health Check:** [https://heatatlas.vercel.app/api/health](https://heatatlas.vercel.app/api/health)<br>**Deep Readiness Probe:** [https://heatatlas.vercel.app/api/ready](https://heatatlas.vercel.app/api/ready)<br>**Live Audit & Build Info:** [https://heatatlas.vercel.app/api/system/build-info](https://heatatlas.vercel.app/api/system/build-info)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **4** | **Demo Videos**                | • **Ground Reality & UI Walkthrough (150s Master):** [https://youtu.be/E7Kn1yrEejY](https://youtu.be/E7Kn1yrEejY) · [Live MP4](https://heatatlas.vercel.app/demo.mp4)<br>• **Engineering Brag & Optimization Showcase (120s):** [Live MP4](https://heatatlas.vercel.app/HeatAtlas_Brag_Showcase_120s.mp4)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **5** | **GitHub Repository**          | **Public Repo:** [https://github.com/vishwjeetlol/heatatlas](https://github.com/vishwjeetlol/heatatlas)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| **6** | **Pitch Deck & Checklist PDF** | **Pitch Deck PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf](https://heatatlas.vercel.app/HeatAtlas_Pitch_Deck.pdf)<br>**Submission Checklist PDF (Live):** [https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf](https://heatatlas.vercel.app/HeatAtlas_Submission_Checklist.pdf)<br>**GitHub PDF Mirror:** [`HeatAtlas_Pitch_Deck.pdf`](HeatAtlas_Pitch_Deck.pdf)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+
+---
+
+---
+
+## 🏗️ Project Architecture & Data Flow
+
+HeatAtlas employs a **deterministic core architecture**: All mathematical calculations, wet-bulb psychrometric indexing, spatial quadtree indexing, and resource constraint optimization are executed deterministically in Python, while Google Gemini 2.5 Flash acts strictly as a multimodal perceptual and communication layer.
+
+```mermaid
+flowchart TD
+    subgraph Clients["📱 Client Layer (React 18 + Vite + Leaflet)"]
+        PWA["Gig Worker Progressive Web App (Mobile Viewport)"]
+        CMD["NGO Lead Ground Command Center (dashboard.html)"]
+        LivingUI["Living UI Design System & Component Kit (ui_elements.html)"]
+        Radar["Real-time Hydration & Shade Radar"]
+        Corridor["Dynamic Cool Corridor Router (34% Less Heat)"]
+        SOS["1-Tap Photo & Multilingual Voice SOS Beacon"]
+    end
+
+    subgraph Backend["⚡ Core Engine (FastAPI + Python 3.11)"]
+        Endpoints["REST API Endpoints (/api/zones, /api/beacons, /api/dispatch)"]
+        MathEngine["Deterministic Psychrometric & Deficit Engine (Stull Tw, WBGT, Rd)"]
+        SpatialIndex["Spatial Quadtree & Geofence Validator"]
+        Optimizer["Discrete Concave DP Logistics Solver (O(N·B) Allocation)"]
+        DB[("SQLite Database: Real Beacons, Taps & Audited Reports")]
+    end
+
+    subgraph AI["🧠 Autonomous AI Layer (Google Gemini 2.5 Flash)"]
+        Vision["Multimodal Computer Vision: Head Count & Dehydration Audit"]
+        VoiceNLP["Multilingual Speech-to-Text & Triage: Hindi, Marathi, English"]
+        Agent["Autonomous Dispatch Agent (WhatsApp Battle-Order Synthesizer)"]
+        RefChecker["RefChecker Guardrail: Zero AI Hallucination Grounding"]
+    end
+
+    subgraph Telemetry["🛰️ Live External Telemetry Feeds (Zero Mocks)"]
+        OpenMeteo["Open-Meteo API: Live 48-Hour Hourly Weather & Wet-Bulb"]
+        WorldPop["WorldPop v2 API: 100m² Census Demographics (Children & Elderly)"]
+        OSM["OpenStreetMap Overpass QL: 1,800+ Live Water Taps & Shaded Parks"]
+    end
+
+    Clients <--> Endpoints
+    Endpoints --> MathEngine
+    Endpoints --> SpatialIndex
+    Endpoints --> Optimizer
+    Endpoints --> DB
+    Endpoints <--> AI
+    AI --> Vision
+    AI --> VoiceNLP
+    AI --> Agent
+    Agent --> RefChecker
+    RefChecker --> Optimizer
+    Endpoints <--> OpenMeteo
+    Endpoints <--> WorldPop
+    Endpoints <--> OSM
+```
+
+### System Architecture Breakdown
+
+| Layer                | Technologies                                      | Responsibility                                                                                                  |
+| :------------------- | :------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------- |
+| **Client / PWA**     | React 18, Vite, Tailwind CSS, Leaflet GIS, Lucide | Instant mobile map, 24-hr slider with Snap-to-Live, Hindi/Marathi voice note capture, live audio alarm chimes.  |
+| **API & Gateway**    | FastAPI, Uvicorn, Pydantic v2                     | High-throughput async endpoints, input validation, rate limiting, and CORS security.                            |
+| **Math & Logistics** | Python, NumPy, SciPy, Stull Equation              | Deterministic Relief Deficit ($R_d$), wet-bulb temperature ($T_w$), and Concave DP resource allocation.         |
+| **Multimodal AI**    | Google Gemini 2.5 Flash, Google GenAI SDK         | Audits distress photos, estimates crowd sizes, verifies broken taps, and transcribes vernacular voice distress. |
+| **Live Telemetry**   | Open-Meteo, WorldPop v2, OSM Overpass             | Real-time weather, UN census demographic rasters, and civic infrastructure nodes across 8 major Indian cities.  |
+
+For deep architectural specifications, state machines, and API schemas, see [`ARCHITECTURE.md`](ARCHITECTURE.md).
+
+---
+
+## 🛠️ Setup & Installation Instructions
+
+Follow these steps to run HeatAtlas locally from source code in under 3 minutes:
+
+### 1. Prerequisites
+
+- **Python:** Version 3.10 or higher
+- **Node.js:** Version 18.0.0 or higher (with `npm`)
+- **Google Gemini API Key:** Free tier from [Google AI Studio](https://aistudio.google.com/)
+
+### 2. Clone the Repository
+
+```bash
+git clone https://github.com/vishwjeetlol/heatatlas.git
+cd heatatlas
+```
+
+### 3. Configure Environment Variables
+
+Copy `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and insert your Gemini API Key:
+
+```env
+GEMINI_API_KEY=your_actual_google_ai_studio_api_key
+GEMINI_MODEL=gemini-2.5-flash
+OPEN_METEO_BASE_URL=https://api.open-meteo.com
+WORLDPOP_BASE_URL=https://api.worldpop.org
+OVERPASS_URL=https://overpass-api.de/api/interpreter
+CORS_ORIGINS=http://localhost:5173,https://heatatlas.vercel.app
+PORT=8000
+DATABASE_URL=sqlite:///./heatatlas.db
+```
+
+### 4. Start the Backend Server (FastAPI)
+
+```bash
+# Create and activate virtual environment (recommended)
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Launch FastAPI development server
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+- Backend API will be live at: `http://localhost:8000`
+- Interactive OpenAPI Swagger Docs: `http://localhost:8000/docs`
+
+### 5. Start the Frontend Application (React 18 + Vite)
+
+In a new terminal window:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- Progressive Web App will be live at: `http://localhost:5173`
+- NGO Lead Ground Command Center: `http://localhost:8000/dashboard.html`
+- Living UI Component Kit: `http://localhost:8000/ui_elements.html`
+
+### 6. Run Automated Verification & Test Suite
+
+To verify that all deterministic mathematical formulas, spatial indexes, and API endpoints pass:
+
+```bash
+pytest tests/test_heatatlas.py -v
+```
+
+_(All 17/17 acceptance and property tests pass in ~11 seconds)_
 
 ---
 
