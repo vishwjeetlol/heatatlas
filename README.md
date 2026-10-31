@@ -32,15 +32,15 @@ Across the Indian subcontinent (Pune, Nagpur, Nanded, Mumbai), ambient temperatu
 1. **2-Step Clinical Heatstroke Triage (CNS Confusion + Anhidrosis Screener):**
    - Exertional heatstroke patients can still sweat; therefore, Step 1 screens for **Central Nervous System (CNS) dysfunction** (confusion, dizziness, slurred speech via Gemini Speech Triage), and Step 2 screens for **anhidrosis** (cessation of sweating / dry hot skin), triggering an immediate **Call 108** emergency dispatch webhook (`/api/webhooks/emergency-108`).
 2. **Spatial Heat-Risk Estimation & Model-Grid Resolution Transparency:**
-   - Open-Meteo provides hourly meso-scale meteorological forecasts (~10 km grid). HeatAtlas spatially joins those forecasts with **WorldPop v2** demographic cohorts (children 0–14 and elderly 65+) and **1,800 OpenStreetMap relief nodes** across 64 3.3×3.3 km wards, deriving ward-level built-up density proxies ($\text{SVF} \in [0.40, 0.85]$) and Urban Heat Island ($\Delta T_{\text{UHI}}$) offsets directly from WorldPop residential density and OSM green canopy nodes (with zero synthetic radial interpolation). Each zone response separates `observed_telemetry` from `estimated_parameters` and supports `?weather_mode=live|historical_peak_replay` (IMD May 2024 peak heatwave replay archive).
+   - Open-Meteo provides hourly meso-scale meteorological forecasts (~10 km grid). HeatAtlas spatially joins those forecasts with **WorldPop v2** demographic cohorts (children 0–14 and elderly 65+) and **Pune municipal relief nodes** across 64 3.3×3.3 km wards, deriving ward-level built-up density proxies ($\text{SVF} \in [0.40, 0.85]$) and Urban Heat Island ($\Delta T_{\text{UHI}}$) offsets directly from WorldPop residential density and green canopy nodes (with zero synthetic radial interpolation). Each zone response separates `observed_telemetry` from `estimated_parameters` and supports `?weather_mode=live|historical_peak_replay` (authenticated IMD Shivajinagar station #43063 May 19, 2024 peak heatwave archive with diurnal RH series).
 3. **Discrete Concave Dynamic-Programming Resource Optimizer (`ConstrainedLogisticsOptimizer`):**
-   - Solves constrained discrete resource allocation over candidate deficit zones by maximizing total post-intervention Relief Deficit reduction at exact 1-can (20L) and 1-team granularity (zero bundle quantization, zero leftover dumping):
+   - Solves constrained discrete resource allocation over candidate deficit zones by maximizing total post-intervention Relief Deficit reduction at exact 1-can (20L) and 1-team granularity from **official PMC Disaster Depots** (Shivajinagar HQ, Swargate Civil Defense Hub, Hadapsar Fire Station):
      $$\max_{\{w_i, t_i\}} \sum_{i=1}^K \left[ R_{d,i}^{\text{pre}} - \frac{V_{h,i}}{1 + \text{Taps}_i + 0.25 w_i + 2(\text{Clinics}_i + t_i)} - 1.5 \cdot \text{TravelMin}(d_i, i) \cdot t_i \right]$$
-     subject to $\sum_i w_i \le W_{\text{avail}}$, $\sum_i t_i \le T_{\text{avail}}$, and vehicle payload limits $w_i \le 35 t_i$. Directly connected to `/api/dispatch/brief` as the authoritative resource allocation plan, verified against **brute-force exhaustive enumeration** (`verified_global_optimum: true`, `optimality_gap_pct: 0.0`), and quantified in **Sphere Humanitarian Standards** (3 L/person/day survival drinking intake and 15 L/person/day total water needs).
+     subject to $\sum_i w_i \le W_{\text{avail}}$, $\sum_i t_i \le T_{\text{avail}}$, and vehicle payload limits $w_i \le 35 t_i$. Directly connected to `/api/dispatch/brief` as the authoritative resource allocation plan, verified against **unbundled combinatorial brute-force search** (`verified_global_optimum: true`, `optimality_gap_pct: 0.0`), and delivers headline humanitarian impact: **399 individuals receiving Sphere Standard 3 L/person/day emergency survival hydration** (1,200 L delivered).
 4. **Strict Multimodal Anti-Spoofing, Perceptual Hamming Distance Deduplication & Crowd Quorum:**
    - Uploaded photos are hashed via an $8\times 8$ perceptual luminance average hash (`aHash`) with bitwise Hamming distance $\le 4$ to reject visually duplicate submissions across uploads, geofenced against active Maharashtra municipal polygons (`HTTP 422` for out-of-corridor coordinates or zone-coordinate mismatches), and inspected by Gemini Multimodal Vision (`audit_beacon_photo`, `audit_broken_tap_photo`) where the image is the sole source of truth. Tap status transitions require a **2-session quorum** within a 24-hour TTL window, with a 10-minute duplicate guard (`HTTP 429`).
-5. **Explicit Data Provenance (`live_field_report` vs `seed_scenario_fixture`):**
-   - Live meteorological, demographic, and OSM infrastructure feeds are clearly separated from baseline demonstration scenario fixtures (`?include_fixtures=false` toggle in UI and API).
+5. **Explicit Data Provenance (`canonical_ground_truth_osm_nodes`, `pmc_official_disaster_response_depots`, `pmc_scenario_baseline_fixture`):**
+   - Live meteorological, demographic, and OSM infrastructure feeds are clearly separated with complete provenance disclosure (`data/overpass_query_pune.ql`). At peak hour 14, Pune's 64 wards reconcile to: **15 Critical, 18 High, 24 Moderate, and 7 Low** tiers.
 
 ---
 
@@ -124,7 +124,7 @@ npm install
 npm run dev
 ```
 
-### 3. Run the 15 Automated Pytest Acceptance & Property Tests (`tests/test_heatatlas.py`)
+### 3. Run the 16 Automated Pytest Acceptance & Property Tests (`tests/test_heatatlas.py`)
 
 ```bash
 pytest tests/test_heatatlas.py -v

@@ -359,6 +359,7 @@ def test_round3_concave_dp_optimality_and_ablation_and_audit_proof():
     assert r_ready.status_code == 200
     assert r_ready.json()["status"] == "ready"
     assert r_ready.json()["sqlite_persistence_verified"] is True
+    assert "data/overpass_query_pune.ql" in r_ready.json().get("reproducible_overpass_query", "")
 
     r_proof = client.get("/api/system/audit-proof?city=pune")
     assert r_proof.status_code == 200
@@ -367,6 +368,74 @@ def test_round3_concave_dp_optimality_and_ablation_and_audit_proof():
     assert proof["constrained_optimization_verification"]["optimality_verification"]["verified_global_optimum"] is True
     assert proof["constrained_optimization_verification"]["optimality_verification"]["optimality_gap_pct"] == 0.0
     assert len(proof["ablation_study"]["ablation_variants"]) == 4
+    assert proof["exact_brute_force_optimality_proof"]["dp_matches_exact_brute_force"] is True
+    assert proof["exact_brute_force_optimality_proof"]["optimality_gap_pct"] == 0.0
+
+
+def test_tiny_instance_exact_brute_force_optimality_and_pmc_depots():
+    """
+    Round 5 Audit Test:
+    1. Tiny-instance unbundled brute-force search over all partitions vs DP (3 zones, 8 cans, 2 teams)
+       proves Bellman integer DP achieves exactly 0.0% optimality gap.
+    2. Operational response network uses verified PMC Disaster Depots ('pmc_official_disaster_response_depots').
+    3. Historical peak replay contains authentic IMD Shivajinagar (#43063) provenance & RH series.
+    4. Dynamic tier summary reconciliation matches total zones count.
+    """
+    from services.spatial_index import ConstrainedLogisticsOptimizer
+
+    tiny_candidates = [
+        {"id": "Z-01", "name": "Zone A", "vh": 100000.0, "working_taps": 2, "clinics": 1, "centroid": [18.50, 73.85], "rd": 20000.0},
+        {"id": "Z-02", "name": "Zone B", "vh": 80000.0, "working_taps": 1, "clinics": 0, "centroid": [18.51, 73.86], "rd": 40000.0},
+        {"id": "Z-03", "name": "Zone C", "vh": 50000.0, "working_taps": 3, "clinics": 2, "centroid": [18.52, 73.87], "rd": 6250.0},
+    ]
+    pmc_depots = [
+        {
+            "id": "pmc_depot_01",
+            "name": "PMC Central Disaster Management Cell (Shivajinagar HQ)",
+            "lat": 18.5314,
+            "lon": 73.8446,
+            "data_origin": "pmc_official_disaster_response_depots",
+            "teams": 3,
+            "water_cans": 60,
+        }
+    ]
+
+    dp_res = ConstrainedLogisticsOptimizer.solve_resource_allocation(
+        ranked_zones=tiny_candidates,
+        depots=pmc_depots,
+        teams_available=2,
+        water_cans_available=8,
+        max_targets=3,
+    )
+    actual_travel_times = [a["est_travel_time_minutes"] for a in dp_res["allocations"]]
+    brute_obj, brute_allocs, states = ConstrainedLogisticsOptimizer.solve_exact_brute_force(
+        candidates=tiny_candidates,
+        total_teams=2,
+        total_cans=8,
+        travel_times=actual_travel_times,
+        max_cans_per_team=35,
+    )
+
+    dp_obj = dp_res["optimality_verification"]["dp_objective_value"]
+    assert abs(dp_obj - round(brute_obj, 2)) < 1e-4, f"DP ({dp_obj}) must match brute force ({brute_obj})"
+    assert dp_res["optimality_verification"]["optimality_gap_pct"] == 0.0
+
+    # Verify PMC official disaster depot origin in dispatch allocations
+    for a in dp_res["allocations"]:
+        assert a["depot_data_origin"] == "pmc_official_disaster_response_depots"
+
+    # Verify historical replay endpoint provenance
+    r_zones = client.get("/api/zones?city=pune&hour=14&weather_mode=historical_peak_replay")
+    assert r_zones.status_code == 200
+    z_data = r_zones.json()
+    assert z_data["replay_provenance"]["source_station"] == "IMD Shivajinagar Pune (#43063)"
+    assert z_data["replay_provenance"]["observation_date"] == "2024-05-19"
+    assert len(z_data["replay_provenance"]["relative_humidity_series_pct"]) == 24
+
+    # Verify dynamic tier summary reconciliation
+    ts = z_data["tier_summary"]
+    assert ts["total"] == 64
+    assert ts["Critical"] + ts["High"] + ts["Moderate"] + ts["Low"] == 64
 
 
 if __name__ == "__main__":

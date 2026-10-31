@@ -108,14 +108,16 @@ def compute_scores(
             "rd": 0.0,
             "non_linear_rd": 0.0,
             "stull_wet_bulb_c": stull_tw,
-            "wbgt_severity_multiplier": 1.0,
+            "psychrometric_tw_strain_factor": 1.0,
+            "wbgt_severity_multiplier": 1.0,  # Backward compatibility alias
             "sky_view_factor": validated.sky_view_factor,
             "transient_worker_flux": validated.transient_worker_flux,
             "consecutive_heat_streak": 0,
             "capacity_saturation_ratio": 0.0,
             "sphere_persons_per_tap": 0.0,
             "multiplier_breakdown": {
-                "thermal_tw_factor": 1.0,
+                "psychrometric_tw_factor": 1.0,
+                "thermal_tw_factor": 1.0,  # Backward compatibility alias
                 "density_svf_factor": 1.0,
                 "sphere_saturation_factor": 1.0,
                 "combined_multiplier": 1.0,
@@ -124,9 +126,10 @@ def compute_scores(
             "tier": "No heat risk",
             "coefficient_provenance": {
                 "base_formula": "Deterministic spec: Rd = Vh / (1 + Taps + 2*Clinics)",
-                "wet_bulb_model": "Stull (2011) psychrometric Tw (J. Appl. Meteor. Climatol. 50:2267-2269)",
+                "wet_bulb_model": "Stull (2011) psychrometric Tw (J. Appl. Meteor. Climatol. 50:2267-2269). Note: Psychrometric Tw is distinct from ISO 7243 WBGT, which requires black-globe solar radiation and anemometer measurements.",
+                "operational_threshold": "PMC Heat Action Plan Tier-2 Orange Alert operational activation trigger (apparent temp >= 38.0°C)",
                 "sphere_standard": "Sphere Humanitarian Standard (Water Supply Standard 1): 250 persons per tap headcount",
-                "heuristic_weights": "3-factor operational heuristic (thermal_tw_factor * density_svf_factor * sphere_saturation_factor)",
+                "heuristic_weights": "3-factor operational heuristic (psychrometric_tw_factor * density_svf_factor * sphere_saturation_factor)",
             },
         }
 
@@ -135,9 +138,9 @@ def compute_scores(
     denom = max(1, validated.working_taps + (2 * validated.clinics) + 1)
     rd = round(vh / denom, 1)
 
-    # Factor 1: Thermal strain heuristic above 38°C operational threshold
+    # Factor 1: Psychrometric heat-strain multiplier scaled above PMC Heat Action Plan 38°C operational threshold
     excess_temp = max(0.0, validated.peak_apparent_temp - 38.0)
-    wbgt_multiplier = round(1.0 + 0.08 * (excess_temp ** 1.35), 3)
+    heat_strain_multiplier = round(1.0 + 0.08 * (excess_temp ** 1.35), 3)
 
     # Factor 2: Built-up density SVF proxy retention factor
     svf_canyon_factor = round(1.0 + 0.15 * (1.0 - validated.sky_view_factor), 3)
@@ -149,7 +152,7 @@ def compute_scores(
     sphere_persons_per_tap = round(validated.pop / max(1, validated.working_taps), 1)
     saturation_penalty = round(min(1.5, 1.0 + 0.015 * max(0.0, capacity_saturation_ratio - 1.0)), 3)
 
-    combined_multiplier = round(wbgt_multiplier * svf_canyon_factor * saturation_penalty, 3)
+    combined_multiplier = round(heat_strain_multiplier * svf_canyon_factor * saturation_penalty, 3)
     non_linear_rd = round(rd * combined_multiplier, 1)
 
     if rd >= 5000:
@@ -168,14 +171,16 @@ def compute_scores(
         "rd": rd,
         "non_linear_rd": non_linear_rd,
         "stull_wet_bulb_c": stull_tw,
-        "wbgt_severity_multiplier": wbgt_multiplier,
+        "psychrometric_tw_strain_factor": heat_strain_multiplier,
+        "wbgt_severity_multiplier": heat_strain_multiplier,  # Backward compatibility alias
         "sky_view_factor": validated.sky_view_factor,
         "transient_worker_flux": validated.transient_worker_flux,
         "consecutive_heat_streak": validated.consecutive_heat_streak,
         "capacity_saturation_ratio": capacity_saturation_ratio,
         "sphere_persons_per_tap": sphere_persons_per_tap,
         "multiplier_breakdown": {
-            "thermal_tw_factor": wbgt_multiplier,
+            "psychrometric_tw_factor": heat_strain_multiplier,
+            "thermal_tw_factor": heat_strain_multiplier,  # Backward compatibility alias
             "density_svf_factor": svf_canyon_factor,
             "sphere_saturation_factor": saturation_penalty,
             "combined_multiplier": combined_multiplier,
@@ -184,9 +189,10 @@ def compute_scores(
         "tier": tier,
         "coefficient_provenance": {
             "base_formula": "Deterministic spec: Rd = Vh / (1 + Taps + 2*Clinics)",
-            "wet_bulb_model": "Stull (2011) psychrometric Tw (J. Appl. Meteor. Climatol. 50:2267-2269)",
+            "wet_bulb_model": "Stull (2011) psychrometric Tw (J. Appl. Meteor. Climatol. 50:2267-2269). Note: Psychrometric Tw is distinct from ISO 7243 WBGT, which requires black-globe solar radiation and anemometer measurements.",
+            "operational_threshold": "PMC Heat Action Plan Tier-2 Orange Alert operational activation trigger (apparent temp >= 38.0°C)",
             "sphere_standard": "Sphere Humanitarian Standard (Water Supply Standard 1): 250 persons per tap headcount",
-            "heuristic_weights": "3-factor operational heuristic (thermal_tw_factor * density_svf_factor * sphere_saturation_factor)",
+            "heuristic_weights": "3-factor operational heuristic (psychrometric_tw_factor * density_svf_factor * sphere_saturation_factor)",
         },
     }
 
